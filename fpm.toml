@@ -1,0 +1,49 @@
+name = "DiscoFlux_Legacy"
+version = "2026.04.29"
+license = "BSD-3"
+author = "Darby J. Luscher, Jason R. Mayeur, Hashem Mourad, Abigail Hunter, Mark A. Kenamond, Daniel N. Blaschke"
+maintainer = "40176390+dblaschke-LANL@users.noreply.github.com"
+copyright = "Copyright 2026, Triad National Security, LLC"
+homepage = "https://github.com/lanl/DiscoFluxLegacy/"
+
+[fortran]
+source-form = "default"
+implicit-external = true
+
+[dependencies]
+stdlib = "*"
+blas = "*"
+openmp = "*"
+
+#[dev-dependencies]
+#test-drive.git = "https://github.com/fortran-lang/test-drive"
+#test-drive.tag = "v0.6.0"
+
+#[library]
+#type = ["shared", "static"]
+#source-dir = "src"
+
+[[executable]]
+## this frontend is still incomplete and therefore just a short demo for now
+name = "impactshear"
+source-dir = "src"
+main = "Driver.f90"
+
+[[test]]
+name = "runtests"
+source-dir = "tests"
+main = "runtests.f90"
+
+#[install]
+#library = true
+
+[extra.ford]
+project = "DiscoFlux_Legacy"
+year = "2014-2026"
+summary = '''This limited-scope basic research code models dislocation transport through the coupling of sets of dislocation density conservation equations to finite deformation crystal plasticity.
+In particular, dislocation densities (i.e. densities of line defects in crystals) are tracked per slip system and dislocation character angle.
+As such, its main purpose is for testing advancements to the model and framework.
+In contrast to most other codes, we include also the relativistic regime of dislocation drag due to phonon wind and account for the dislocation limiting gliding velocities.
+The code makes use of the finite element method and explicit time integration.'''
+project_github  = "https://github.com/lanl/????"
+

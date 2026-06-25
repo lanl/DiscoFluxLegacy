@@ -1,0 +1,64 @@
+Nchar 2
+Nel 1500
+ipOut 1500
+Nregion 1
+
+simulation_type impact
+
+B0 3.1d-11 2.4d-11     ! MPa-s
+C11 168300.0  ! MPa
+C12 121200.0
+C44 75700.0
+CP11 5.93
+CP12 5.05
+CP44 2.32
+CT11 -41.0  ! MPa / K
+CT12 -19.8
+CT44 -26.9
+L0 0.5  ! mm
+bulk_c1 0.2
+bulk_c2 1.2
+burger 3d-07     ! mm
+c1 0.5
+cdt_A 2.0
+cdt_Aint -0.1 ! change to any negative value to bypass and use new source term instead
+cdt_G_n0 1.32084d-16 ! ~0.12d0*mu*burger**3
+cdt_K 30.0       ! M = 1./K
+cdt_Y_e 1.8d-06   ! =6*burger
+cdt_pn 1.0
+cdt_qn 1.0
+cdt_rhoDot_n0 1.0d13
+cdt_tau_n0 115.0
+g0 0.87
+impact_angle 0.0           ! degree
+impact_velocity 300000.0   ! (mm/s)
+mu 0             ! will be calculated char.-dependent from wave_vel below
+omega0 8.0d11     ! 1/s
+p 0.33
+! code version >=20200512 will calculate B1 and B_star for v_star=1/rhobar0
+! eos_v_star 110112000.0       !((Mg/mm^3)
+! eos_B1 5.25                  ! - unitless
+! eos_B_star 143700.0          ! MPa
+eos_Gamma0 11130.0           ! mJ / Mg
+eos_R_M 130842000.0          ! mJ / Mg - K
+eos_Td0 321.7                ! K
+eos_a 1.259                  ! - unitless
+eos_b 0.0747                 ! - unitless
+eos_gamma 0.6666666666666666 ! 2/3, - unitless
+eos_kappa 0.717              ! unitless
+eos_rho0 8.96d-09
+q 1.66
+rho0 5.0d6 ! mm^-2
+rhobar0 8.96d-09   ! (Mg / mm^3)
+t_stop 2d-07
+t_vel 2.4d-06
+dt0 2.0d-11 ! s
+dt_output 5.0d-10  ! s
+tau0 20.0
+temperature0 300.0  ! K
+drag_flag iso
+drag_Trho_flag .True.
+backstress_model gradient
+wave_vel 2200.d3 1620.d3  ! mm/s
+echoinput .True.
+CDTintFlux zero
