@@ -16,7 +16,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest]
         python-version: ["3.14"]
-        fpm-version: ["current"]
+        fpm-version: [current]
         include:
           - python-version: '3.14'
             module-versions: "meson ninja pytest"
@@ -32,7 +32,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Setup Fortran Package Manager
-        uses: fortran-lang/setup-fpm@v9
+        uses: fortran-lang/setup-fpm@v10
         with:
           fpm-version: ${{ matrix.fpm_versions }}
       - name: Install dependencies
