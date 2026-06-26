@@ -53,7 +53,7 @@ The associated input file is expected to be located in the current folder and mu
 Several examples are included in the examples folder.
 Results are dumped to text files ending in '.F90txt'.
 A postprocessing script is included and can be used to generate a number of plots from the .F90txt files via the following syntax:</br>
-`python simplepostprocessing jobname`
+`python simple_postprocess.py jobname`
 (where 'jobname' is the same argument previously passed to the fortran code `impactshear`)
 
 ## License
