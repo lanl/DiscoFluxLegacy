@@ -16,7 +16,6 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest]
         python-version: ["3.14"]
-        fpm-version: [current]
         include:
           - python-version: '3.14'
             module-versions: "meson ninja pytest"
@@ -35,7 +34,6 @@ jobs:
         uses: fortran-lang/setup-fpm@v10
         with::
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          fpm-version: ${{ matrix.fpm_versions }}
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
