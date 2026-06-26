@@ -32,7 +32,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Setup Fortran Package Manager
-        uses: fortran-lang/setup-fpm@v10
+        uses: fortran-lang/setup-fpm@v9
         with:
           fpm-version: ${{ matrix.fpm_versions }}
       - name: Install dependencies
