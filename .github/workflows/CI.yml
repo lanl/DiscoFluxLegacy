@@ -30,6 +30,8 @@ jobs:
         uses: fortran-lang/setup-fpm@v10
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install Reference BLAS
+        run: sudo apt-get update && sudo apt-get install -y libblas-dev liblapack-dev
       - name: Run tests
         run: |
           fpm test
