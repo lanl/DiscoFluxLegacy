@@ -46,6 +46,15 @@ The latest version of this program can be built using the Fortran Package Manage
 
 `fpm build --profile release`
 
+## How to use
+
+The executable, as built by fpm, is called `impactshear` and takes a 'jobname' as its argument.
+The associated input file is expected to be located in the current folder and must be named 'input_parameters.jobname.dat'.
+Several examples are included in the examples folder.
+Results are dumped to text files ending in '.F90txt'.
+A postprocessing script is included and can be used to generate a number of plots from the .F90txt files via the following syntax:</br>
+`python simplepostprocessing jobname`
+(where 'jobname' is the same argument previously passed to the fortran code `impactshear`)
 
 ## License
 
