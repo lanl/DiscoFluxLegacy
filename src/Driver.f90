@@ -129,7 +129,8 @@ PROGRAM CaseA
   INTEGER                        :: kiter, MaxIter
   LOGICAL                        :: konverged
   REAL(KIND=8), DIMENSION(2)           :: Eddc, Edmb, Ecdt
-  REAL(KIND=8)                         :: DDCtoler, DMBtoler, CDTtoler, start_time, finish_time
+  REAL(KIND=8)                         :: DDCtoler, DMBtoler, CDTtoler
+  integer                        :: start_time, finish_time, countrate
 
   ! read input
   call readcmdline(jobname)
@@ -147,7 +148,7 @@ PROGRAM CaseA
   eos_v0, eos_v_star, q, rho0, rhobar0, t_stop, t_vel, tau0, temperature0, wave_vel, drag_flag, drag_Trho_flag, &
   backstress_model)
   
-  call cpu_time(start_time)
+  call system_clock(start_time,countrate)
  
   !! allocate memory for arrays that are too large to fit in the stack:
 !~   allocate(consistent_mass(Nnode,Nnode))
@@ -656,10 +657,10 @@ PROGRAM CaseA
 !for var_name in output_files.keys():
 !  output_files[var_name].close()
 !  call Fatal('Done.')
-  call cpu_time(finish_time)
+  call system_clock(finish_time)
 !<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><
   print*,"------------------------------------------------------------"
-  print*,"time: ",int(finish_time-start_time), "s"
+  print*,"time: ",int(real(finish_time-start_time)/real(countrate)), "s"
 
 END PROGRAM CaseA
 

@@ -88,7 +88,7 @@ PROGRAM RunTests
   
   CHARACTER(32) :: PASSED, FAILED
   INTEGER, PARAMETER :: resolution=361 ! resolve polar angle phi to 1 degree (tradeoff accuracy for speed)
-  REAL(KIND=8) :: num, nu_poisson, rho0, Fwant, tmpintegral, start_time, finish_time
+  REAL(KIND=8) :: num, nu_poisson, rho0, Fwant, tmpintegral
   Real(KIND=8), DIMENSION(5) :: array1,array2
   REAL(KIND=8), DIMENSION(3)   :: euler, unit_y, unit_z
   REAL(KIND=8), DIMENSION(3,3) :: eye, A, B, rot, Q
@@ -104,7 +104,7 @@ PROGRAM RunTests
   REAL(KIND=8), allocatable, DIMENSION(:,:,:,:)  :: varrho
   REAL(KIND=8), allocatable, DIMENSION(:,:,:)   :: tau_back1, tau_back2, rho_total
   REAL(KIND=8), allocatable, DIMENSION(:,:) :: zeros_threenslip, vel, tline, zeros2
-  INTEGER :: i, j, k, l, count_fail, count_pass
+  INTEGER :: i, j, k, l, count_fail, count_pass, start_time, finish_time, countrate
   TYPE(Type_DMB_PROPS)           :: props_dmb
   TYPE(Type_DMB_STATE)           :: dmb_state
   TYPE(Type_CDT_PROPS)           :: props_cdt
@@ -112,7 +112,7 @@ PROGRAM RunTests
   
   PASSED = char(9)//"PASSED"; FAILED = char(9)//"FAILED"
   count_fail=0; count_pass=0
-  call cpu_time(start_time)
+  call system_clock(start_time,countrate)
   ! allocate memory
   allocate(x(10000), func(10000))
   allocate(integral(9999), zeros_nslip(Nslip), X_ref(Nnode))
@@ -438,9 +438,9 @@ PROGRAM RunTests
                       "Bb (bcc Fe) edge: validate against python implementation",1.d-8,count_pass,count_fail)
   
   
-  call cpu_time(finish_time)
+  call system_clock(finish_time)
 !<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><
   print*,"------------------------------------------------------------"
   print*,"SUMMARY:", count_pass," passed and ",count_fail," failed"
-  print*,"time: ",int(1000.d0*(finish_time-start_time)), "ms"
+  print*,"time: ",int(1000.d0*real(finish_time-start_time)/real(countrate)), "ms"
 END PROGRAM RunTests
