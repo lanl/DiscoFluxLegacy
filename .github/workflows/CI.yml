@@ -32,7 +32,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Setup Fortran Package Manager
         uses: fortran-lang/setup-fpm@v10
-        with::
+        with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Install dependencies
         run: |
