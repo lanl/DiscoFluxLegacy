@@ -10,6 +10,9 @@ homepage = "https://github.com/lanl/DiscoFluxLegacy/"
 source-form = "default"
 implicit-external = true
 
+[build]
+link = ["lapack", "blas"]
+
 [dependencies]
 stdlib = "*"
 blas = "*"
@@ -18,6 +21,13 @@ openmp = "*"
 #[dev-dependencies]
 #test-drive.git = "https://github.com/fortran-lang/test-drive"
 #test-drive.tag = "v0.6.0"
+
+[features]
+baseline.gfortran.flags = "-march=native"
+baseline.flang.flags = "-march=native"
+
+[profiles]
+default = ["baseline"]
 
 #[library]
 #type = ["shared", "static"]
@@ -45,5 +55,5 @@ In particular, dislocation densities (i.e. densities of line defects in crystals
 As such, its main purpose is for testing advancements to the model and framework.
 In contrast to most other codes, we include also the relativistic regime of dislocation drag due to phonon wind and account for the dislocation limiting gliding velocities.
 The code makes use of the finite element method and explicit time integration.'''
-project_github  = "https://github.com/lanl/????"
+project_github  = "https://github.com/lanl/DiscoFluxLegacy"
 
