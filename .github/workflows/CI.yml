@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+    paths:
+      - '**.py'
+      - '**.f90'
+      - '**.toml'
+      - '**.yml'
+
+jobs:
+  RunTests:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        python-version: ["3.14"]
+        toolchain:
+          - {compiler: gcc, version: 'latest'}
+    steps:
+      - uses: actions/checkout@v6
+      - name: Setup Fortran Compiler
+        uses: fortran-lang/setup-fortran@v1
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Setup Fortran Package Manager
+        uses: fortran-lang/setup-fpm@v10
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install Reference BLAS
+        run: sudo apt-get update && sudo apt-get install -y libblas-dev liblapack-dev
+      - name: Run tests
+        run: |
+          fpm test

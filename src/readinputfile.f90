@@ -182,7 +182,7 @@ do
   if (key=='simulation_type') read(values,*)simulation_type
   if (key=='Nslip') read(values,*)Nslip
   if (key=='crystalstruct') read(values,*)crystalstruct
-  if (key=='B0') read(line,*) key,(B0(j), j=1,Nchar) 
+  if (key=='B0') read(line,*) key,B0(1:Nchar)
   if (key=='C11') read(values,*)C11
   if (key=='C12') read(values,*)C12
   if (key=='C44') read(values,*)C44
@@ -256,7 +256,7 @@ do
   if (key=='t_vel') read(values,*)t_vel
   if (key=='tau0') read(values,*)tau0
   if (key=='temperature0') read(values,*)temperature0
-  if (key=='wave_vel') read(line,*) key,(wave_vel(j), j=1,Nchar) ! computed from mu below, if mu is given explicitly!
+  if (key=='wave_vel') read(line,*) key,wave_vel(1:Nchar) ! computed from mu below, if mu is given explicitly!
   if (key=='all_euler_angles') then
     !! use this keyword to read all euler angles from one input line
     read(line,*)key,(euler_angle(j,1),euler_angle(j,2),euler_angle(j,3), j=1,Nregion)
