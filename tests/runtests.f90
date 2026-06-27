@@ -443,8 +443,6 @@ PROGRAM RunTests
   print*,"------------------------------------------------------------"
   print*,"SUMMARY:", count_pass," passed and ",count_fail," failed"
   print*,"time: ",int(1000.d0*real(finish_time-start_time)/real(countrate)), "ms"
-  
-  ! check this last line is working:
-  count_fail = count_fail+1
+
   if (count_fail>0) error stop "some tests failed"
 END PROGRAM RunTests
