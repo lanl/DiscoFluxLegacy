@@ -25,6 +25,7 @@ openmp = "*"
 [features]
 baseline.gfortran.flags = "-march=native"
 baseline.flang.flags = "-march=native"
+baseline.lfortran.flags = "--legacy-array-sections"
 
 [profiles]
 default = ["baseline"]
