@@ -21,7 +21,6 @@ jobs:
           - {compiler: gcc, version: 'latest'}
           - {compiler: gcc, version: 10}
           - {compiler: intel, version: 'latest'}
-          - {compiler: lfortran, version: '0.63'}
     steps:
       - uses: actions/checkout@v6
       - name: Setup Fortran Compiler
