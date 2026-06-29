@@ -13,15 +13,21 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest]
         python-version: ["3.14"]
         toolchain:
           - {compiler: gcc, version: 'latest'}
+          - {compiler: gcc, version: 10}
+          - {compiler: intel, version: 'latest'}
     steps:
       - uses: actions/checkout@v6
       - name: Setup Fortran Compiler
         uses: fortran-lang/setup-fortran@v1
+        with:
+          compiler: ${{ matrix.toolchain.compiler }}
+          version: ${{ matrix.toolchain.version }}
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v6
         with:

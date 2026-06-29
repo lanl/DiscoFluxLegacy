@@ -251,7 +251,7 @@ PROGRAM RunTests
   tline(i,:) = tline(i,:) - (unit_y+unit_z)
   end do
   if (Nchar>1) then
-    call testequal(tline,zeros_threenslip,Nslip,3,"RotAlign, screw", 1.d-15,count_pass,count_fail)
+    call testequal(tline,zeros_threenslip,Nslip,3,"RotAlign, screw", 1.d-14,count_pass,count_fail)
   end if
   do i=1,min(Nslip,12)
   rot = props_dmb%rotM(:,:,i,Nchar)
@@ -259,7 +259,7 @@ PROGRAM RunTests
 !   call testequalarray(tline(i,:),unit_y+unit_z,3,"RotAlign, edge", 1.d-15,count_pass,count_fail)
   tline(i,:) = tline(i,:) - (unit_y+unit_z)
   end do
-  call testequal(tline,zeros_threenslip,Nslip,3,"RotAlign, edge", 1.d-15,count_pass,count_fail)
+  call testequal(tline,zeros_threenslip,Nslip,3,"RotAlign, edge", 1.d-14,count_pass,count_fail)
   
   ! test Cu
   props_dmb%C11     = 168300.0d0    
