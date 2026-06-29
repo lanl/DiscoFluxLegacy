@@ -15,12 +15,18 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu-latest, macos-latest]
         python-version: ["3.14"]
         toolchain:
           - {compiler: gcc, version: 'latest'}
           - {compiler: gcc, version: 10}
           - {compiler: intel, version: 'latest'}
+          - {compiler: lfortran, version: '0.63'}
+        exclude:
+          - os: macos-latest
+            toolchain: {compiler: gcc, version: 10}
+          - os: ubuntu-latest
+            toolchain: {compiler: lfortran, version: '0.63'}
     steps:
       - uses: actions/checkout@v6
       - name: Setup Fortran Compiler
@@ -38,6 +44,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Install Reference BLAS
         run: sudo apt-get update && sudo apt-get install -y libblas-dev liblapack-dev
+        if: runner.os == 'Linux'
       - name: Run tests
         run: |
           fpm test

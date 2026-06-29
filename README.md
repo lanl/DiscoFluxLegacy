@@ -17,7 +17,7 @@ This standalone Fortran code was initially developed for the following papers:
 3. D. N. Blaschke, D. J. Luscher, “Dislocation drag and its influence on elastic precursor decay”, 
 [Int. J. Plast. 144 (2021) 103030](https://doi.org/10.1016/j.ijplas.2021.103030) ([arxiv.org/abs/2101.10497](https://arxiv.org/abs/2101.10497))
 
-Users may also be interested in the [DiscoFluxM](https://github.com/lanl/DiscoFluxM) code (written in C++ and implemented within MOOSE framework).
+Users may also be interested in the [DiscoFluxM](https://github.com/lanl/DiscoFluxM) code (written in C++ and implemented within the MOOSE framework).
 
  © 2026. Triad National Security, LLC. All rights reserved.
 
