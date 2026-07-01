@@ -11,11 +11,13 @@ The code makes use of the finite element method and explicit time integration.
 This standalone Fortran code was initially developed for the following papers:
 
 1. D. J. Luscher, J.R. Mayeur, H. M. Mourad, A. Hunter, M. A. Kenamond, “Coupling continuum dislocation transport with crystal plasticity for application to shock loading conditions”, 
-[Int. J. Plast. 76 (2016) 111](https://doi.org/10.1016/j.ijplas.2015.07.007)
+[*Int. J. Plast.* **76** (2016) 111](https://doi.org/10.1016/j.ijplas.2015.07.007)
 2. J. R. Mayeur, H. M. Mourad, D. J Luscher, A. Hunter, M. A. Kenamond, “Numerical implementation of a crystal plasticity model with dislocation transport for high strain rate applications“, 
-[Modelling Simul. Mater. Sci. Eng. 24 (2016) 045013](https://doi.org/10.1088/0965-0393/24/4/045013)
+[*Modelling Simul. Mater. Sci. Eng.* **24** (2016) 045013](https://doi.org/10.1088/0965-0393/24/4/045013)
 3. D. N. Blaschke, D. J. Luscher, “Dislocation drag and its influence on elastic precursor decay”, 
-[Int. J. Plast. 144 (2021) 103030](https://doi.org/10.1016/j.ijplas.2021.103030) ([arxiv.org/abs/2101.10497](https://arxiv.org/abs/2101.10497))
+[*Int. J. Plast.* **144** (2021) 103030](https://doi.org/10.1016/j.ijplas.2021.103030) ([arxiv.org/abs/2101.10497](https://arxiv.org/abs/2101.10497))
+</br>
+(*The pre-print of this last paper on arxiv.org includes DiscoFlux Legacy input files inside its 'TeX Source' to reproduce the figures.*)
 
 Users may also be interested in the [DiscoFluxM](https://github.com/lanl/DiscoFluxM) code (written in C++ and implemented within the MOOSE framework).
 

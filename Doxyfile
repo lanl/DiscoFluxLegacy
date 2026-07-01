@@ -6,6 +6,4 @@ EXTRACT_ALL            = YES
 INPUT                  = src \
                          README.md
 RECURSIVE              = YES
-EXCLUDE_PATTERNS       = pydislocdyn \
-                         */.inc/*
 FILTER_PATTERNS        = *.f90
