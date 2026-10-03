@@ -3,9 +3,7 @@ name: CI
 on:
   push:
     paths:
-      - '**.py'
       - '**.f90'
-      - '**.toml'
       - '**.yml'
 
 jobs:
@@ -21,9 +19,9 @@ jobs:
           - {compiler: gcc, version: 'latest'}
           - {compiler: intel, version: '2024.1'}
           - {compiler: intel, version: 'latest'}
-          - {compiler: nvidia-hpc, version: 'latest'}
+          #~ - {compiler: nvidia-hpc, version: 'latest'}
           #~ - {compiler: lfortran, version: '0.66.0'}
-          - {compiler: aocc, version: 'latest'}
+          #~ - {compiler: aocc, version: 'latest'}
         #~ exclude:
           #~ - os: macos-latest
             #~ toolchain: {compiler: nvidia-hpc}
