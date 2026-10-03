@@ -49,12 +49,7 @@ main = "runtests.f90"
 #library = true
 
 [extra.ford]
-project = "DiscoFlux_Legacy"
+project = "" ## we include the README.md file in the ford-docs for this and other info, see ford.yml
 year = "2014-2026"
-summary = '''This limited-scope basic research code models dislocation transport through the coupling of sets of dislocation density conservation equations to finite deformation crystal plasticity.
-In particular, dislocation densities (i.e. densities of line defects in crystals) are tracked per slip system and dislocation character angle.
-As such, its main purpose is for testing advancements to the model and framework.
-In contrast to most other codes, we include also the relativistic regime of dislocation drag due to phonon wind and account for the dislocation limiting gliding velocities.
-The code makes use of the finite element method and explicit time integration.'''
 project_github  = "https://github.com/lanl/DiscoFluxLegacy"
 

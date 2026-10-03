@@ -257,10 +257,10 @@ do
   if (key=='tau0') read(values,*)tau0
   if (key=='temperature0') read(values,*)temperature0
   if (key=='wave_vel') read(line,*) key,wave_vel(1:Nchar) ! computed from mu below, if mu is given explicitly!
-!~   if (key=='all_euler_angles') then
-!~     !! use this keyword to read all euler angles from one input line
-!~     read(line,*)key,(euler_angle(j,1),euler_angle(j,2),euler_angle(j,3), j=1,Nregion)
-!~   end if
+  if (key=='all_euler_angles') then
+    !! use this keyword to read all euler angles from one input line
+    read(line,*)key,(euler_angle(j,1),euler_angle(j,2),euler_angle(j,3), j=1,Nregion)
+  end if
   if ((key=='euler_angle') .and. (j_eul<=Nregion)) then
     !! use this keyword to read one set of euler angles, use multiple entries in order to read in for all Nregion
     read(line,*)key,euler_angle(j_eul,1),euler_angle(j_eul,2),euler_angle(j_eul,3)
