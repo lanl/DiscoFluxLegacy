@@ -3,9 +3,7 @@ name: CI
 on:
   push:
     paths:
-      - '**.py'
       - '**.f90'
-      - '**.toml'
       - '**.yml'
 
 jobs:
@@ -15,29 +13,45 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest]
-        python-version: ["3.14"]
+        os: [ubuntu-latest, windows-latest]
         toolchain:
+          - {compiler: gcc, version: '10'}
           - {compiler: gcc, version: 'latest'}
-          - {compiler: gcc, version: 10}
+          - {compiler: intel, version: '2024.1'}
           - {compiler: intel, version: 'latest'}
+          #~ - {compiler: nvidia-hpc, version: 'latest'}
+          - {compiler: lfortran, version: '0.66.0'}
+          #~ - {compiler: aocc, version: 'latest'}
+        exclude:
+          #~ - os: macos-latest
+            #~ toolchain: {compiler: nvidia-hpc}
+          #~ - os: macos-latest
+            #~ toolchain: {compiler: aocc}
+          #~ - os: macos-latest
+            #~ toolchain: {compiler: intel}
+          #~ - os: macos-latest
+            #~ toolchain: {compiler: gcc, version: '10'}
+          - os: windows-latest
+            toolchain: {compiler: intel}
+          - os: windows-latest
+            toolchain: {compiler: gcc, version: '10'}
+          - os: windows-latest
+            toolchain: {compiler: lfortran}
     steps:
-      - uses: actions/checkout@v6
-      - name: Setup Fortran Compiler
-        uses: fortran-lang/setup-fortran@v1
+      - uses: actions/checkout@v7
+      - uses: fortran-lang/setup-fortran@v1
+        id: setup-fortran
         with:
           compiler: ${{ matrix.toolchain.compiler }}
           version: ${{ matrix.toolchain.version }}
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v6
-        with:
-          python-version: ${{ matrix.python-version }}
       - name: Setup Fortran Package Manager
         uses: fortran-lang/setup-fpm@v10
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Install Reference BLAS
-        run: sudo apt-get update && sudo apt-get install -y libblas-dev liblapack-dev
+          fpm-version: 'current'
+      #~ - name: Install Reference BLAS
+        #~ run: sudo apt-get update && sudo apt-get install -y libblas-dev liblapack-dev
+        #~ if: runner.os == 'Linux'
       - name: Run tests
         run: |
-          fpm test
+          fpm test --compiler ${{ env.FC }} 
