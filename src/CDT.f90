@@ -397,6 +397,7 @@ END FUNCTION numFlux
 
 SUBROUTINE FEM_Update(concentration, velocity, flux_bc, src, Lc, dt, nsc, &
            c_new)
+  use stdlib_linalg_lapack, only: GTSV
   USE GlobalParams
   USE CDT
   use utilities, only: Fatal
@@ -416,7 +417,8 @@ SUBROUTINE FEM_Update(concentration, velocity, flux_bc, src, Lc, dt, nsc, &
 !-----------------------------------------------------------------------
 !  Locals:
   REAL(KIND=8), DIMENSION(Nel)   :: cfl_elem
-  REAL(KIND=8), DIMENSION(Nnode) :: flux, source, M_lumped, rhs, c_dot
+  REAL(KIND=8), DIMENSION(Nnode,1) :: rhs
+  REAL(KIND=8), DIMENSION(Nnode) :: flux, source, M_lumped, c_dot
   REAL(KIND=8), DIMENSION(Nnode) :: flux_supg, source_supg, M_supg_lumped
 !~   REAL(KIND=8), DIMENSION(Nnode,Nnode) :: M_consis, M_supg
   ! replace M_consis, M_supg with sparse versions (don't waste memory/performance), i.e.
@@ -503,7 +505,7 @@ SUBROUTINE FEM_Update(concentration, velocity, flux_bc, src, Lc, dt, nsc, &
     flux(Nnode) = flux(Nnode) - flux_bc(Nregion+1)
   end if
 
-  rhs(:)   = flux(:) + source(:)
+  rhs(:,1)   = flux(:) + source(:)
 
 !~   !$OMP PARALLEL DO DEFAULT(SHARED), PRIVATE(e)
   do e=1,Nel
@@ -517,9 +519,9 @@ SUBROUTINE FEM_Update(concentration, velocity, flux_bc, src, Lc, dt, nsc, &
 !~   !$OMP END PARALLEL DO
 !~   amid(Nel+1) = M_consis(Nel+1,Nel+1)
   amid(Nel+1) = M_consis_sprs(Nel+1,1)
-  call DGTSV(Nnode,1,alow,amid,aup,rhs,Nnode,INFO)
+  call GTSV(Nnode,1,alow,amid,aup,rhs,Nnode,INFO)
   if (INFO/=0) call Fatal('FEM_Update: Problem w/ linear solver.')
-  c_dot(:) = rhs(:)
+  c_dot(:) = rhs(:,1)
 
 ! alow(:) = 1.d0/6.d0 * Lc(:)
 ! aup(:) = alow(:)

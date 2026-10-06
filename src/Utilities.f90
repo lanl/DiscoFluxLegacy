@@ -346,6 +346,7 @@ END SUBROUTINE ElBrak
 !>  Invert a NxN tensor.
 SUBROUTINE Invert_Tensor(A,n,Ainv)
 !-----------------------------------------------------------------------
+  use stdlib_linalg_lapack, only: getrf, getri
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Inputs:
@@ -364,7 +365,7 @@ SUBROUTINE Invert_Tensor(A,n,Ainv)
   Ainv = A
   nn=n*n
 
-  call DGETRF(n,n,Ainv,n,ipiv,info)
+  call GETRF(n,n,Ainv,n,ipiv,info)
 
   if(info/=0) then
     write(*,*) 'Invert_Tensor(): Lapack DGETRF() failed.'
@@ -374,7 +375,7 @@ SUBROUTINE Invert_Tensor(A,n,Ainv)
     call Fatal('Bad matrix.')
   end if
 
-  call DGETRI(n,Ainv,n,ipiv,work,nn,info)
+  call GETRI(n,Ainv,n,ipiv,work,nn,info)
 
   if(info/=0) then
     write(*,*) 'Invert_Tensor(): Lapack DGETRI() failed.'
