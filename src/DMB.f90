@@ -560,6 +560,7 @@ END SUBROUTINE DMB_Invert_Tensor43
 
 !>  Invert a 6x6 tensor.
 SUBROUTINE DMB_Invert_Tensor26(A,Ainv)
+  use stdlib_linalg_lapack, only: getrf, getri
   use utilities, only: Fatal
   IMPLICIT NONE
 !-----------------------------------------------------------------------
@@ -578,14 +579,14 @@ SUBROUTINE DMB_Invert_Tensor26(A,Ainv)
   n = 6; nn=36
   Ainv = A
 
-  call DGETRF(n,n,Ainv,n,ipiv,info)
+  call GETRF(n,n,Ainv,n,ipiv,info)
 
   if(info/=0) then
     write(*,*) 'Invert_Tensor26(): Lapack DGETRF() failed.'
     call Fatal('Bad matrix.')
   end if
 
-  call DGETRI(n,Ainv,n,ipiv,work,nn,info)
+  call GETRI(n,Ainv,n,ipiv,work,nn,info)
 
   if(info/=0) then
     write(*,*) 'Invert_Tensor26(): Lapack DGETRI() failed.'

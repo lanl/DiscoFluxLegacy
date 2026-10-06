@@ -102,7 +102,10 @@ def readinputdata(filename):
                                 value += addval
                     inputparams[key] = mkfloat(value,inputparams)
     except FileNotFoundError:
-        inputparams = readfortraninput(filename[:-3] + "dat")
+        try:
+            inputparams = readfortraninput(filename[:-3] + "dat")
+        except FileNotFoundError:
+            inputparams = readfortraninput(filename[17:-4])
     return inputparams
     
 def writefortraninput(inputparams,fname,Nchar=Nchar):

@@ -1,5 +1,5 @@
 name = "DiscoFlux_Legacy"
-version = "2026.04.29"
+version = "2026.10.06"
 license = "BSD-3"
 author = "Darby J. Luscher, Jason R. Mayeur, Hashem Mourad, Abigail Hunter, Mark A. Kenamond, Daniel N. Blaschke"
 maintainer = "40176390+dblaschke-LANL@users.noreply.github.com"
@@ -10,22 +10,22 @@ homepage = "https://github.com/lanl/DiscoFluxLegacy/"
 source-form = "default"
 implicit-external = true
 
-[build]
-link = ["lapack", "blas"]
+#[build]
+#link = ["lapack", "blas"]
 
 [dependencies]
 stdlib = "*"
-blas = "*"
+#blas = "*"
 openmp = "*"
 
 #[dev-dependencies]
 #test-drive.git = "https://github.com/fortran-lang/test-drive"
-#test-drive.tag = "v0.6.0"
+#test-drive.tag = "v0.6.1"
 
 [features]
-baseline.gfortran.flags = "-march=native"
-baseline.flang.flags = "-march=native"
-baseline.lfortran.flags = "--legacy-array-sections"
+baseline.gfortran.flags = "-O3 -march=native"
+baseline.flang.flags = "-O3 -march=native"
+baseline.lfortran.flags = "--fast --legacy-array-sections --realloc-lhs-arrays"
 
 [profiles]
 default = ["baseline"]
@@ -35,7 +35,6 @@ default = ["baseline"]
 #source-dir = "src"
 
 [[executable]]
-## this frontend is still incomplete and therefore just a short demo for now
 name = "impactshear"
 source-dir = "src"
 main = "Driver.f90"
