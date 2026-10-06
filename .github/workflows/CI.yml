@@ -33,6 +33,10 @@ jobs:
             #~ toolchain: {compiler: gcc, version: '10'}
           - os: windows-latest
             toolchain: {compiler: intel}
+          - os: windows-latest
+            toolchain: {compiler: gcc, version: '10'}
+          - os: windows-latest
+            toolchain: {compiler: lfortran}
     steps:
       - uses: actions/checkout@v7
       - uses: fortran-lang/setup-fortran@v1
