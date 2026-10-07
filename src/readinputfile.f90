@@ -309,7 +309,7 @@ if ( crystalstruct=='fcc' .and. (abs(wave_vel(1)) < 1.d-15) ) then
     ! dislocdynlib needs SI units:
     mat = disloc(sym=crystalstruct,metal="mat",rho=rhobar0*1.d12,lat_a = [burger*sqrt(2.d0)*1.d-3,0.d0,0.d0])
     mat%cij = [C11*1.d6, C12*1.d6, C44*1.d6]
-    mat%cijk = [-1271.d9, -814.d9, -50.d9, -3.d9, -780.d9, -95.d9]
+    mat%cijk = cijk*1.d6
     mat%ntheta = Nchar
     call mat%init(Millerb=[0.5d0,0.5d0,0.d0],Millern0=[-1.d0,1.d0,-1.d0]) ! infers mat%burgers from Millerb
     allocate(vlim(Nchar,3))
