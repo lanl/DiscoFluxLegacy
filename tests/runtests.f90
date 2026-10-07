@@ -77,6 +77,7 @@ end module checks
 
 PROGRAM RunTests
   use stdlib_linalg, only: expm
+  use dislocdyn_parameters, only: version
   USE GlobalParams
   USE DMB
   USE CDT
@@ -139,6 +140,7 @@ PROGRAM RunTests
   rho0 = 10000000.0d0
 
   print*,"running tests for program version: ",prog_version
+  print*,"using dislocdynlib version ",version
   print*,"compiled with these defaults:"
   print*,"# of elements, Nel = ",Nel
   print*,"# of regions, Nregion = ",Nregion

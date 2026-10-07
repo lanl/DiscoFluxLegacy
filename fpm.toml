@@ -17,6 +17,7 @@ implicit-external = true
 stdlib = "*"
 #blas = "*"
 openmp = "*"
+dislocdynlib.git = "https://github.com/dblaschke-lanl/pydislocdyn"
 
 #[dev-dependencies]
 #test-drive.git = "https://github.com/fortran-lang/test-drive"

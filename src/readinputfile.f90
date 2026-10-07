@@ -76,16 +76,19 @@ SUBROUTINE ReadInput(jobname, simulation_type, B0, C11, C12, C44, CDT_update, CD
   backstress_model)
 
 USE GlobalParams
+use dislocdyn_dislocations, only: disloc, phonondrag
 use utilities, only: Fatal
 !$   Use omp_lib
 implicit none
 
 CHARACTER(32), INTENT(IN) :: jobname
 !------------ local variables:
+type(disloc) :: mat
 integer :: ios, j, ich, j_eul
 character(32) :: key
 character(54) :: inputfilename
-REAL(KIND=8) :: value1, Zener
+REAL(KIND=8) :: value1, Zener, cijk(6)
+real(8), allocatable :: drag(:,:)
 character(256) :: line, values
 LOGICAL :: echoinput
 !--------------------------- outputs:
@@ -154,6 +157,7 @@ temperature0    = 300.0d0   ! K
 drag_flag = 'Austin' ! choose fct form for drag coeff.: 'Austin' (default), 'iso', or 'const '
 drag_Trho_flag = .False. ! set to .True. to make drag coeff. T and rho dependent
 B0 = 3.d-11 ! default value for low velocity drag coefficient is a rough order-of-magnitude estimate
+cijk = 0.d0 ! if TOEC are provided, B0 will be caluclated
 backstress_model = 'gradient'
 
 inputfilename = "input_parameters."//trim(jobname)//".dat"
@@ -183,6 +187,7 @@ do
   if (key=='Nslip') read(values,*)Nslip
   if (key=='crystalstruct') read(values,*)crystalstruct
   if (key=='B0') read(line,*) key,B0(1:Nchar)
+  if (key=='cijk') read(line,*) key,cijk(1:6)
   if (key=='C11') read(values,*)C11
   if (key=='C12') read(values,*)C12
   if (key=='C44') read(values,*)C44
@@ -299,14 +304,20 @@ if (mu > 0.d0) then
 end if
 Zener = 2*C44/(C11-C12)
 
-! calculate an estimate for character dependent wave_vel, if not provided by the user (WARNING: implemented only for fcc):
-if ( abs(wave_vel(1)) < 1.d-15) then
-  wave_vel(1) = sqrt((3.d0*C44*(C11-C12))/(rhobar0*2.d0*(C44+C11-C12))) ! analytic solution for vcrit of fcc screw
-  wave_vel(Nchar) = min(sqrt((C11-C12)/(2.d0*rhobar0)),sqrt(C44/rhobar0)) ! analytic solution for vcrit of fcc edge
-  do ich=2, Nchar-1
-    !TODO: generalize! (for now we just interpolate between vcrit for edge and screw)
-    wave_vel(ich) = max(wave_vel(1),wave_vel(Nchar)) - abs(wave_vel(1) - wave_vel(Nchar))*(ich-1.d0)/(Nchar-1.d0)
-  end do !ich
+! calculate character dependent wave_vel, if not provided by the user:
+if ( crystalstruct=='fcc' .and. (abs(wave_vel(1)) < 1.d-15) ) then
+    ! dislocdynlib needs SI units:
+    mat = disloc(sym=crystalstruct,metal="mat",rho=rhobar0*1.d12,lat_a = [burger*sqrt(2.d0)*1.d-3,0.d0,0.d0])
+    mat%cij = [C11*1.d6, C12*1.d6, C44*1.d6]
+    mat%cijk = [-1271.d9, -814.d9, -50.d9, -3.d9, -780.d9, -95.d9]
+    call mat%init(Millerb=[0.5d0,0.5d0,0.d0],Millern0=[-1.d0,1.d0,-1.d0]) ! infers mat%burgers from Millerb
+    call mat%computevcrit(wave_vel)
+    ! convert wave_vel back from SI units:
+    wave_vel = wave_vel*1.d3
+    if (abs(cijk(1)) > 1.d0) then
+      call phonondrag(drag,mat,[0.d0])
+      B0 = drag(:,1)*1.d-9
+    end if
 end if
 
 ! fall-back for bulk modulus Bstar, its pressure derivative B1 and reference volume vstar:
@@ -344,6 +355,7 @@ if (echoinput) then
   print*,"C12",C12
   print*,"C44",C44
   print*,"Zener ratio",Zener
+  print*,"cijk",cijk
   print*,"CDT_update ",CDT_update
   print*,"CDTintegrator ",CDTintegrator
   print*,"CDTlimiter ",CDTlimiter

@@ -30,6 +30,7 @@ Darby J. Luscher, Jason R. Mayeur, Hashem Mourad, Abigail Hunter, Mark A. Kenamo
 
 * A Fortran 2008 compiler
 * the [Fortran standard library](https://stdlib.fortran-lang.org/)
+* dislocdynlib (part of [PyDislocDyn](https://github.com/dblaschke-LANL/PyDislocDyn))
 * the [Fortran package manager (fpm)](https://fpm.fortran-lang.org/)
 * [Doxygen](https://www.doxygen.nl/) or [Ford](https://forddocs.readthedocs.io/en/stable/)>=7 to build the code documentation
 * the Fortran code has been tested with the following compilers:
