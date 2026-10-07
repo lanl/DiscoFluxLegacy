@@ -87,7 +87,7 @@ PROGRAM CaseA
   CHARACTER(32)         :: CDTintFlux
   character(32)         :: drag_flag
   character(32)         :: backstress_model
-  CHARACTER(32)         :: jobname
+  CHARACTER(64)         :: jobname
 !-----------------------------------------------------------------------
   REAL(KIND=8), DIMENSION(:,:), allocatable     :: slip_M, slip_S
   REAL(KIND=8), DIMENSION(:,:,:), allocatable     :: slip_V, line_T

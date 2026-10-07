@@ -158,7 +158,7 @@ SUBROUTINE Init_Field_File(jobname, unitnumber, loc, vrb)
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Inputs:
-  CHARACTER(32) :: jobname      !< job name
+  CHARACTER(64) :: jobname      !< job name
   INTEGER       :: unitnumber   !< unit number
   CHARACTER*(*) :: loc          !< location of value in mesh
   CHARACTER*(*) :: vrb          !< Variable name

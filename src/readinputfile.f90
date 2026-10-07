@@ -14,12 +14,12 @@ USE GlobalParams
 use utilities, only: Fatal
 implicit none
 
-CHARACTER(32), INTENT(IN) :: jobname
+CHARACTER(64), INTENT(IN) :: jobname
 !------------ local variables:
 integer :: ios
 character(6) :: crystalstruct
 character(32) :: key
-character(54) :: inputfilename
+character(64) :: inputfilename
 character(256) :: line, values
 crystalstruct = 'fcc' ! default value, only used in this function to determine Nslip if not set explicitly
 
@@ -81,14 +81,14 @@ use utilities, only: Fatal
 !$   Use omp_lib
 implicit none
 
-CHARACTER(32), INTENT(IN) :: jobname
+CHARACTER(64), INTENT(IN) :: jobname
 !------------ local variables:
 type(disloc) :: mat
 integer :: ios, j, ich, j_eul
 character(32) :: key
-character(54) :: inputfilename
+character(64) :: inputfilename
 REAL(KIND=8) :: value1, Zener, cijk(6)
-real(8), allocatable :: drag(:,:)
+real(8), allocatable :: drag(:,:), vlim(:,:)
 character(256) :: line, values
 LOGICAL :: echoinput
 !--------------------------- outputs:
@@ -310,10 +310,12 @@ if ( crystalstruct=='fcc' .and. (abs(wave_vel(1)) < 1.d-15) ) then
     mat = disloc(sym=crystalstruct,metal="mat",rho=rhobar0*1.d12,lat_a = [burger*sqrt(2.d0)*1.d-3,0.d0,0.d0])
     mat%cij = [C11*1.d6, C12*1.d6, C44*1.d6]
     mat%cijk = [-1271.d9, -814.d9, -50.d9, -3.d9, -780.d9, -95.d9]
+    mat%ntheta = Nchar
     call mat%init(Millerb=[0.5d0,0.5d0,0.d0],Millern0=[-1.d0,1.d0,-1.d0]) ! infers mat%burgers from Millerb
-    call mat%computevcrit(wave_vel)
+    allocate(vlim(Nchar,3))
+    call mat%computevcrit(vlim)
     ! convert wave_vel back from SI units:
-    wave_vel = wave_vel*1.d3
+    wave_vel = vlim(:,1)*1.d3
     if (abs(cijk(1)) > 1.d0) then
       call phonondrag(drag,mat,[0.d0])
       B0 = drag(:,1)*1.d-9
