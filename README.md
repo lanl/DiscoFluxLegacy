@@ -32,6 +32,11 @@ Darby J. Luscher, Jason R. Mayeur, Hashem Mourad, Abigail Hunter, Mark A. Kenamo
 * the [Fortran standard library](https://stdlib.fortran-lang.org/)
 * the [Fortran package manager (fpm)](https://fpm.fortran-lang.org/)
 * [Doxygen](https://www.doxygen.nl/) or [Ford](https://forddocs.readthedocs.io/en/stable/)>=7 to build the code documentation
+* the Fortran code has been tested with the following compilers:
+    - gfortran 10 &mdash; 16 
+    - flang 22 (linux)
+    - lfortran 0.66 (linux and macos); known issue: openmp not working (not fully implemented in this compiler)
+    - ifx intel oneapi 2024.1 &mdash; 2026.1 (linux)
 
 ### ... and for the postprocessing python-scripts:
 

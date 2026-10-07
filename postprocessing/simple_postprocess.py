@@ -1,13 +1,16 @@
 #!/usr/bin/env python3
-### python 3.8 or higher required
-### also: plot_model_stress=True requires PyDislocDyn >=1.2.9
-# © 2026. Triad National Security, LLC. All rights reserved.
-# This program was produced under U.S. Government contract 89233218CNA000001 for Los Alamos National Laboratory (LANL), 
-# which is operated by Triad National Security, LLC for the U.S. Department of Energy/National Nuclear Security Administration.
-# All rights in the program are reserved by Triad National Security, LLC, and the U.S. Department of Energy/National Nuclear
-# Security Administration. The Government is granted for itself and others acting on its behalf a nonexclusive, paid-up,
-# irrevocable worldwide license in this material to reproduce, prepare. derivative works, distribute copies to the public, perform
-# publicly and display publicly, and to permit others to do so.
+"""
+A postprocessing script for DiscoFlux Legacy that will generate a number of plots from the output data.
+python 3.9 or higher required
+Also: plot_model_stress=True requires PyDislocDyn >=1.2.9
+© 2026. Triad National Security, LLC. All rights reserved.
+This program was produced under U.S. Government contract 89233218CNA000001 for Los Alamos National Laboratory (LANL), 
+which is operated by Triad National Security, LLC for the U.S. Department of Energy/National Nuclear Security Administration.
+All rights in the program are reserved by Triad National Security, LLC, and the U.S. Department of Energy/National Nuclear
+Security Administration. The Government is granted for itself and others acting on its behalf a nonexclusive, paid-up,
+irrevocable worldwide license in this material to reproduce, prepare. derivative works, distribute copies to the public, perform
+publicly and display publicly, and to permit others to do so.
+"""
 import sys
 import os
 import numpy as np
@@ -22,7 +25,7 @@ from matplotlib.ticker import AutoMinorLocator
 dir_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(dir_path)
 ##
-from mkinput import readinputdata, read_field_output, read_altfield_output, random_euler
+from helperfunctions import readfortraninput, read_field_output, read_altfield_output#, random_euler
 
 vel_direction = 1 ## decide which component of dmb velocities to plot (typically 1 for impact, 2 for shear; 'all' plots for 1,2, and 3)
 slipsystem = 1 ## decide for which slip system to plot disloc. velocities (1-12 for fcc)
@@ -62,23 +65,26 @@ else:
     
 ## determine Nchar from number of .ip.dis_vel.{}.F90txt files for jobname (hence no longer necessary to edit default value of mkinput.py)
 Nchar = len([X for X in os.listdir('.') if jobname + ".ip.dis_vel_x" in X and "F90txt" in X])
-fname = 'input_parameters.'+jobname+'.inc'
-inputdata = readinputdata(fname)
+try:
+    inputdata = readfortraninput(jobname)
+except FileNotFoundError:
+    fname = 'input_parameters.'+jobname+'.dat'
+    inputdata = readfortraninput(fname)
 rho0 = inputdata['rho0']
 L0 = inputdata['L0']
-if 'Nchar' in inputdata.keys(): 
+if 'Nchar' in inputdata: 
     Nchar = int(inputdata['Nchar'])
 if Nchar==0:
     raise ValueError("cannot find required files for job ",jobname)
-if 'crystalstruct' in inputdata.keys():
+if 'crystalstruct' in inputdata:
     crystalstruct = inputdata['crystalstruct']
     if crystalstruct=='fcc':
         Nslip=12
     elif crystalstruct=='bcc':
         Nslip=48
-if 'Nslip' in inputdata.keys(): 
+if 'Nslip' in inputdata: 
     Nslip = int(inputdata['Nslip'])
-if 'ipOut' in inputdata.keys():
+if 'ipOut' in inputdata:
     fs_position = int(inputdata['ipOut'])
     ipOut = int(inputdata['ipOut'])
 elif fs_position == 'auto':
@@ -94,16 +100,16 @@ print(f"{crystalstruct=}, {Nslip=}, {Nchar=}")
 try:
     from pydislocdyn import metal_props
     mpl.use('Agg') # ensure we are not using the LaTeX backend (even if pydislocdyn selected it)
-    import matplotlib.pyplot as plt
-    plt.rcParams.update({
+    pyl.rcParams.update({
         "text.usetex": False,
         "pgf.rcfonts": True,
     })
     have_poly = True
-except ImportError:
+except ImportError as exc:
     if plot_model_stress:
         raise ImportError("ERROR: Cannot find PyDislocDyn, need this packge to generate requested plot 'plot_model_stress': \
-              either set plot_model_stress=False or download 'https://github.com/dblaschke-LANL/PyDislocDyn' and copy its contents to the same folder as this script.\n")
+              either set plot_model_stress=False or download 'https://github.com/dblaschke-LANL/PyDislocDyn' \
+              and copy its contents to the same folder as this script.\n") from exc
     have_poly = False
 
 rho_pos = {}
@@ -132,58 +138,58 @@ number_of_plots = Nchar*Nslipsystems*(plot_rho_pos + plot_rho_neg + plot_dis_vel
 print(f"reading data for {number_of_plots} plots")
 for ich in characters:
     if plot_rho_pos or plot_av_dis_vel_x:
-        inc_list, time_values, rho_pos[ich]   = read_field_output(jobname + ".ip.rho_pos.{}.F90txt".format(ich))
+        inc_list, time_values, rho_pos[ich]   = read_field_output(f"{jobname}.ip.rho_pos.{ich}.F90txt")
         Nnode = len(rho_pos[ich][inc_list[0]])+1
         len_time = min(len(inc_list),len_time)
     if plot_rho_neg or plot_av_dis_vel_x:
-        inc_list, time_values, rho_neg[ich]   = read_field_output(jobname + ".ip.rho_neg.{}.F90txt".format(ich))
+        inc_list, time_values, rho_neg[ich]   = read_field_output(f"{jobname}.ip.rho_neg.{ich}.F90txt")
         Nnode = len(rho_neg[ich][inc_list[0]])+1
         len_time = min(len(inc_list),len_time)
     if plot_dis_vel:
-        inc_list, time_values, dis_vel[ich]   = read_field_output(jobname + ".ip.dis_vel.{}.F90txt".format(ich))
+        inc_list, time_values, dis_vel[ich]   = read_field_output(f"{jobname}.ip.dis_vel.{ich}.F90txt")
         Nnode = len(dis_vel[ich][inc_list[0]])+1
         len_time = min(len(inc_list),len_time)
     if plot_dis_acc:
-        inc_list, time_values, dis_acc[ich]   = read_field_output(jobname + ".ip.dis_acc.{}.F90txt".format(ich))
+        inc_list, time_values, dis_acc[ich]   = read_field_output(f"{jobname}.ip.dis_acc.{ich}.F90txt")
         Nnode = len(dis_acc[ich][inc_list[0]])+1
         len_time = min(len(inc_list),len_time)
     if plot_dis_vel_x or plot_av_dis_vel_x:
-        inc_list, time_values, dis_vel_x[ich]   = read_field_output(jobname + ".ip.dis_vel_x.{}.F90txt".format(ich))
+        inc_list, time_values, dis_vel_x[ich]   = read_field_output(f"{jobname}.ip.dis_vel_x.{ich}.F90txt")
         Nnode = len(dis_vel_x[ich][inc_list[0]])+1
         len_time = min(len(inc_list),len_time)
     if plot_dis_vel_y:
-        inc_list, time_values, dis_vel_y[ich]   = read_field_output(jobname + ".ip.dis_vel_y.{}.F90txt".format(ich))
+        inc_list, time_values, dis_vel_y[ich]   = read_field_output(f"{jobname}.ip.dis_vel_y.{ich}.F90txt")
         Nnode = len(dis_vel_y[ich][inc_list[0]])+1
         len_time = min(len(inc_list),len_time)
     if plot_dis_vel_z: ## TODO: determine from sqrt(vel^2 - vel_x^2 - vel_y^2), dont need to write this file
-        inc_list, time_values, dis_vel_z[ich]   = read_field_output(jobname + ".ip.dis_vel_z.{}.F90txt".format(ich))
+        inc_list, time_values, dis_vel_z[ich]   = read_field_output(f"{jobname}.ip.dis_vel_z.{ich}.F90txt")
         Nnode = len(dis_vel_z[ich][inc_list[0]])+1
         len_time = min(len(inc_list),len_time)
 ###
 if plot_tau:
-    inc_list, time_values, tau  = read_field_output(jobname + ".ip.tau.F90txt")
+    inc_list, time_values, tau  = read_field_output(f"{jobname}.ip.tau.F90txt")
     Nnode = len(tau[inc_list[0]])+1
     len_time = min(len(inc_list),len_time)
 if plot_tau_back:
-    inc_list, time_values, tau_back  = read_field_output(jobname + ".ip.tau_back.F90txt")
+    inc_list, time_values, tau_back  = read_field_output(f"{jobname}.ip.tau_back.F90txt")
     Nnode = len(tau_back[inc_list[0]])+1
     len_time = min(len(inc_list),len_time)
 if plot_dmb_vel or plot_fs_vel:
-    inc_list, time_values, dmb_vel   = read_field_output(jobname + ".node.dmb_vel.F90txt")
+    inc_list, time_values, dmb_vel   = read_field_output(f"{jobname}.node.dmb_vel.F90txt")
     Nnode = len(dmb_vel[inc_list[0]])
     len_time = min(len(inc_list),len_time)
 if plot_stress or plot_dev_stress or plot_fs_stress or plot_pressure or plot_model_stress:
-    inc_list, time_values, stress    = read_field_output(jobname + ".ip.stress.F90txt")
+    inc_list, time_values, stress    = read_field_output(f"{jobname}.ip.stress.F90txt")
     Nnode = len(stress[inc_list[0]])+1
     len_time = min(len(inc_list),len_time)
 if plot_T:
-    inc_list, time_values, tmp  = read_field_output(jobname + ".ip.T.F90txt")
+    inc_list, time_values, tmp  = read_field_output(f"{jobname}.ip.T.F90txt")
     Nnode = len(tmp[inc_list[0]])+1
     len_time = min(len(inc_list),len_time)
 if plot_fs_vel:
-    fs_time_values, fs_vel = read_altfield_output(jobname + ".th.vel.F90txt")
+    fs_time_values, fs_vel = read_altfield_output(f"{jobname}.th.vel.F90txt")
 if plot_fs_stress:
-    fs_time_values, fs_stress = read_altfield_output(jobname + ".th.stress.F90txt")
+    fs_time_values, fs_stress = read_altfield_output(f"{jobname}.th.stress.F90txt")
 
 ## if fortran was still running, the files above may have different len(inc_list), take the shortest in this case:
 inc_list = inc_list[:len_time]
@@ -191,56 +197,39 @@ inc_list = inc_list[:len_time]
 Xref = np.linspace(0., L0, Nnode)
 Xip  = 0.5*(Xref[:-1]+Xref[1:])
 
-def generate_dof_history(jobname, node_index = -1, dof='dmb_vel'):
-  # inc_list, time_values, dmb_vel   = read_field_output(jobname + ".node.dmb_vel.F90txt") ## no need to read this twice
-  if dof=='dmb_vel':
-      if ipOut == 0:
-          time_history = np.empty((len(inc_list), 4 ))
-          data = dmb_vel
-      else:
-          time_history = np.empty((len(fs_time_values), 4 ))
-          data = fs_vel
-  elif dof=='stress':
-      if ipOut == 0:
-          time_history = np.empty((len(inc_list), 7 ))
-          data=stress
-      else:
-          time_history = np.empty((len(fs_time_values), 7 ))
-          data=fs_stress
-  elif dof=='devstress':
-      time_history = np.empty((len(inc_list), 7 ))
-      data = stress.copy()
-      for ind in range(len(inc_list)):
-        cauchy     = stress[inc_list[ind]][:,1:]
-        pressure   = -np.sum(cauchy[:,:3], axis=1) / 3.
-        # dev        = cauchy
-        # dev[:,:3] += np.tile(pressure, (3,1)).T
-        data[inc_list[ind]][:,1:4] += np.tile(pressure, (3,1)).T
-  if ipOut == 0:
-      for ii, inc in enumerate(inc_list):
-        time_history[ii,:] = np.hstack((time_values[inc], data[inc][node_index,1:] ))
-  else:
-      for ii in range(len(fs_time_values)):
-        time_history[ii,:] = np.hstack((fs_time_values[ii], data[ii,1:] ))
-
-  return time_history
-  
-
-def compute_ssd_gnd_profile(jobname,ich):
-### for a given character index ich (where ich=Nchar=edge always, and if Nchar>1, ich=1 encodes a screw)
-  # inc_list, time_values, rho_pos[ich]   = read_field_output(jobname + ".ip.rho_pos.{}.F90txt".format(ich))
-  # inc_list, time_values, rho_neg[ich]   = read_field_output(jobname + ".ip.rho_neg.{}.F90txt".format(ich))
-
-  kappa     = {}
-  rho_total = {}
-  for inc in inc_list:
-    kappa[inc]      = rho_pos[ich][inc] - rho_neg[ich][inc]
-    kappa[inc][:,0] = rho_pos[ich][inc][:,0]
-
-    rho_total[inc]      = rho_pos[ich][inc] + rho_neg[ich][inc]
-    rho_total[inc][:,0] = rho_pos[ich][inc][:,0]
+def generate_dof_history(node_index = -1, dof='dmb_vel'):
+    """a helper fct"""
+    if dof=='dmb_vel':
+        if ipOut == 0:
+            time_history = np.empty((len(inc_list), 4 ))
+            data = dmb_vel
+        else:
+            time_history = np.empty((len(fs_time_values), 4 ))
+            data = fs_vel
+    elif dof=='stress':
+        if ipOut == 0:
+            time_history = np.empty((len(inc_list), 7 ))
+            data=stress
+        else:
+            time_history = np.empty((len(fs_time_values), 7 ))
+            data=fs_stress
+    elif dof=='devstress':
+        time_history = np.empty((len(inc_list), 7 ))
+        data = stress.copy()
+        for ind, inc in enumerate(inc_list):
+            cauchy     = stress[inc][:,1:]
+            pressure   = -np.sum(cauchy[:,:3], axis=1) / 3.
+            # dev        = cauchy
+            # dev[:,:3] += np.tile(pressure, (3,1)).T
+            data[inc][:,1:4] += np.tile(pressure, (3,1)).T
+    if ipOut == 0:
+        for ii, inc in enumerate(inc_list):
+            time_history[ii,:] = np.hstack((time_values[inc], data[inc][node_index,1:] ))
+    else:
+        for ii, fst in enumerate(fs_time_values):
+            time_history[ii,:] = np.hstack((fst, data[ii,1:] ))
     
-  return rho_total, kappa
+    return time_history
   
 
 #--------------------------------------------------------------------------------------------------------------------#
@@ -282,7 +271,7 @@ def modelprec(pos,modelstress,rhom,G_over_cl='auto_edge'):
     vcrit = min(inputdata['wave_vel'])/1e3 ## m/s, 1620 for edge dislocations in copper
     rho = 1e12*inputdata['rhobar0'] ## material density in kg/m^3
     shear = rho*vcrit**2 ## effective shear modulus corresponding to limiting velocity
-    c44 = 1e6*inputdata['C44']
+    # c44 = 1e6*inputdata['C44']
     if G_over_cl=='auto_lame':
         G_over_cl = metal.mu/metal.cl
         # print("autolame:",metal.mu/1e9,metal.cl,G_over_cl)
@@ -314,7 +303,7 @@ def modelprec(pos,modelstress,rhom,G_over_cl='auto_edge'):
             epsprec = eps(prec[i-1])
             if isinstance(epsprec, np.ndarray):
                 epsprec = epsprec[0]
-            prec[i] = prec[i-1]-(pos[i]-pos[i-1])*(2/3)*(2*G_over_cl)*epsprec
+            prec[i] = prec[i-1]-(x-pos[i-1])*(2/3)*(2*G_over_cl)*epsprec
     return prec
 
 
@@ -330,42 +319,42 @@ def plot_snapshots(data,pl_typ,vel_dir=vel_direction,char=0,annotate=True,setlim
     if pl_typ=='T':
         ylabel=r'$\mathregular{T: \/ K }$'
     elif pl_typ=='dmb_vel':
-        figname+="_x{}".format(vel_dir)
+        figname+=f"_x{vel_dir}"
         ylabel=r'$\mathregular{V_{m}: \/ m/s }$'
         legendops={'loc':'upper left','bbox_to_anchor':(1.01,1)}
         locmin = np.zeros((2,len(timestamps)))
         locmax = np.zeros((2,len(timestamps)))
     elif pl_typ=='stress':
-        figname+="_{}".format(stresscomp)
+        figname+=f"_{stresscomp}"
         ylabel=r'$\mathregular{Stress:  \/GPa }$'
         legendops={'loc':'upper left','bbox_to_anchor':(1.01,1)}
     elif pl_typ=='pressure':
         ylabel=r'$\mathregular{pressure:  \/GPa }$'
     elif pl_typ=='rho_pos':
-        figname+="_s{0}.{1}".format(slipsystem,char)
+        figname+=f"_s{slipsystem}.{char}"
         ylabel=r'$(\varrho_+-\varrho_0)/1e3$'
     elif pl_typ=='rho_neg':
-        figname+="_s{0}.{1}".format(slipsystem,char)
+        figname+=f"_s{slipsystem}.{char}"
         ylabel=r'$(\varrho_--\varrho_0)/1e3$'
-    elif pl_typ=='dis_vel' or pl_typ=='dis_vel_x' or pl_typ=='dis_vel_y' or pl_typ=='dis_vel_z':
-        figname+="_s{0}.{1}".format(slipsystem,char)
+    elif pl_typ in ('dis_vel', 'dis_vel_x', 'dis_vel_y', 'dis_vel_z'):
+        figname+=f"_s{slipsystem}.{char}"
         ylabel=r'$\mathregular{v}_{dis}: \/ \mathregular{m/s}$'
     elif pl_typ=='av_dis_vel_x':
-        figname+="_av.{}".format(char)
+        figname+=f"_av.{char}"
         ylabel=r'$\mathregular{v}_{dis}: \/ \mathregular{m/s}$'
     elif pl_typ=='dis_acc':
-        figname+="_s{0}.{1}".format(slipsystem,char)
+        figname+=f"_s{slipsystem}.{char}"
         ylabel=r'$\dot{\mathregular{v}}_{dis}: \/ \mathregular{m/s^2}$'
     elif pl_typ=='tau':
-        figname+="_s{}".format(slipsystem)
+        figname+=f"_s{slipsystem}"
         ylabel=r'$\tau: \/ \mathregular{MPa}$'
     elif pl_typ=='tau_back':
-        figname+="_s{}".format(slipsystem)
+        figname+=f"_s{slipsystem}"
         ylabel=r'$\tau_b: \/ \mathregular{MPa}$'
         
-    fig = pyl.figure(figsize=(fw, fh))
+    _fig = pyl.figure(figsize=(fw, fh))
     ax  = pyl.subplot(111)
-    filename = "./" + jobname + figname
+    filename = jobname + figname
     # print(pl_typ,data[inc_list[0]].shape)
     lendata = data[inc_list[0]].shape[0]
     if nmrks==1:
@@ -385,9 +374,9 @@ def plot_snapshots(data,pl_typ,vel_dir=vel_direction,char=0,annotate=True,setlim
         elif pl_typ=='pressure':
             cauchy     = data[inc_list[ind]][:,1:]
             currentdata=-np.sum(cauchy[:,:3], axis=1) / 3./1.e3 ## pressure
-        elif pl_typ=='rho_pos' or pl_typ=='rho_neg':
+        elif pl_typ in ('rho_pos', 'rho_neg'):
             currentdata=(data[inc_list[ind]][:,slipsystem]-rho0/(2*Nchar*Nslip))/1e3
-        elif pl_typ=='dis_vel' or pl_typ=='dis_vel_x' or pl_typ=='dis_vel_y' or pl_typ=='dis_vel_z':
+        elif pl_typ in ('dis_vel', 'dis_vel_x', 'dis_vel_y', 'dis_vel_z'):
             currentdata=(data[inc_list[ind]][:,slipsystem])/1e3
         elif pl_typ=='av_dis_vel_x':
             if weights is None:
@@ -398,9 +387,7 @@ def plot_snapshots(data,pl_typ,vel_dir=vel_direction,char=0,annotate=True,setlim
             # deltat = (time_values[inc_list[ind]] - time_values[inc_list[ind-1]])  ## output-timestep too large to resolve disloc-acceleration
             # currentdata=(data[inc_list[ind]][:,slipsystem] - data[inc_list[ind-1]][:,slipsystem])/deltat/1e3
             currentdata=data[inc_list[ind]][:,slipsystem]/1e3
-        elif pl_typ=='tau':
-            currentdata=data[inc_list[ind]][:,slipsystem]
-        elif pl_typ=='tau_back':
+        elif pl_typ=='tau' or pl_typ=='tau_back':
             currentdata=data[inc_list[ind]][:,slipsystem]
         
         if nmrks==0:
@@ -450,7 +437,7 @@ def plot_snapshots(data,pl_typ,vel_dir=vel_direction,char=0,annotate=True,setlim
         if pl_typ=='tau_back':
             ax.set_ylim(-0.4, 0.4)
             # ax.set_ylim(-5., 0.1)
-        if pl_typ=='rho_pos' or pl_typ=='rho_neg':
+        if pl_typ in ('rho_pos', 'rho_neg'):
             ax.set_ylim(np.min(currentdata[10:])-10,np.max(currentdata[10:])+10)
         # Grid - if needed
         # pyl.grid()
@@ -475,25 +462,26 @@ def plot_snapshots(data,pl_typ,vel_dir=vel_direction,char=0,annotate=True,setlim
 
 
 def plot_history(pl_typ, node_index=-1, fs_direction=fs_direction,stresscomp=1,annotate=True,setlimits=False,adjustticks=False):
-    fig = pyl.figure(figsize=(fw, fh))
+    """a helper fct"""
+    _fig = pyl.figure(figsize=(fw, fh))
     ax  = pyl.subplot(111) 
     if pl_typ=='dmb_vel':
-        filename = "./" + jobname + ".fig.fs_velocity_x{}".format(fs_direction)
+        filename = f"{jobname}.fig.fs_velocity_x{fs_direction}"
         ylabel = r'$\mathregular{Velocity:\/ m/s }$'
     elif pl_typ=='stress':
-        filename = "./" + jobname + ".fig.fs_stress_{}".format(stresscomp)
+        filename = f"{jobname}.fig.fs_stress_{stresscomp}"
         ylabel = r'$\mathregular{Stress:\/ GPa }$'
     elif pl_typ=='devstress':
-        filename = "./" + jobname + ".fig.fs_devstress_{}".format(stresscomp)
+        filename = f"{jobname}.fig.fs_devstress_{stresscomp}"
         ylabel = r'$\mathregular{Deviatoric \/Stress:\/ GPa }$'
   
     # markevery = stress[inc_list[0]].shape[0] / nmrks
     
-    free_surface = generate_dof_history(jobname, node_index=node_index, dof=pl_typ)
+    free_surface = generate_dof_history(node_index=node_index, dof=pl_typ)
     if pl_typ=='dmb_vel':
-        pyl.plot(free_surface[:,0] / 1.e-6, free_surface[:,fs_direction] /1.e3, '-', color = linecolors[0] , label="position={:.2f}mm".format(Xref[node_index]))
-    if pl_typ=='stress' or pl_typ=='devstress':
-        pyl.plot(free_surface[:,0] / 1.e-6, np.abs(free_surface[:,stresscomp]) /1.e3, '-', color = linecolors[0] , label="position={:.2f}mm".format(Xref[node_index]))
+        pyl.plot(free_surface[:,0] / 1.e-6, free_surface[:,fs_direction] /1.e3, '-', color = linecolors[0] , label=f"position={Xref[node_index]:.2f}mm")
+    if pl_typ in ('stress', 'devstress'):
+        pyl.plot(free_surface[:,0] / 1.e-6, np.abs(free_surface[:,stresscomp]) /1.e3, '-', color = linecolors[0] , label=f"position={Xref[node_index]:.2f}mm")
     
     if annotate:
         # annotate plot axes
@@ -636,7 +624,7 @@ if plot_av_dis_vel_x: # Plot average dislocation velocity in the x-direction ## 
     for ich in characters:
         # plot_snapshots(dis_vel_x[ich],'av_dis_vel_x',char=ich)
         weights = rho_pos[ich].copy() # use rho_pos as weights below
-        for k in weights.keys(): ## uncomments to use sum of rho_pos/neg as weihgts below
+        for k in weights: ## uncomments to use sum of rho_pos/neg as weihgts below
             weights[k] += rho_neg[ich][k]
         plot_snapshots(dis_vel_x[ich],'av_dis_vel_x',char=ich,weights=weights) ## weighted average
 
@@ -647,79 +635,71 @@ if plot_fs_stress: # Plot Free Surface Stress
     plot_history('stress',stresscomp=1,setlimits=False,node_index=fs_position)
 
 if plot_dev_stress: # begin plot functions
-
-  # ----------------------- #
-  # Plot Deviatoric Stress  # <----------------------------------------------------------------------
-  # ----------------------- #
-
-  fig = pyl.figure(figsize=(fw, fh))
-  ax  = pyl.subplot(111) 
-  filename = "./" + jobname + ".fig.deviatoric_stress"
-  
-  # markevery = stress[inc_list[0]].shape[0] / nmrks
-  
-  for ii, ind in enumerate(timestamps):
-      
-    cauchy     = stress[inc_list[ind]][:,1:]
-    pressure   = -np.sum(cauchy[:,:3], axis=1) / 3.
-    dev        = cauchy
-    dev[:,:3] += np.tile(pressure, (3,1)).T
     
-    if np.any(np.isnan(dev[:,:3])):
-        print(f"warning: nan encountered in fig.deviatoric_stress at timestamp {ind}")
-    pyl.plot(Xip, dev[:,0], '-', color=linecolors[ii], label = r'$\sigma^{\prime}_{11}$, ' + r'$\mathregular{t=%5.1f ns}$' % (time_values[inc_list[ind]]/1.e-9) )
-    pyl.plot(Xip, dev[:,1], '--', color=linecolors[ii], label = r'$\sigma^{\prime}_{22}$')
-    pyl.plot(Xip, dev[:,2], ':', color=linecolors[ii], label = r'$\sigma^{\prime}_{33}$')
-    # elif ii == 0:
-    #   pyl.plot(Xip, dev[:,0], 'k-', label = r'$\sigma^{\prime}_{11}$' )
-    #   pyl.plot(Xip, dev[:,1], 'b-', label = r'$\sigma^{\prime}_{22}$' )
-    #   pyl.plot(Xip, dev[:,2], 'r-', label = r'$\sigma^{\prime}_{33}$' )
-    # else:
-    #   pyl.plot(Xip, dev[:,0], 'k--' )
-    #   pyl.plot(Xip, dev[:,1], 'b--' )
-    #   pyl.plot(Xip, dev[:,2], 'r--' )
+    # ----------------------- #
+    # Plot Deviatoric Stress  # <----------------------------------------------------------------------
+    # ----------------------- #
+    
+    fig = pyl.figure(figsize=(fw, fh))
+    ax  = pyl.subplot(111) 
+    filename = f"{jobname}.fig.deviatoric_stress"
+    
+    # markevery = stress[inc_list[0]].shape[0] / nmrks
+    
+    for ii, ind in enumerate(timestamps):
+          
+        cauchy     = stress[inc_list[ind]][:,1:]
+        pressure   = -np.sum(cauchy[:,:3], axis=1) / 3.
+        dev        = cauchy
+        dev[:,:3] += np.tile(pressure, (3,1)).T
+        
+        if np.any(np.isnan(dev[:,:3])):
+            print(f"warning: nan encountered in fig.deviatoric_stress at timestamp {ind}")
+        pyl.plot(Xip, dev[:,0], '-', color=linecolors[ii], label = r'$\sigma^{\prime}_{11}$, ' + r'$\mathregular{t=%5.1f ns}$' % (time_values[inc_list[ind]]/1.e-9) )
+        pyl.plot(Xip, dev[:,1], '--', color=linecolors[ii], label = r'$\sigma^{\prime}_{22}$')
+        pyl.plot(Xip, dev[:,2], ':', color=linecolors[ii], label = r'$\sigma^{\prime}_{33}$')
+        
+    
+    if 1:
+        # annotate plot axes
+        ax.set_xlabel(r'$\mathregular{Position:\/mm  }$',  fontsize=txt_size, family='serif')
+        ax.set_ylabel(r'$\mathregular{Stress:  \/MPa }$',  fontsize=txt_size, family='serif')
+        pyl.setp(ax.get_yticklabels(), fontsize=txt_size, family='serif')
+        pyl.setp(ax.get_xticklabels(), fontsize=txt_size, family='serif') 
       
-
-  if 1:
-    # annotate plot axes
-    ax.set_xlabel(r'$\mathregular{Position:\/mm  }$',  fontsize=txt_size, family='serif')
-    ax.set_ylabel(r'$\mathregular{Stress:  \/MPa }$',  fontsize=txt_size, family='serif')
-    pyl.setp(ax.get_yticklabels(), fontsize=txt_size, family='serif')
-    pyl.setp(ax.get_xticklabels(), fontsize=txt_size, family='serif') 
-  
-    # Create legend (only if there is more than one curve)
-    ax.legend(prop={'size':0.8*txt_size, 'family':'serif'}, loc='upper left', bbox_to_anchor=(1.01,1), borderpad=0.3, borderaxespad=0.75, labelspacing=0.005,
+        # Create legend (only if there is more than one curve)
+        ax.legend(prop={'size':0.8*txt_size, 'family':'serif'}, loc='upper left', bbox_to_anchor=(1.01,1), borderpad=0.3, borderaxespad=0.75, labelspacing=0.005,
                   markerscale=1.0, numpoints=1, handlelength=1.5,shadow=True)             
-  
-  # Optional stuff (often unecessary)
-  if 1:
-    # set axis limits (not necessary, default is often good enough
-    ax.set_xlim(0.0, L0*1.05)
-##    ax.set_ylim(-200., 120)
-
-    # Grid - if needed
-    #pyl.grid()
-
-  if 0: #adjust tick marks as desired
-      
-    ax.set_yticks([1.e-12, 1.e-10, 1.e-8, 1.e-6, 1.e-4, 1.e-2, 1.])
     
-    #ax.xaxis.set_minor_locator(AutoMinorLocator())
-    #ax.yaxis.set_minor_locator(AutoMinorLocator())  
-
-    ax.tick_params(which='both',  width  = 1)
-    ax.tick_params(which='major', length = 4)
-    ax.tick_params(which='minor', length = 2)
-
-  # Adjust these values to shift the plot region inside the figure. The values reflect the location of
-  #  the left, right, top, and bottom of the plot axes expressed as a fraction of the total figure size
-  pyl.subplots_adjust(left=0.22, right=0.98, top=0.975, bottom=0.15,wspace=0.0,hspace=0.0)
-
-  # save the figure in a bitmap and vector graphics form
-  # pyl.savefig(filename + '.png', dpi=300)
-  # pyl.savefig(filename + '.eps'         )
-  pyl.savefig(filename + '.pdf', format='pdf', bbox_inches='tight')
-  pyl.close()
+    # Optional stuff (often unecessary)
+    if 1:
+        # set axis limits (not necessary, default is often good enough
+        ax.set_xlim(0.0, L0*1.05)
+        ##    ax.set_ylim(-200., 120)
+    
+        # Grid - if needed
+        #pyl.grid()
+    
+    if 0: #adjust tick marks as desired
+          
+        ax.set_yticks([1.e-12, 1.e-10, 1.e-8, 1.e-6, 1.e-4, 1.e-2, 1.])
+        
+        #ax.xaxis.set_minor_locator(AutoMinorLocator())
+        #ax.yaxis.set_minor_locator(AutoMinorLocator())  
+      
+        ax.tick_params(which='both',  width  = 1)
+        ax.tick_params(which='major', length = 4)
+        ax.tick_params(which='minor', length = 2)
+    
+    # Adjust these values to shift the plot region inside the figure. The values reflect the location of
+    #  the left, right, top, and bottom of the plot axes expressed as a fraction of the total figure size
+    pyl.subplots_adjust(left=0.22, right=0.98, top=0.975, bottom=0.15,wspace=0.0,hspace=0.0)
+    
+    # save the figure in a bitmap and vector graphics form
+    # pyl.savefig(filename + '.png', dpi=300)
+    # pyl.savefig(filename + '.eps'         )
+    pyl.savefig(filename + '.pdf', format='pdf', bbox_inches='tight')
+    pyl.close()
 
 
         
@@ -727,81 +707,80 @@ if plot_dev_stress: # begin plot functions
   # Plot Deviatoric Stress vs model  # <----------------------------------------------------------------------
   # ----------------------- #
 if plot_model_stress:
-  fig = pyl.figure(figsize=(fw*1.1, fh))
-  ax  = pyl.subplot(111) 
-  filename = "./" + jobname + ".fig.deviatoric_stress_Xmodel"
-    
-  for ii, ind in enumerate(timestamps):
+    fig = pyl.figure(figsize=(fw*1.1, fh))
+    ax  = pyl.subplot(111) 
+    filename = f"{jobname}.fig.deviatoric_stress_Xmodel"
       
-    cauchy     = stress[inc_list[ind]][:,1:]
-    pressure   = -np.sum(cauchy[:,:3], axis=1) / 3.
-    dev        = cauchy
-    dev[:,:3] += np.tile(pressure, (3,1)).T
-    devx = np.abs(dev[:,0])
-    xmaxind = np.where(max(devx)==devx)[0][0]
-    xmax = Xip[xmaxind]
+    for ii, ind in enumerate(timestamps):
+          
+        cauchy     = stress[inc_list[ind]][:,1:]
+        pressure   = -np.sum(cauchy[:,:3], axis=1) / 3.
+        dev        = cauchy
+        dev[:,:3] += np.tile(pressure, (3,1)).T
+        devx = np.abs(dev[:,0])
+        xmaxind = np.where(max(devx)==devx)[0][0]
+        xmax = Xip[xmaxind]
+        
+        if np.any(np.isnan(dev[:,:3])):
+            print(f"warning: nan encountered in fig.deviatoric_stress at timestamp {ind}")
+        pyl.plot(Xip, np.abs(dev[:,0]), '-', color=linecolors[ii], label = r'$\sigma^{\prime}_{11}$, ' + r'$\mathregular{t=%5.1f ns}$' % (time_values[inc_list[ind]]/1.e-9) )
+    ii=0 ## skip the first nanosecond, then read the highest deviatoric stress in the 11 direction
+    while time_values[inc_list[ii]]<1e-9:
+        ii+=1
+    modelcauchy     = stress[inc_list[ii]][:,1:] ## look at stress at left boundary at first time-step that the code wrote to a file
+    modelpressure   = -np.sum(modelcauchy[:,:3], axis=1) / 3.
+    modeldev        = modelcauchy
+    modeldev[:,:3] += np.tile(modelpressure, (3,1)).T
+    modelstress = 1e6*np.max(np.abs(modeldev[:,0]))
+    # print("modelstress: {:.3e}, time={:.2e}, time-index={}".format(modelstress,time_values[inc_list[ii]],ii))
+    pos = np.linspace(0,L0*1e-3,1000) ## m
+    posdevxi = np.min(np.where(pos>int(1000*xmax)/1e6))
+    posdevx = pos[posdevxi]
+    maxdevx = 1e6*max(devx)
+    # print(maxdevx/1e6,xmax,1e3*posdevx)
+    def maxmodel(x):
+        """a helper fct"""
+        return abs(float(modelprec(np.asarray([pos[0],posdevx]), modelstress, x)[-1]) - maxdevx)
+    modelrhom = float(fmin(maxmodel,1e11,disp=False)[0])
+    # print("initial total disloc density:{:.2e}={:.1f}".format(1e6*inputdata['rho0'],1e6*inputdata['rho0']/modelrhom),"times modelrhom")
+    prec = modelprec(pos,modelstress,modelrhom)
+    pyl.plot(1e3*pos,prec/1e6,'-.',color='gray', label=r"Model: $\rho_m$="+f"{modelrhom:.2e}")
+        
     
-    if np.any(np.isnan(dev[:,:3])):
-        print(f"warning: nan encountered in fig.deviatoric_stress at timestamp {ind}")
-    pyl.plot(Xip, np.abs(dev[:,0]), '-', color=linecolors[ii], label = r'$\sigma^{\prime}_{11}$, ' + r'$\mathregular{t=%5.1f ns}$' % (time_values[inc_list[ind]]/1.e-9) )
-  ii=0 ## skip the first nanosecond, then read the highest deviatoric stress in the 11 direction
-  while time_values[inc_list[ii]]<1e-9:
-    ii+=1
-  modelcauchy     = stress[inc_list[ii]][:,1:] ## look at stress at left boundary at first time-step that the code wrote to a file
-  modelpressure   = -np.sum(modelcauchy[:,:3], axis=1) / 3.
-  modeldev        = modelcauchy
-  modeldev[:,:3] += np.tile(modelpressure, (3,1)).T
-  modelstress = 1e6*np.max(np.abs(modeldev[:,0]))
-  # print("modelstress: {:.3e}, time={:.2e}, time-index={}".format(modelstress,time_values[inc_list[ii]],ii))
-  pos = np.linspace(0,L0*1e-3,1000) ## m
-  posdevxi = np.min(np.where(pos>int(1000*xmax)/1e6))
-  posdevx = pos[posdevxi]
-  maxdevx = 1e6*max(devx)
-  # print(maxdevx/1e6,xmax,1e3*posdevx)
-  def maxmodel(x):
-      return abs(float(modelprec(np.asarray([pos[0],posdevx]), modelstress, x)[-1]) - maxdevx)
-  modelrhom = float(fmin(maxmodel,1e11,disp=False)[0])
-  # print("initial total disloc density:{:.2e}={:.1f}".format(1e6*inputdata['rho0'],1e6*inputdata['rho0']/modelrhom),"times modelrhom")
-  prec = modelprec(pos,modelstress,modelrhom)
-  pyl.plot(1e3*pos,prec/1e6,'-.',color='gray', label=r"Model: $\rho_m$="+"{:.2e}".format(modelrhom))
+    if 1:
+        # annotate plot axes
+        ax.set_xlabel(r'$\mathregular{Position:\/mm  }$',  fontsize=txt_size, family='serif')
+        ax.set_ylabel(r'$\sigma^\prime_{11}\mathregular{:  \/MPa }$',  fontsize=txt_size, family='serif')
+        pyl.setp(ax.get_yticklabels(), fontsize=txt_size, family='serif')
+        pyl.setp(ax.get_xticklabels(), fontsize=txt_size, family='serif') 
       
-
-  if 1:
-    # annotate plot axes
-    ax.set_xlabel(r'$\mathregular{Position:\/mm  }$',  fontsize=txt_size, family='serif')
-    ax.set_ylabel(r'$\sigma^\prime_{11}\mathregular{:  \/MPa }$',  fontsize=txt_size, family='serif')
-    pyl.setp(ax.get_yticklabels(), fontsize=txt_size, family='serif')
-    pyl.setp(ax.get_xticklabels(), fontsize=txt_size, family='serif') 
-  
-    # Create legend (only if there is more than one curve)
-    ax.legend(prop={'size':0.8*txt_size, 'family':'serif'}, loc='upper left', bbox_to_anchor=(1.01,1), borderpad=0.3, borderaxespad=0.75, labelspacing=0.005,
+        # Create legend (only if there is more than one curve)
+        ax.legend(prop={'size':0.8*txt_size, 'family':'serif'}, loc='upper left', bbox_to_anchor=(1.01,1), borderpad=0.3, borderaxespad=0.75, labelspacing=0.005,
                   markerscale=1.0, numpoints=1, handlelength=1.5,shadow=True)             
-  
-  # Optional stuff (often unecessary)
-  if 1:
-    # set axis limits (not necessary, default is often good enough
-    ax.set_xlim(0.0, L0*1.05)
-##    ax.set_ylim(-200., 120)
-
-  if 0: #adjust tick marks as desired
-      
-    ax.set_yticks([1.e-12, 1.e-10, 1.e-8, 1.e-6, 1.e-4, 1.e-2, 1.])
     
-    ax.xaxis.set_minor_locator(AutoMinorLocator())
-    ax.yaxis.set_minor_locator(AutoMinorLocator())  
-
-    ax.tick_params(which='both',  width  = 1)
-    ax.tick_params(which='major', length = 4)
-    ax.tick_params(which='minor', length = 2)
-
-  # Adjust these values to shift the plot region inside the figure. The values reflect the location of
-  #  the left, right, top, and bottom of the plot axes expressed as a fraction of the total figure size
-  pyl.subplots_adjust(left=0.22, right=0.98, top=0.975, bottom=0.15,wspace=0.0,hspace=0.0)
-
-  # save the figure in a bitmap and vector graphics form
-  # pyl.savefig(filename + '.png', dpi=300)
-  # pyl.savefig(filename + '.eps'         )
-  pyl.savefig(filename + '.pdf', format='pdf', bbox_inches='tight')
-  pyl.close()
-
-
+    # Optional stuff (often unecessary)
+    if 1:
+        # set axis limits (not necessary, default is often good enough
+        ax.set_xlim(0.0, L0*1.05)
+    ##    ax.set_ylim(-200., 120)
+    
+    if 0: #adjust tick marks as desired
+          
+        ax.set_yticks([1.e-12, 1.e-10, 1.e-8, 1.e-6, 1.e-4, 1.e-2, 1.])
+        
+        ax.xaxis.set_minor_locator(AutoMinorLocator())
+        ax.yaxis.set_minor_locator(AutoMinorLocator())  
+      
+        ax.tick_params(which='both',  width  = 1)
+        ax.tick_params(which='major', length = 4)
+        ax.tick_params(which='minor', length = 2)
+    
+    # Adjust these values to shift the plot region inside the figure. The values reflect the location of
+    #  the left, right, top, and bottom of the plot axes expressed as a fraction of the total figure size
+    pyl.subplots_adjust(left=0.22, right=0.98, top=0.975, bottom=0.15,wspace=0.0,hspace=0.0)
+    
+    # save the figure in a bitmap and vector graphics form
+    # pyl.savefig(filename + '.png', dpi=300)
+    # pyl.savefig(filename + '.eps'         )
+    pyl.savefig(filename + '.pdf', format='pdf', bbox_inches='tight')
+    pyl.close()

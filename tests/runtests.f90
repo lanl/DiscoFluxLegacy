@@ -6,6 +6,10 @@
 ! irrevocable worldwide license in this material to reproduce, prepare. derivative works, distribute copies to the public, perform
 ! publicly and display publicly, and to permit others to do so.
 module checks
+implicit none
+character(*), parameter :: esc = achar(27), red = '[31m', green = '[32m', reset = '[0m'
+character(*), parameter :: passed = char(9)//esc//green//"PASSED"//esc//reset
+character(*), parameter :: failed = char(9)//esc//red//"FAILED"//esc//reset
 contains
 SUBROUTINE testequal(A,B,N,M,string,tolerance,count_pass,count_fail)
 !  Check if two NxM matrices are equal (with some tolerance), and print 'test <string> PASSED/FAILED'
@@ -22,10 +26,10 @@ SUBROUTINE testequal(A,B,N,M,string,tolerance,count_pass,count_fail)
   
   if (equal) then
     count_pass = count_pass+1
-    print*,"test " // string//": "//char(9)//"PASSED"
+    print*,"test " // string//": "//passed
   else
     count_fail = count_fail+1
-    print*,"test " // string//": "//char(9)//"FAILED"
+    print*,"test " // string//": "//failed
   end if
   
   RETURN
@@ -46,10 +50,10 @@ SUBROUTINE testequalarray(A,B,N,string,tolerance,count_pass,count_fail)
   
   if (equal) then
     count_pass = count_pass+1
-    print*,"test " // string//": "//char(9)//"PASSED"
+    print*,"test " // string//": "//passed
   else
     count_fail = count_fail+1
-    print*,"test " // string//": "//char(9)//"FAILED"
+    print*,"test " // string//": "//failed
   end if
   
   RETURN
@@ -86,7 +90,6 @@ PROGRAM RunTests
 
   IMPLICIT NONE
   
-  CHARACTER(32) :: PASSED, FAILED
   INTEGER, PARAMETER :: resolution=361 ! resolve polar angle phi to 1 degree (tradeoff accuracy for speed)
   REAL(KIND=8) :: num, nu_poisson, rho0, Fwant, tmpintegral
   Real(KIND=8), DIMENSION(5) :: array1,array2
@@ -110,7 +113,6 @@ PROGRAM RunTests
   TYPE(Type_CDT_PROPS)           :: props_cdt
   TYPE(Type_DDC_PROPS)           :: ddc_props
   
-  PASSED = char(9)//"PASSED"; FAILED = char(9)//"FAILED"
   count_fail=0; count_pass=0
   call system_clock(start_time,countrate)
   ! allocate memory
@@ -332,14 +334,14 @@ PROGRAM RunTests
                     < 1.d-15)) then
     if ((Nchar<2) .OR. (abs(Bb(1,9,1)/props_dmb%C44 - 0.5d0/(pi*sqrt(2.d0))) < 1.d-15)) then
       count_pass = count_pass+1
-      print*,"test Sb, Bb isotropic: "//PASSED
+      print*,"test Sb, Bb isotropic: "//passed
     else
       count_fail = count_fail+1
-      print*,"test Bb isotropic: "//FAILED
+      print*,"test Bb isotropic: "//failed
     end if
   else
     count_fail = count_fail+1
-    print*,"test Sb, Bb isotropic: "//FAILED
+    print*,"test Sb, Bb isotropic: "//failed
   end if
   strainenergydensity = 0.d0
   do i=1,3
@@ -441,7 +443,11 @@ PROGRAM RunTests
   call system_clock(finish_time)
 !<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><
   print*,"------------------------------------------------------------"
-  print*,"SUMMARY:", count_pass," passed and ",count_fail," failed"
+  if (count_fail>0) then
+    print*,"SUMMARY:", count_pass,passed//" and ",count_fail,failed
+  else
+    print*,"SUMMARY:", count_pass,passed//" and ",count_fail," failed"
+  end if
   print*,"time: ",int(1000.d0*real(finish_time-start_time)/real(countrate)), "ms"
 
   if (count_fail>0) error stop "some tests failed"
