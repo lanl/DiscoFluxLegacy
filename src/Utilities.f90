@@ -388,54 +388,6 @@ END SUBROUTINE Invert_Tensor
 !<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><
 !-----------------------------------------------------------------------
 
-!~ !> compute the matrix exponential exp(A) of 3x3 matrix A
-!~ !> this drop-in replacement for stdlib_linalg expm uses expokit's DGPADM routine under the hood
-!~ function ExpM(A,order) result(expA)
-!~ !-----------------------------------------------------------------------
-!~   IMPLICIT NONE
-!~ !-----------------------------------------------------------------------
-!~ !  Inputs:
-!~   REAL(KIND=8), DIMENSION(3,3), INTENT(IN)  :: A
-!~   integer, intent(in), optional :: order
-!~ !-----------------------------------------------------------------------
-!~ !  Outputs:
-!~   REAL(KIND=8), DIMENSION(3,3) :: expA
-!~ !-----------------------------------------------------------------------
-!~ !  Locals:
-!~   INTEGER :: nonzero,k,j,l1,l2,ideg,ipiv(3),m,ldh,lwsp,iexph,ns,iflag
-!~   REAL(KIND=8), DIMENSION(43) :: wsp
-!~   REAL(KIND=8) :: rzero
-!~   ideg=6; m=3; ldh=3; lwsp=43
-!~   rzero = sqrt(tiny(0.d0))
-!~   if (present(order)) ideg=order
-
-!~ ! bypass (slow) matrix exponential DGPADM() when we already know the answer
-!~   nonzero = count(abs(A)>rzero)
-!~   if (0==nonzero) then
-!~     expA = Identity(3)
-!~   else if ((3==nonzero) .AND. (abs(A(1,1))>rzero) .AND. (abs(A(2,2))>rzero) .AND. (abs(A(3,3))>rzero)) then
-!~     expA = Identity(3)
-!~     do k=1,3
-!~       expA(k,k) = exp(A(k,k))
-!~     end do
-!~   else
-!~     call DGPADM(ideg,m,1.d0,A,ldh,wsp,lwsp,ipiv,iexph,ns,iflag)
-    
-!~     l1 = iexph - 1
-!~     do k=1,3
-!~       l2 = l1 + 3*(k-1)
-!~       do j=1,3
-!~         expA(j,k) = wsp(l2 + j)
-!~       end do  !j
-!~     end do  !k
-!~   end if
-
-!~ end function ExpM
-
-!-----------------------------------------------------------------------
-!<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><
-!-----------------------------------------------------------------------
-
 !> generate rotation matrix Mat that rotates by angle phi around unit vector vec
 SUBROUTINE RotAround(vec,phi,Mat)
   IMPLICIT NONE
@@ -446,7 +398,7 @@ SUBROUTINE RotAround(vec,phi,Mat)
   ! Locals
   REAL(KIND=8) :: vx(3,3), eye(3,3), s, c
   !-----------------------------------
-  vx(3,3)=0.d0
+  vx=0.d0
   s = sin(phi)
   c = cos(phi)
   eye = Identity(3)

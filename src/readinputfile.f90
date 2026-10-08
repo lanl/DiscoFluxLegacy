@@ -84,7 +84,7 @@ implicit none
 CHARACTER(64), INTENT(IN) :: jobname
 !------------ local variables:
 type(disloc) :: mat
-integer :: ios, j, ich, j_eul
+integer :: ios, j, j_eul
 character(32) :: key
 character(64) :: inputfilename
 REAL(KIND=8) :: value1, Zener, cijk(6), lat_a, Millerb(3), Millern0(3)
