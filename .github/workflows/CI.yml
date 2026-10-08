@@ -21,7 +21,7 @@ jobs:
           - {compiler: intel, version: '2024.1'}
           - {compiler: intel, version: 'latest'}
           #~ - {compiler: nvidia-hpc, version: 'latest'}
-          - {compiler: lfortran, version: '0.66.0'}
+          - {compiler: lfortran, version: '0.67.0'}
           #~ - {compiler: aocc, version: 'latest'}
         exclude:
           - os: ubuntu-latest
