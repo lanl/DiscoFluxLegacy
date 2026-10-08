@@ -525,6 +525,7 @@ END SUBROUTINE RotAlign
 
 SUBROUTINE readcmdline(jobname)
   USE GlobalParams
+  use dislocdyn_parameters, only: version
 !$   Use omp_lib
   IMPLICIT NONE
   ! Output
@@ -545,6 +546,7 @@ SUBROUTINE readcmdline(jobname)
       print*,"       or ",trim(exe_name)," <inputfilename>"
       print*,""
       print*,"program version: ",prog_version
+      print*,"using dislocdynlib version ",version
       print*,"simulation types: impact or shear"
       print*,"compiled with these defaults:"
       print*,"# of elements, Nel = ",Nel

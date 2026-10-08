@@ -87,7 +87,7 @@ type(disloc) :: mat
 integer :: ios, j, ich, j_eul
 character(32) :: key
 character(64) :: inputfilename
-REAL(KIND=8) :: value1, Zener, cijk(6)
+REAL(KIND=8) :: value1, Zener, cijk(6), lat_a, Millerb(3), Millern0(3)
 real(8), allocatable :: drag(:,:), vlim(:,:)
 character(256) :: line, values
 LOGICAL :: echoinput
@@ -305,13 +305,24 @@ end if
 Zener = 2*C44/(C11-C12)
 
 ! calculate character dependent wave_vel, if not provided by the user:
-if ( crystalstruct=='fcc' .and. (abs(wave_vel(1)) < 1.d-15) ) then
+if (abs(wave_vel(1)) < 1.d-15) then
     ! dislocdynlib needs SI units:
+    if (crystalstruct=='fcc') then
+      lat_a = burger*sqrt(2.d0)*1.d-3
+      Millerb=[0.5d0,0.5d0,0.d0]
+      Millern0=[-1.d0,1.d0,-1.d0]
+    elseif (crystalstruct=='bcc') then
+      lat_a = burger*sqrt(3.d0)*0.5d-3
+      Millerb=[0.5d0,-0.5d0,0.5d0]
+      Millern0=[1.d0,1.d0,0.d0]
+      ! TODO: enlarge B0 and wave_vel so that they hold values for each slip system
+      ! for bcc we need B0 and wave_vel for each of 110, 112, and 123 (only 110 implemented here for now)
+    end if
     mat = disloc(sym=crystalstruct,metal="mat",rho=rhobar0*1.d12,lat_a = [burger*sqrt(2.d0)*1.d-3,0.d0,0.d0])
     mat%cij = [C11*1.d6, C12*1.d6, C44*1.d6]
     mat%cijk = cijk*1.d6
     mat%ntheta = Nchar
-    call mat%init(Millerb=[0.5d0,0.5d0,0.d0],Millern0=[-1.d0,1.d0,-1.d0]) ! infers mat%burgers from Millerb
+    call mat%init(Millerb=Millerb,Millern0=Millern0) ! infers mat%burgers from Millerb
     allocate(vlim(Nchar,3))
     call mat%computevcrit(vlim)
     ! convert wave_vel back from SI units:

@@ -18,6 +18,7 @@ stdlib = "*"
 #blas = "*"
 openmp = "*"
 dislocdynlib.git = "https://github.com/dblaschke-lanl/pydislocdyn"
+#dislocdynlib.tag = "1.4.0.1"
 
 #[dev-dependencies]
 #test-drive.git = "https://github.com/fortran-lang/test-drive"
@@ -27,6 +28,7 @@ dislocdynlib.git = "https://github.com/dblaschke-lanl/pydislocdyn"
 baseline.gfortran.flags = "-O3 -march=native"
 baseline.flang.flags = "-O3 -march=native"
 baseline.lfortran.flags = "--fast --legacy-array-sections --realloc-lhs-arrays"
+baseline.ifx.flags = "-O3 -heap-arrays" ## needed for dislocdynlib (phonondrag specifically)
 
 [profiles]
 default = ["baseline"]
