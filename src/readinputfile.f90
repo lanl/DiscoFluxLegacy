@@ -14,12 +14,12 @@ USE GlobalParams
 use utilities, only: Fatal
 implicit none
 
-CHARACTER(32), INTENT(IN) :: jobname
+CHARACTER(64), INTENT(IN) :: jobname
 !------------ local variables:
 integer :: ios
 character(6) :: crystalstruct
 character(32) :: key
-character(54) :: inputfilename
+character(64) :: inputfilename
 character(256) :: line, values
 crystalstruct = 'fcc' ! default value, only used in this function to determine Nslip if not set explicitly
 
@@ -80,11 +80,11 @@ use utilities, only: Fatal
 !$   Use omp_lib
 implicit none
 
-CHARACTER(32), INTENT(IN) :: jobname
+CHARACTER(64), INTENT(IN) :: jobname
 !------------ local variables:
 integer :: ios, j, ich, j_eul
 character(32) :: key
-character(54) :: inputfilename
+character(64) :: inputfilename
 REAL(KIND=8) :: value1, Zener
 character(256) :: line, values
 LOGICAL :: echoinput
@@ -300,7 +300,7 @@ end if
 Zener = 2*C44/(C11-C12)
 
 ! calculate an estimate for character dependent wave_vel, if not provided by the user (WARNING: implemented only for fcc):
-if ( abs(wave_vel(1)) < 1.d-15) then
+if ( crystalstruct=='fcc' .and. (abs(wave_vel(1)) < 1.d-15) ) then
   wave_vel(1) = sqrt((3.d0*C44*(C11-C12))/(rhobar0*2.d0*(C44+C11-C12))) ! analytic solution for vcrit of fcc screw
   wave_vel(Nchar) = min(sqrt((C11-C12)/(2.d0*rhobar0)),sqrt(C44/rhobar0)) ! analytic solution for vcrit of fcc edge
   do ich=2, Nchar-1

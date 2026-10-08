@@ -528,9 +528,9 @@ SUBROUTINE readcmdline(jobname)
 !$   Use omp_lib
   IMPLICIT NONE
   ! Output
-  CHARACTER(32), INTENT(OUT) :: jobname
+  CHARACTER(64), INTENT(OUT) :: jobname
   ! Locals
-  CHARACTER(32) :: cmdlinearg, exe_name
+  CHARACTER(64) :: cmdlinearg, exe_name
   !----------------------------------------
   call get_command_argument(1, cmdlinearg)
   call get_command_argument(0, exe_name)
