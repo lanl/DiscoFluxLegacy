@@ -1853,8 +1853,9 @@ SUBROUTINE Constitutive_DMB( &
   T_new = T_old + temperature_change(1)
 
   ! plastic work
+  d_plastic_work = 0.d0
   do ich=1,Nchar
-    d_plastic_work = sum( (tau(:) - tau_b(:))*dgamma(:,ich) )
+    d_plastic_work = d_plastic_work + sum( (tau(:) - tau_b(:))*dgamma(:,ich) )
   end do
 
   ! T_new = T_old ! can turn off heating for debug ...
