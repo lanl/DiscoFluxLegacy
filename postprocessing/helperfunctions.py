@@ -8,14 +8,9 @@ Security Administration. The Government is granted for itself and others acting 
 irrevocable worldwide license in this material to reproduce, prepare. derivative works, distribute copies to the public, perform
 publicly and display publicly, and to permit others to do so.
 """
+import lzma
 import random
 import numpy as np
-try:
-    import lzma
-    xzopen=True
-except ImportError:
-    # print("warning: failed to import 'lzma', cannot read xz-compressed data")
-    xzopen=False
 if np.__version__ > "1.27":
     np.set_printoptions(legacy='1.25') ## numpy >= 2.0 prints its floats as np.float64(), this option avoids that
 
@@ -100,13 +95,10 @@ def read_field_output(filename):
     try:
         with open(filename,"r", encoding='utf8') as file1:
             lines = file1.readlines()
-    except FileNotFoundError as exc:
+    except FileNotFoundError:
         # print("reading compressed file: ",filename+".xz")
-        if xzopen:
-            with lzma.open(filename+".xz","rt") as file1:
-                lines = file1.readlines()
-        else:
-            raise FileNotFoundError(f"{filename}") from exc
+        with lzma.open(filename+".xz","rt") as file1:
+            lines = file1.readlines()
     for line in lines:
         if "#" != line[0]:
             col = line.strip().split()
@@ -131,13 +123,10 @@ def read_altfield_output(filename):
     try:
         with open(filename,"r", encoding='utf8') as file1:
             lines = file1.readlines()
-    except FileNotFoundError as exc:
+    except FileNotFoundError:
         # print("reading compressed file: ",filename+".xz")
-        if xzopen:
-            with lzma.open(filename+".xz","rt") as file1:
-                lines = file1.readlines()
-        else:
-            raise FileNotFoundError(f"{filename}") from exc
+        with lzma.open(filename+".xz","rt") as file1:
+            lines = file1.readlines()
     for line in lines:
         if "#" != line[0]:
             col = line.strip().split()
