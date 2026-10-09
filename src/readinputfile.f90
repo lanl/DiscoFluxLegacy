@@ -169,6 +169,9 @@ if (ios/=0) then
     call Fatal("Error: cannot open input file, tried "//trim(inputfilename)//" and "//jobname)
   end if
 end if
+if ( (Nchar>999) .or. (Nchar<1) ) then
+  call Fatal("Error, Nchar must be between 1 and 999.")
+end if
 do
   read(42,'(a)',iostat=ios) line
   if (ios/=0) exit

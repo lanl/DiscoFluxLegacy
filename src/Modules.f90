@@ -309,14 +309,14 @@ MODULE OUTPUT
       SUBROUTINE assign_units()
         allocate(unit_vel(Nchar), unit_vel_x(Nchar), unit_vel_y(Nchar), unit_vel_z(Nchar))
         allocate(unit_dis_acc(Nchar), unit_rho_pos(Nchar), unit_rho_neg(Nchar), unit_gamma_acc(Nchar))
-        unit_vel         = 140+characters(:Nchar)
-        unit_vel_x       = 150+characters(:Nchar)
-        unit_vel_y       = 350+characters(:Nchar)
-        unit_vel_z       = 360+characters(:Nchar)
-        unit_dis_acc     = 380+characters(:Nchar)
-        unit_rho_pos     = 160+characters(:Nchar)
-        unit_rho_neg     = 170+characters(:Nchar)
-        unit_gamma_acc   = 260+characters(:Nchar)
+        unit_vel         = 1000+characters(:Nchar)
+        unit_vel_x       = 2000+characters(:Nchar)
+        unit_vel_y       = 3000+characters(:Nchar)
+        unit_vel_z       = 4000+characters(:Nchar)
+        unit_dis_acc     = 5000+characters(:Nchar)
+        unit_rho_pos     = 6000+characters(:Nchar)
+        unit_rho_neg     = 7000+characters(:Nchar)
+        unit_gamma_acc   = 8000+characters(:Nchar)
         RETURN
       END SUBROUTINE assign_units
 END MODULE OUTPUT

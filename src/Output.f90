@@ -17,7 +17,7 @@ SUBROUTINE Init_All_Field_Output_Files(jobname)
 !-----------------------------------------------------------------------
 !  Inputs:
   CHARACTER*(*) jobname    !<job name
-  CHARACTER(1) str_ich
+  CHARACTER(3) str_ich
   INTEGER :: ich
 !-----------------------------------------------------------------------
 !  Locals:
@@ -29,15 +29,15 @@ SUBROUTINE Init_All_Field_Output_Files(jobname)
   call Init_Field_File(jobname, unit_dmb_acc    , "node", "dmb_acc"    )
   call Init_Field_File(jobname, unit_stress     , "ip",   "stress"     )
   do ich=1,Nchar
-    write(str_ich, '(i1)' )ich
-    call Init_Field_File(jobname, unit_vel(ich)        , "ip",   "dis_vel." // str_ich  )
-    call Init_Field_File(jobname, unit_vel_x(ich)      , "ip",   "dis_vel_x." // str_ich  )
-    call Init_Field_File(jobname, unit_vel_y(ich)      , "ip",   "dis_vel_y." // str_ich  )
-    call Init_Field_File(jobname, unit_vel_z(ich)      , "ip",   "dis_vel_z." // str_ich  )
-    call Init_Field_File(jobname, unit_dis_acc(ich)    , "ip",   "dis_acc." // str_ich  )
-    call Init_Field_File(jobname, unit_rho_pos(ich)    , "ip",   "rho_pos." // str_ich    )
-    call Init_Field_File(jobname, unit_rho_neg(ich)    , "ip",   "rho_neg." // str_ich    )
-    call Init_Field_File(jobname, unit_gamma_acc(ich)  , "node", "gamma_acc." // str_ich)
+    write(str_ich, '(i0)' )ich
+    call Init_Field_File(jobname, unit_vel(ich)        , "ip",   "dis_vel." // trim(str_ich)  )
+    call Init_Field_File(jobname, unit_vel_x(ich)      , "ip",   "dis_vel_x." // trim(str_ich)  )
+    call Init_Field_File(jobname, unit_vel_y(ich)      , "ip",   "dis_vel_y." // trim(str_ich)  )
+    call Init_Field_File(jobname, unit_vel_z(ich)      , "ip",   "dis_vel_z." // trim(str_ich)  )
+    call Init_Field_File(jobname, unit_dis_acc(ich)    , "ip",   "dis_acc." // trim(str_ich)  )
+    call Init_Field_File(jobname, unit_rho_pos(ich)    , "ip",   "rho_pos." // trim(str_ich)    )
+    call Init_Field_File(jobname, unit_rho_neg(ich)    , "ip",   "rho_neg." // trim(str_ich)    )
+    call Init_Field_File(jobname, unit_gamma_acc(ich)  , "node", "gamma_acc." // trim(str_ich))
   end do
   call Init_Field_File(jobname, unit_const_soln , "ip",   "const_soln" )
   call Init_Field_File(jobname, unit_Fp         , "ip",   "Fp"         )
