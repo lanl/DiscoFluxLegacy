@@ -8,11 +8,11 @@ Security Administration. The Government is granted for itself and others acting 
 irrevocable worldwide license in this material to reproduce, prepare. derivative works, distribute copies to the public, perform
 publicly and display publicly, and to permit others to do so.
 """
-import lzma
 import random
 import numpy as np
 if np.__version__ > "1.27":
     np.set_printoptions(legacy='1.25') ## numpy >= 2.0 prints its floats as np.float64(), this option avoids that
+import pandas as pd
 
 Nchar = 2 # number of character angles (only needed to convert .inc to .dat input files), needs to match Nchar in Modules.F90
 ## if Nchar>1, some variables will be converted to arrays with repeated entries
@@ -85,57 +85,31 @@ def F90float(arg):
     else:
         out = arg
     return float(out)
-    
-def read_field_output(filename):
-    """helper function for reading a discoflux legacy outout file"""
-    data = {}
-    increment = []
-    time = {}
-    prev_inc = None
-    try:
-        with open(filename,"r", encoding='utf8') as file1:
-            lines = file1.readlines()
-    except FileNotFoundError:
-        # print("reading compressed file: ",filename+".xz")
-        with lzma.open(filename+".xz","rt") as file1:
-            lines = file1.readlines()
-    for line in lines:
-        if "#" != line[0]:
-            col = line.strip().split()
-            if len(col)>0:
-                inc = int(col[0])
-                if inc != prev_inc:
-                    prev_inc = inc
-                    data[inc] = []
-                    time[inc] = float(col[1])
-                    increment.append(inc)
-                data[inc].append([F90float(v) for v in col[2:]])
-    
-    for k, v in data.items():
-        data[k] = np.array(v)
-        
-    return increment, time, data
 
-def read_altfield_output(filename):
+def read_field_output(filename,multiindex=True):
     """helper function for reading a discoflux legacy outout file"""
-    data = []
-    time = []
+    indcol = 0
+    if multiindex:
+        indcol = [0,1]
     try:
-        with open(filename,"r", encoding='utf8') as file1:
-            lines = file1.readlines()
+        raw = pd.read_csv(filename,skip_blank_lines=True,sep=r'\s+',comment='#',header=None,index_col=indcol,low_memory=False)
     except FileNotFoundError:
-        # print("reading compressed file: ",filename+".xz")
-        with lzma.open(filename+".xz","rt") as file1:
-            lines = file1.readlines()
-    for line in lines:
-        if "#" != line[0]:
-            col = line.strip().split()
-            if len(col)>0:
-                time.append(float(col[0]))
-                data.append([F90float(v) for v in col[1:]])
-  
-      
-    return time, np.array(data)
+        raw = pd.read_csv(filename+".xz",skip_blank_lines=True,sep=r'\s+',comment='#',header=None,index_col=indcol,low_memory=False)
+    # now cleanup columns of dtype string because fortran sometime omits the "E" when the exponent is >99 or <-99 and python's float() trips over this:
+    str_cols = raw.select_dtypes(include='string').columns
+    # if len(str_cols)>0:
+    #     print(f"{str_cols=}, cleaning data for ",filename)
+    raw[str_cols] = raw[str_cols].map(F90float)
+    # convert to legacy format (TODO: change later code to use pandas data instead):
+    if not multiindex:
+        time = raw.index.to_list()
+        data = raw.to_numpy()
+        return time, data
+    increment = raw.index.get_level_values(0).unique().to_list()
+    time_values = raw.index.get_level_values(1).unique().to_list()
+    time = {inc:time_values[i] for i,inc in enumerate((increment))}
+    data = {inc:raw.xs(inc).to_numpy() for inc in increment}
+    return increment, time, data
 
 def random_euler(N,nrange=np.pi/2):
     '''generates an array of shape Nx3 filled with random numbers between 0 and nrange (np.pi/2 by default, don't need more for cubic symmetry)'''
@@ -145,6 +119,3 @@ def random_euler(N,nrange=np.pi/2):
             out[i,j] = random.random()
         print(f"euler_angle {nrange*out[i,0]:.8f} {nrange*out[i,1]:.8f} {nrange*out[i,2]:.8f}")
     return nrange*out
-
-        
-        

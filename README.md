@@ -45,6 +45,7 @@ Darby J. Luscher, Jason R. Mayeur, Hashem Mourad, Abigail Hunter, Mark A. Kenamo
 * [numpy](https://numpy.org/doc/stable/user/) >=1.19,</br>
 * [scipy](https://docs.scipy.org/doc/scipy/reference/) >=1.9,</br>
 * [matplotlib](https://matplotlib.org/) >=3.3</br>
+* [pandas](https://pandas.pydata.org/) >=1.5</br>
 * [PyDislocDyn](https://github.com/dblaschke-LANL/PyDislocDyn) >=1.2.9 (optional, used for additional plots)
 
 ## Installation

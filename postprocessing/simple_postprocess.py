@@ -25,7 +25,7 @@ from matplotlib.ticker import AutoMinorLocator
 dir_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(dir_path)
 ##
-from helperfunctions import readfortraninput, read_field_output, read_altfield_output#, random_euler
+from helperfunctions import readfortraninput, read_field_output
 
 vel_direction = 1 ## decide which component of dmb velocities to plot (typically 1 for impact, 2 for shear; 'all' plots for 1,2, and 3)
 slipsystem = 1 ## decide for which slip system to plot disloc. velocities (1-12 for fcc)
@@ -187,9 +187,9 @@ if plot_T:
     Nnode = len(tmp[inc_list[0]])+1
     len_time = min(len(inc_list),len_time)
 if plot_fs_vel:
-    fs_time_values, fs_vel = read_altfield_output(f"{jobname}.th.vel.F90txt")
+    fs_time_values, fs_vel = read_field_output(f"{jobname}.th.vel.F90txt",multiindex=False)
 if plot_fs_stress:
-    fs_time_values, fs_stress = read_altfield_output(f"{jobname}.th.stress.F90txt")
+    fs_time_values, fs_stress = read_field_output(f"{jobname}.th.stress.F90txt",multiindex=False)
 
 ## if fortran was still running, the files above may have different len(inc_list), take the shortest in this case:
 inc_list = inc_list[:len_time]
