@@ -446,7 +446,7 @@ SUBROUTINE RotAround(vec,phi,Mat)
   ! Locals
   REAL(KIND=8) :: vx(3,3), eye(3,3), s, c
   !-----------------------------------
-  vx(3,3)=0.d0
+  vx=0.d0
   s = sin(phi)
   c = cos(phi)
   eye = Identity(3)

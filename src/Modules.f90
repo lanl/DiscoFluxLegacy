@@ -8,7 +8,7 @@
 MODULE GlobalParams
   IMPLICIT NONE
   public
-  CHARACTER(32), PARAMETER :: prog_version="2026.10.07"
+  CHARACTER(32), PARAMETER :: prog_version="2026.10.09"
   INTEGER :: Nel   = 1500
   INTEGER :: Nnode = 1501
   INTEGER :: Nslip = 12

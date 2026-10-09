@@ -155,16 +155,6 @@ SUBROUTINE FV_Update(concentration, velocity, flux_bc, src, Lc, dt, nsc, &
   REAL(KIND=8), DIMENSION(2)     :: c,v
   REAL(KIND=8)                   :: dX
 !-----------------------------------------------------------------------
-!~ !  Function interfaces:
-!~   INTERFACE
-!~     FUNCTION numFlux(c,v,dX,dt,nsc)
-!~       REAL(KIND=8)                                    :: numFlux
-!~       REAL(KIND=8), DIMENSION(2),         INTENT(IN)  :: c,v
-!~       REAL(KIND=8),                       INTENT(IN)  :: dX,dt
-!~       CHARACTER(32),                INTENT(IN)  :: nsc
-!~     END FUNCTION numFlux
-!~   END INTERFACE
-!~ !-----------------------------------------------------------------------
 
 ! CFL condition
   cfl_cell(1)       = velocity(1)*dt/Lc(1)
@@ -357,6 +347,7 @@ FUNCTION numFlux(c,v,dX,dt,nsc)
   f(1) = v(1)*c(1)
   f(2) = v(2)*c(2)
   
+  numFlux = 0.d0
 ! Central difference flux (Central)
   if (nsc == "Central") then
     numFlux = 0.5d0*( f(1)+f(2) )
