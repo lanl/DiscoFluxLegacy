@@ -96,19 +96,19 @@ def read_field_output(filename,multiindex=True):
     except FileNotFoundError:
         raw = pd.read_csv(filename+".xz",skip_blank_lines=True,sep=r'\s+',comment='#',header=None,index_col=indcol,low_memory=False)
     # now cleanup columns of dtype string because fortran sometime omits the "E" when the exponent is >99 or <-99 and python's float() trips over this:
-    str_cols = raw.select_dtypes(include='string').columns
+    str_cols = raw.select_dtypes(include=['string','object']).columns
     # if len(str_cols)>0:
     #     print(f"{str_cols=}, cleaning data for ",filename)
     raw[str_cols] = raw[str_cols].map(F90float)
     # convert to legacy format (TODO: change later code to use pandas data instead):
     if not multiindex:
         time = raw.index.to_list()
-        data = raw.to_numpy()
+        data = raw.to_numpy(dtype=float)
         return time, data
     increment = raw.index.get_level_values(0).unique().to_list()
     time_values = raw.index.get_level_values(1).unique().to_list()
     time = {inc:time_values[i] for i,inc in enumerate((increment))}
-    data = {inc:raw.xs(inc).to_numpy() for inc in increment}
+    data = {inc:raw.xs(inc).to_numpy(dtype=float) for inc in increment}
     return increment, time, data
 
 def random_euler(N,nrange=np.pi/2):
