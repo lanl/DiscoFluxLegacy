@@ -19,6 +19,7 @@ SUBROUTINE Init_All_Field_Output_Files(jobname)
   CHARACTER*(*) :: jobname    !<job name
   CHARACTER(3) :: str_ich
   character(:), allocatable :: col_names(:)
+  character(720) :: colnms
   INTEGER :: ich, islip
 !-----------------------------------------------------------------------
 !  Locals:
@@ -62,26 +63,31 @@ SUBROUTINE Init_All_Field_Output_Files(jobname)
     do islip=1,Nslip
       write(col_names(islip), '(a, i0)' ) "vel-",islip
     end do
-    write(unit_vel(ich)        ,102) "inc", "time", "ip_id",   col_names
-    write(unit_vel_x(ich)      ,103) "inc", "time", "ip_id",   col_names
-    write(unit_vel_y(ich)      ,103) "inc", "time", "ip_id",   col_names
-    write(unit_vel_z(ich)      ,103) "inc", "time", "ip_id",   col_names
+    write(colnms,'(*(a,3x))') col_names
+    write(unit_vel(ich)        ,102) "inc", "time", "ip_id",   trim(colnms)
+    write(unit_vel_x(ich)      ,103) "inc", "time", "ip_id",   trim(colnms)
+    write(unit_vel_y(ich)      ,103) "inc", "time", "ip_id",   trim(colnms)
+    write(unit_vel_z(ich)      ,103) "inc", "time", "ip_id",   trim(colnms)
     do islip=1,Nslip
       write(col_names(islip), '(a, i0)' ) "acc-",islip
     end do
-    write(unit_dis_acc(ich)    ,103) "inc", "time", "ip_id",   col_names
+    write(colnms,'(*(a,3x))') col_names
+    write(unit_dis_acc(ich)    ,103) "inc", "time", "ip_id",   trim(colnms)
     do islip=1,Nslip
       write(col_names(islip), '(a, i0)' ) "dd(+)-",islip
     end do
-    write(unit_rho_pos(ich)    ,104) "inc", "time", "ip_id",   col_names
+    write(colnms,'(*(a,3x))') col_names
+    write(unit_rho_pos(ich)    ,104) "inc", "time", "ip_id",   trim(colnms)
     do islip=1,Nslip
       write(col_names(islip), '(a, i0)' ) "dd(-)-",islip
     end do
-    write(unit_rho_neg(ich)    ,105) "inc", "time", "ip_id",   col_names
+    write(colnms,'(*(a,3x))') col_names
+    write(unit_rho_neg(ich)    ,105) "inc", "time", "ip_id",   trim(colnms)
     do islip=1,Nslip
       write(col_names(islip), '(a, i0)' ) "gamma-",islip
     end do
-    write(unit_gamma_acc(ich)  ,114) "inc", "time", "ip_id",   col_names
+    write(colnms,'(*(a,3x))') col_names
+    write(unit_gamma_acc(ich)  ,114) "inc", "time", "ip_id",   trim(colnms)
   end do
   write(unit_Fp         ,106) "inc", "time", "ip_id",   "Fp-11", "Fp-12", "Fp-13", "Fp-21", "Fp-22", "Fp-23", "Fp-31", &
     "Fp-32", "Fp-33"
@@ -90,11 +96,13 @@ SUBROUTINE Init_All_Field_Output_Files(jobname)
   do islip=1,Nslip
     write(col_names(islip), '(a, i0)' ) "tau-",islip
   end do
-  write(unit_tau        ,108) "inc", "time", "ip_id",   col_names
+    write(colnms,'(*(a,3x))') col_names
+  write(unit_tau        ,108) "inc", "time", "ip_id",   trim(colnms)
   do islip=1,Nslip
     write(col_names(islip), '(a, i0)' ) "tau_b-",islip
   end do
-  write(unit_tau_back   ,111) "inc", "time", "ip_id",   col_names
+    write(colnms,'(*(a,3x))') col_names
+  write(unit_tau_back   ,111) "inc", "time", "ip_id",   trim(colnms)
   write(unit_const_soln ,109) "inc", "time", "ip_id",   "subinc",      "cutback"
   write(unit_temperature,110) "inc", "time", "ip_id",   "temperature"
   write(unit_Ei         ,112) "inc", "time", "ip_id",   "Ei-11", "Ei-22", "Ei-33", "Ei-23", "Ei-31", "Ei-12"
@@ -113,19 +121,19 @@ SUBROUTINE Init_All_Field_Output_Files(jobname)
    "## ------   ---------- -------",6(3x, 14('-')))
 
 102 format("## vel field file contains dislocation velocities on each slip system (vel-sys#) at integration points",/,  &
-   "##",a7,a13,a8,3x,*(g0, "   "),/,  &
+   "##",a7,a13,a8,3x,a,/,  &
    "## ------   ---------- -------",4(3x, 14('-')))
 
 103 format("## vel_x field file contains x-component of dislocation velocities on each slip system (vel-sys#) at IP",/,  &
-   "##",a7,a13,a8,3x,*(g0, "   "),/,  &
+   "##",a7,a13,a8,3x,a,/,  &
    "## ------   ---------- -------",4(3x, 14('-')))
 
 104 format("## rho_pos field file contains dislocation densities of + character on each slip system (dd-sys#) at IP",/,  &
-   "##",a7,a13,a8,3x,*(g0, "   "),/,  &
+   "##",a7,a13,a8,3x,a,/,  &
    "## ------   ---------- -------",4(3x, 14('-')))
 
 105 format("## rho_neg field file contains dislocation densities of - character on each slip system (dd-sys#) at IP",/,  &
-   "##",a7,a13,a8,3x,*(g0, "   "),/,  &
+   "##",a7,a13,a8,3x,a,/,  &
    "## ------   ---------- -------",4(3x, 14('-')))
 
 106 format("## Fp field file contains coefficients of plastic def. gradient at integration points",/,  &
@@ -137,7 +145,7 @@ SUBROUTINE Init_All_Field_Output_Files(jobname)
    "## ------   ---------- -------",9(3x, 14('-')))
 
 108 format("## tau field file contains projection of cauchy stress on slip systems (no backstress) at IP",/,  &
-   "##",a7,a13,a8,3x,*(g0, "   "),/,  &
+   "##",a7,a13,a8,3x,a,/,  &
    "## ------   ---------- -------",4(3x, 14('-')))
 
 109 format("## const_soln field file contains number of sub-increments, and total number of constitutive cutbacks at IP",/,  &
@@ -149,7 +157,7 @@ SUBROUTINE Init_All_Field_Output_Files(jobname)
    "## ------   ---------- -------",1(3x, 14('-')))
 
 111 format("## tau_back field file contains backstress on slip systems at integration points",/,  &
-   "##",a7,a13,a8,3x,*(g0, "   "),/,  &
+   "##",a7,a13,a8,3x,a,/,  &
    "## ------   ---------- -------",4(3x, 14('-'))) 
 
 112 format("## Ei field file contains internal strain due to dislocation configuration",/,  &
@@ -161,7 +169,7 @@ SUBROUTINE Init_All_Field_Output_Files(jobname)
    "## -------- -------",3(3x, 19('-'))) 
 
 114 format("## accumulated magnitudes of slip on each slip system at IPs",/,  &
-   "##",a7,a13,a8,3x,*(g0, "   "),/,  &
+   "##",a7,a13,a8,3x,a,/,  &
    "## ------   ---------- -------",4(3x, 14('-')))
 
 115 format("## stress history file contains components of cauchy stress at each time",/,  &
