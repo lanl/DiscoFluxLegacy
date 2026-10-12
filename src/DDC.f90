@@ -56,7 +56,6 @@ SUBROUTINE DDC_Update(ddc_state_old, dmb_state, cdt_state,  &
   REAL(KIND=8), DIMENSION(:,:,:), allocatable :: pk2_i
 !  REAL(KIND=8), DIMENSION(3,3)       :: Csum
   INTEGER :: iip,islip,i,j,ich,iregion,e1,e2,n
-  REAL(KIND=8) :: sum
 !-----------------------------------------------------------------------
   allocate(pk2_i(Nel,3,3))
 !~   call ddc_state_new%allocatememory()
