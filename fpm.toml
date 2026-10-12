@@ -6,9 +6,9 @@ maintainer = "40176390+dblaschke-LANL@users.noreply.github.com"
 copyright = "Copyright 2026, Triad National Security, LLC"
 homepage = "https://github.com/lanl/DiscoFluxLegacy/"
 
-[fortran]
-source-form = "default"
-implicit-external = true
+#[fortran]
+#source-form = "default"
+#implicit-external = true
 
 #[build]
 #link = ["lapack", "blas"]
