@@ -82,7 +82,7 @@ implicit none
 
 CHARACTER(64), INTENT(IN) :: jobname
 !------------ local variables:
-integer :: ios, j, j_eul
+integer :: ios, j, ich, j_eul
 character(32) :: key
 character(64) :: inputfilename
 REAL(KIND=8) :: value1, Zener
