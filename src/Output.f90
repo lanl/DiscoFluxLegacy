@@ -12,12 +12,12 @@ contains
 !>  Opens all output files.
 SUBROUTINE Init_All_Field_Output_Files(jobname)
 !-----------------------------------------------------------------------
-  USE OUTPUT
+  USE OUTPUT ! defined in Modules.f90, makes GlobalParams available
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Inputs:
-  CHARACTER*(*) jobname    !<job name
-  CHARACTER(3) str_ich
+  CHARACTER*(*) :: jobname    !<job name
+  CHARACTER(3) :: str_ich
   INTEGER :: ich
 !-----------------------------------------------------------------------
 !  Locals:

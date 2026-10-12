@@ -14,10 +14,6 @@ if np.__version__ > "1.27":
     np.set_printoptions(legacy='1.25') ## numpy >= 2.0 prints its floats as np.float64(), this option avoids that
 import pandas as pd
 
-Nchar = 2 # number of character angles (only needed to convert .inc to .dat input files), needs to match Nchar in Modules.F90
-## if Nchar>1, some variables will be converted to arrays with repeated entries
-## (because the old .inc files did not know about char-dependence)
-    
 def readfortraninput(fname):
     """reads an input file for the fortran code and returns a dictionary containing the data"""
     inputparams = {}
@@ -48,7 +44,7 @@ def readfortraninput(fname):
                     inputparams[currentline[0]] = value
     return inputparams
     
-def writefortraninput(inputparams,fname,Nchar=Nchar):
+def writefortraninput(inputparams,fname,Nchar=2):
     """
     writes dictionary 'inputparams' to an inputfile for the fortran code.
     Nchar denotes the number of character angles to consider for the dislocations.
