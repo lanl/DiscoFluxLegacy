@@ -8,6 +8,7 @@ Security Administration. The Government is granted for itself and others acting 
 irrevocable worldwide license in this material to reproduce, prepare. derivative works, distribute copies to the public, perform
 publicly and display publicly, and to permit others to do so.
 """
+import lzma
 import random
 import numpy as np
 if np.__version__ > "1.27":
@@ -82,30 +83,60 @@ def F90float(arg):
         out = arg
     return float(out)
 
-def read_field_output(filename,multiindex=True):
-    """helper function for reading a discoflux legacy outout file"""
+def read_field_output(filename,multiindex=1,return_pd=True,Nslip=12):
+    """
+    helper function for reading a discoflux legacy outout file
+    if option 'multiindex'=n>1, the first n columns will be used for a multi-index in the padas output.
+    (multiindex>2 implies return_pd=True because the legacy output only supports multiindex=1 or 2.)
+    Nslip is only needed to amend missing column names read from the output header (not necessary for new calculations)
+    """
     indcol = 0
-    if multiindex:
-        indcol = [0,1]
+    if multiindex>1:
+        indcol = [i for i in range(int(multiindex))]
     try:
         raw = pd.read_csv(filename,skip_blank_lines=True,sep=r'\s+',comment='#',header=None,index_col=indcol,low_memory=False)
+        with open(filename,"r",encoding='utf8') as input_file:
+            head = [next(input_file) for _ in range(2)]
     except FileNotFoundError:
         raw = pd.read_csv(filename+".xz",skip_blank_lines=True,sep=r'\s+',comment='#',header=None,index_col=indcol,low_memory=False)
+        with lzma.open(filename+".xz","rt") as input_file:
+            head = [next(input_file) for _ in range(2)]
     # now cleanup columns of dtype string because fortran sometime omits the "E" when the exponent is >99 or <-99 and python's float() trips over this:
     str_cols = raw.select_dtypes(include=['string','object']).columns
     # if len(str_cols)>0:
     #     print(f"{str_cols=}, cleaning data for ",filename)
     raw[str_cols] = raw[str_cols].map(F90float)
+    col_names = head[1].split()[1:] # read column names from file
+    # append missing column names:
+    if col_names[-1] == "..." and "-3" in col_names[-2]:
+        nm = col_names[-2][:-2]
+        col_names[-1] = f"{nm}-4"
+        for i in range(Nslip-4):
+            col_names.append(f"{nm}-{i+5}")
+    ln_col_nm = len(col_names)
+    ln_cols = len(raw.columns)
+    if return_pd or multiindex>2:
+        if ln_col_nm>ln_cols+multiindex:
+            col_names.remove("id")
+            ln_col_nm -= 1
+        if multiindex>1:
+            raw.index.names = col_names[:multiindex]
+        else:
+            raw.index.name = col_names[0]
+        if ln_cols+multiindex==ln_col_nm:
+            raw.columns = col_names[multiindex:]
+        return raw
     # convert to legacy format (TODO: change later code to use pandas data instead):
-    if not multiindex:
+    elif multiindex==1:
         time = raw.index.to_list()
         data = raw.to_numpy(dtype=float)
         return time, data
-    increment = raw.index.get_level_values(0).unique().to_list()
-    time_values = raw.index.get_level_values(1).unique().to_list()
-    time = {inc:time_values[i] for i,inc in enumerate((increment))}
-    data = {inc:raw.xs(inc).to_numpy(dtype=float) for inc in increment}
-    return increment, time, data
+    elif multiindex==2:
+        increment = raw.index.get_level_values(0).unique().to_list()
+        time_values = raw.index.get_level_values(1).unique().to_list()
+        time = {inc:time_values[i] for i,inc in enumerate((increment))}
+        data = {inc:raw.xs(inc).to_numpy(dtype=float) for inc in increment}
+        return increment, time, data
 
 def random_euler(N,nrange=np.pi/2):
     '''generates an array of shape Nx3 filled with random numbers between 0 and nrange (np.pi/2 by default, don't need more for cubic symmetry)'''

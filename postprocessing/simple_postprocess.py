@@ -135,58 +135,58 @@ number_of_plots = Nchar*Nslipsystems*(plot_rho_pos + plot_rho_neg + plot_dis_vel
 print(f"reading data for {number_of_plots} plots")
 for ich in characters:
     if plot_rho_pos or plot_av_dis_vel_x:
-        inc_list, time_values, rho_pos[ich]   = read_field_output(f"{jobname}.ip.rho_pos.{ich}.F90txt")
+        inc_list, time_values, rho_pos[ich]   = read_field_output(f"{jobname}.ip.rho_pos.{ich}.F90txt",multiindex=2,return_pd=False)
         Nnode = len(rho_pos[ich][inc_list[0]])+1
         len_time = min(len(inc_list),len_time)
     if plot_rho_neg or plot_av_dis_vel_x:
-        inc_list, time_values, rho_neg[ich]   = read_field_output(f"{jobname}.ip.rho_neg.{ich}.F90txt")
+        inc_list, time_values, rho_neg[ich]   = read_field_output(f"{jobname}.ip.rho_neg.{ich}.F90txt",multiindex=2,return_pd=False)
         Nnode = len(rho_neg[ich][inc_list[0]])+1
         len_time = min(len(inc_list),len_time)
     if plot_dis_vel:
-        inc_list, time_values, dis_vel[ich]   = read_field_output(f"{jobname}.ip.dis_vel.{ich}.F90txt")
+        inc_list, time_values, dis_vel[ich]   = read_field_output(f"{jobname}.ip.dis_vel.{ich}.F90txt",multiindex=2,return_pd=False)
         Nnode = len(dis_vel[ich][inc_list[0]])+1
         len_time = min(len(inc_list),len_time)
     if plot_dis_acc:
-        inc_list, time_values, dis_acc[ich]   = read_field_output(f"{jobname}.ip.dis_acc.{ich}.F90txt")
+        inc_list, time_values, dis_acc[ich]   = read_field_output(f"{jobname}.ip.dis_acc.{ich}.F90txt",multiindex=2,return_pd=False)
         Nnode = len(dis_acc[ich][inc_list[0]])+1
         len_time = min(len(inc_list),len_time)
     if plot_dis_vel_x or plot_av_dis_vel_x:
-        inc_list, time_values, dis_vel_x[ich]   = read_field_output(f"{jobname}.ip.dis_vel_x.{ich}.F90txt")
+        inc_list, time_values, dis_vel_x[ich]   = read_field_output(f"{jobname}.ip.dis_vel_x.{ich}.F90txt",multiindex=2,return_pd=False)
         Nnode = len(dis_vel_x[ich][inc_list[0]])+1
         len_time = min(len(inc_list),len_time)
     if plot_dis_vel_y:
-        inc_list, time_values, dis_vel_y[ich]   = read_field_output(f"{jobname}.ip.dis_vel_y.{ich}.F90txt")
+        inc_list, time_values, dis_vel_y[ich]   = read_field_output(f"{jobname}.ip.dis_vel_y.{ich}.F90txt",multiindex=2,return_pd=False)
         Nnode = len(dis_vel_y[ich][inc_list[0]])+1
         len_time = min(len(inc_list),len_time)
     if plot_dis_vel_z: ## TODO: determine from sqrt(vel^2 - vel_x^2 - vel_y^2), dont need to write this file
-        inc_list, time_values, dis_vel_z[ich]   = read_field_output(f"{jobname}.ip.dis_vel_z.{ich}.F90txt")
+        inc_list, time_values, dis_vel_z[ich]   = read_field_output(f"{jobname}.ip.dis_vel_z.{ich}.F90txt",multiindex=2,return_pd=False)
         Nnode = len(dis_vel_z[ich][inc_list[0]])+1
         len_time = min(len(inc_list),len_time)
 ###
 if plot_tau:
-    inc_list, time_values, tau  = read_field_output(f"{jobname}.ip.tau.F90txt")
+    inc_list, time_values, tau  = read_field_output(f"{jobname}.ip.tau.F90txt",multiindex=2,return_pd=False)
     Nnode = len(tau[inc_list[0]])+1
     len_time = min(len(inc_list),len_time)
 if plot_tau_back:
-    inc_list, time_values, tau_back  = read_field_output(f"{jobname}.ip.tau_back.F90txt")
+    inc_list, time_values, tau_back  = read_field_output(f"{jobname}.ip.tau_back.F90txt",multiindex=2,return_pd=False)
     Nnode = len(tau_back[inc_list[0]])+1
     len_time = min(len(inc_list),len_time)
 if plot_dmb_vel or plot_fs_vel:
-    inc_list, time_values, dmb_vel   = read_field_output(f"{jobname}.node.dmb_vel.F90txt")
+    inc_list, time_values, dmb_vel   = read_field_output(f"{jobname}.node.dmb_vel.F90txt",multiindex=2,return_pd=False)
     Nnode = len(dmb_vel[inc_list[0]])
     len_time = min(len(inc_list),len_time)
 if plot_stress or plot_dev_stress or plot_fs_stress or plot_pressure or plot_model_stress:
-    inc_list, time_values, stress    = read_field_output(f"{jobname}.ip.stress.F90txt")
+    inc_list, time_values, stress    = read_field_output(f"{jobname}.ip.stress.F90txt",multiindex=2,return_pd=False)
     Nnode = len(stress[inc_list[0]])+1
     len_time = min(len(inc_list),len_time)
 if plot_T:
-    inc_list, time_values, tmp  = read_field_output(f"{jobname}.ip.T.F90txt")
+    inc_list, time_values, tmp  = read_field_output(f"{jobname}.ip.T.F90txt",multiindex=2,return_pd=False)
     Nnode = len(tmp[inc_list[0]])+1
     len_time = min(len(inc_list),len_time)
 if plot_fs_vel:
-    fs_time_values, fs_vel = read_field_output(f"{jobname}.th.vel.F90txt",multiindex=False)
+    fs_time_values, fs_vel = read_field_output(f"{jobname}.th.vel.F90txt",multiindex=1,return_pd=False)
 if plot_fs_stress:
-    fs_time_values, fs_stress = read_field_output(f"{jobname}.th.stress.F90txt",multiindex=False)
+    fs_time_values, fs_stress = read_field_output(f"{jobname}.th.stress.F90txt",multiindex=1,return_pd=False)
 
 ## if fortran was still running, the files above may have different len(inc_list), take the shortest in this case:
 inc_list = inc_list[:len_time]
