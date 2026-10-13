@@ -476,6 +476,7 @@ END SUBROUTINE RotAlign
 !-----------------------------------------------------------------------
 
 SUBROUTINE readcmdline(jobname)
+  use stdlib_version, only : get_stdlib_version
   USE GlobalParams
   use dislocdyn_parameters, only: version
 !$   Use omp_lib
@@ -483,6 +484,7 @@ SUBROUTINE readcmdline(jobname)
   ! Output
   CHARACTER(64), INTENT(OUT) :: jobname
   ! Locals
+  character(:), allocatable :: stdlib_version
   CHARACTER(64) :: cmdlinearg, exe_name
   !----------------------------------------
   call get_command_argument(1, cmdlinearg)
@@ -497,8 +499,10 @@ SUBROUTINE readcmdline(jobname)
       print*,"       (needed to read 'input_parameters.<jobname>.dat')"
       print*,"       or ",trim(exe_name)," <inputfilename>"
       print*,""
-      print*,"program version: ",prog_version
-      print*,"using dislocdynlib version ",version
+      print*,"DiscoFlux Legacy version: ",prog_version
+      print*,"  ... using dislocdynlib version ",version
+      call get_stdlib_version(string=stdlib_version)
+      print*,"  ... using stdlib version "//stdlib_version//new_line('a')
       print*,"simulation types: impact or shear"
       print*,"compiled with these defaults:"
       print*,"# of elements, Nel = ",Nel
