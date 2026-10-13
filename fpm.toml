@@ -23,9 +23,9 @@ openmp = "*"
 #test-drive.tag = "v0.6.1"
 
 [features]
-baseline.gfortran.flags = "-O3 -march=native"
-baseline.flang.flags = "-O3 -march=native"
-baseline.lfortran.flags = "--fast --legacy-array-sections --realloc-lhs-arrays"
+baseline.gfortran.flags = "-O3 -march=native -std=f2018"
+baseline.flang.flags = "-O3 -march=native -std=f2018"
+baseline.lfortran.flags = "--fast --legacy-array-sections --realloc-lhs-arrays --std=f23"
 
 [profiles]
 default = ["baseline"]
