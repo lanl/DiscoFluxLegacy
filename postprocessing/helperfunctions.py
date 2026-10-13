@@ -83,12 +83,11 @@ def F90float(arg):
         out = arg
     return float(out)
 
-def read_field_output(filename,multiindex=1,return_pd=True,Nslip=12):
+def read_field_output(filename,multiindex=1,return_pd=True):
     """
     helper function for reading a discoflux legacy outout file
     if option 'multiindex'=n>1, the first n columns will be used for a multi-index in the padas output.
     (multiindex>2 implies return_pd=True because the legacy output only supports multiindex=1 or 2.)
-    Nslip is only needed to amend missing column names read from the output header (not necessary for new calculations)
     """
     indcol = 0
     if multiindex>1:
@@ -106,37 +105,52 @@ def read_field_output(filename,multiindex=1,return_pd=True,Nslip=12):
     # if len(str_cols)>0:
     #     print(f"{str_cols=}, cleaning data for ",filename)
     raw[str_cols] = raw[str_cols].map(F90float)
-    col_names = head[1].split()[1:] # read column names from file
-    # append missing column names:
+    # convert and return legacy format if requested (TODO: change later code to use pandas data instead):
+    if not return_pd:
+        return convert_pd_to_legacy(raw)
+    # read column names from file
+    col_names = head[1].split()[1:]
+    # append missing column names (for backwards compatibility with old calculations):
     if col_names[-1] == "..." and "-3" in col_names[-2]:
+        Nslip=12
+        if len(raw.columns)>20:
+            Nslip=48
         nm = col_names[-2][:-2]
         col_names[-1] = f"{nm}-4"
         for i in range(Nslip-4):
             col_names.append(f"{nm}-{i+5}")
     ln_col_nm = len(col_names)
     ln_cols = len(raw.columns)
-    if return_pd or multiindex>2:
-        if ln_col_nm>ln_cols+multiindex:
-            col_names.remove("id")
-            ln_col_nm -= 1
-        if multiindex>1:
-            raw.index.names = col_names[:multiindex]
-        else:
-            raw.index.name = col_names[0]
-        if ln_cols+multiindex==ln_col_nm:
-            raw.columns = col_names[multiindex:]
-        return raw
-    # convert to legacy format (TODO: change later code to use pandas data instead):
-    elif multiindex==1:
-        time = raw.index.to_list()
-        data = raw.to_numpy(dtype=float)
-        return time, data
-    elif multiindex==2:
-        increment = raw.index.get_level_values(0).unique().to_list()
-        time_values = raw.index.get_level_values(1).unique().to_list()
+    if ln_col_nm>ln_cols+multiindex:
+        col_names.remove("id")
+        ln_col_nm -= 1
+    if multiindex>1:
+        raw.index.names = col_names[:multiindex]
+    else:
+        raw.index.name = col_names[0]
+    if ln_cols+multiindex==ln_col_nm:
+        raw.columns = col_names[multiindex:]
+    return raw
+
+def convert_pd_to_legacy(data):
+    """
+    converts a pandas dataframe whose index is either 'time' or a Multiindex containing 'inc' and 'time'
+    and returns a tuple (increment, time, data) where data is a (dict of) numpy arrays
+    """
+    if isinstance(data, pd.DataFrame) and isinstance(data.index, pd.MultiIndex):
+        if len(data.index.names)>2:
+            data.reset_index(level=[i+2 for i in range(len(data.index.names)-2)])
+        increment = data.index.get_level_values(0).unique().to_list()
+        time_values = data.index.get_level_values(1).unique().to_list()
         time = {inc:time_values[i] for i,inc in enumerate((increment))}
-        data = {inc:raw.xs(inc).to_numpy(dtype=float) for inc in increment}
-        return increment, time, data
+        arrdata = {inc:data.xs(inc).to_numpy(dtype=float) for inc in increment}
+        return increment, time, arrdata
+    elif isinstance(data, pd.DataFrame):
+        time = data.index.to_list()
+        arrdata = data.to_numpy(dtype=float)
+        return time, arrdata
+    else:
+        raise ValueError("input must be a pandas DataFrame")
 
 def random_euler(N,nrange=np.pi/2):
     '''generates an array of shape Nx3 filled with random numbers between 0 and nrange (np.pi/2 by default, don't need more for cubic symmetry)'''
