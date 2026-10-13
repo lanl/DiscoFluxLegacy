@@ -484,7 +484,7 @@ SUBROUTINE readcmdline(jobname)
   ! Output
   CHARACTER(64), INTENT(OUT) :: jobname
   ! Locals
-  character(:), allocatable :: stdlib_version
+  character(:), allocatable :: stdlibversion
   CHARACTER(64) :: cmdlinearg, exe_name
   !----------------------------------------
   call get_command_argument(1, cmdlinearg)
@@ -501,8 +501,8 @@ SUBROUTINE readcmdline(jobname)
       print*,""
       print*,"DiscoFlux Legacy version: ",prog_version
       print*,"  ... using dislocdynlib version ",version
-      call get_stdlib_version(string=stdlib_version)
-      print*,"  ... using stdlib version "//stdlib_version//new_line('a')
+      call get_stdlib_version(string=stdlibversion)
+      print*,"  ... using stdlib version "//stdlibversion//new_line('a')
       print*,"simulation types: impact or shear"
       print*,"compiled with these defaults:"
       print*,"# of elements, Nel = ",Nel
@@ -528,7 +528,7 @@ END SUBROUTINE readcmdline
 SUBROUTINE Fatal(message)
 
   IMPLICIT NONE
-  CHARACTER*(*) message
+  CHARACTER(*) message
 !-----------------------------------------------------------------------
   write(*,10) message
 10  format(                         &

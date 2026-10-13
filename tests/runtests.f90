@@ -92,7 +92,7 @@ PROGRAM RunTests
 
   IMPLICIT NONE
   
-  character(:), allocatable :: stdlib_version
+  character(:), allocatable :: stdlibversion
   INTEGER, PARAMETER :: resolution=361 ! resolve polar angle phi to 1 degree (tradeoff accuracy for speed)
   REAL(KIND=8) :: num, nu_poisson, rho0, Fwant, tmpintegral
   Real(KIND=8), DIMENSION(5) :: array1,array2
@@ -143,8 +143,8 @@ PROGRAM RunTests
 
   print*,"running tests for DiscoFlux Legacy version: ",prog_version
   print*,"  ... using dislocdynlib version ",version
-  call get_stdlib_version(string=stdlib_version)
-  print*,"  ... using stdlib version "//stdlib_version//new_line('a')
+  call get_stdlib_version(string=stdlibversion)
+  print*,"  ... using stdlib version "//stdlibversion//new_line('a')
 
   print*,"compiled with these defaults:"
   print*,"# of elements, Nel = ",Nel
