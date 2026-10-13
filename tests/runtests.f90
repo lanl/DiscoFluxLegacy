@@ -304,10 +304,10 @@ PROGRAM RunTests
                       "Sb (fcc Cu): validate against python implementation",1.d-8,count_pass,count_fail)
   if (Nchar > 1) then
     call testequalarray(Bb(:,9,1)/props_dmb%C44,[0.06277008d0,  0.06277008d0, 0.d0],3, &
-                      "Bb (fcc Cu) screw: validate against python implementation",1.d-8,count_pass,count_fail)
+                      "Bb (fcc Cu) screw: validate against python impl.",1.d-8,count_pass,count_fail)
   end if
   call testequalarray(Bb(:,9,Nchar)/props_dmb%C44,[0.110293506d0,  0.110293506d0, 0.d0],3, &
-                      "Bb (fcc Cu) edge: validate against python implementation",1.d-8,count_pass,count_fail)
+                      "Bb (fcc Cu) edge: validate against python impl.",1.d-8,count_pass,count_fail)
 
   ! test form_elasticity
   call DMB_form_elasticity(Cg, props_dmb%rotM(:,:,3,Nchar), props_dmb%elastic_constants, 0.d0, 0.d0)
@@ -436,10 +436,10 @@ PROGRAM RunTests
                       "Sb (bcc Fe): validate against python implementation",1.d-8,count_pass,count_fail)
   if (Nchar > 1) then
     call testequalarray(Bb(:,9,1)/props_dmb%C44,[0.04651684d0, -0.04651684d0,  0.04651684d0],3, &
-                      "Bb (bcc Fe) screw: validate against python implementation",1.d-8,count_pass,count_fail)
+                      "Bb (bcc Fe) screw: validate against python impl.",1.d-8,count_pass,count_fail)
   end if
   call testequalarray(Bb(:,9,Nchar)/props_dmb%C44,[0.08475254d0, -0.08475254d0,  0.10570937d0],3, &
-                      "Bb (bcc Fe) edge: validate against python implementation",1.d-8,count_pass,count_fail)
+                      "Bb (bcc Fe) edge: validate against python impl.",1.d-8,count_pass,count_fail)
   
   
   call system_clock(finish_time)
