@@ -269,8 +269,8 @@ do
     read(line,*)key,euler_angle(j_eul,1),euler_angle(j_eul,2),euler_angle(j_eul,3)
     j_eul = j_eul + 1
   end if
-  if (key=='drag_flag') read(line,*)key,drag_flag
-  if (key=='drag_Trho_flag') read(line,*)key,drag_Trho_flag
+  if (key=='drag_flag') read(values,*)drag_flag
+  if (key=='drag_Trho_flag') read(values,*)drag_Trho_flag
   if (key=='debug_cycle') then
     read(values,*)debug_cycle
     print*,"setting debug_cycle=",debug_cycle

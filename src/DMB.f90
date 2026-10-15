@@ -607,7 +607,7 @@ SUBROUTINE DMB_get_slip_system(name, slip_M_out, slip_S_out, slip_V, line_T, rot
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Inputs:
-  CHARACTER*(*), INTENT(IN) :: name    !< Structure
+  CHARACTER(*), INTENT(IN) :: name    !< Structure
 !-----------------------------------------------------------------------
 !  Outputs:
   REAL(KIND=8), DIMENSION(3,Nslip), INTENT(OUT) :: slip_M_out, slip_S_out  !< Slip normals M, slip directions S

@@ -142,7 +142,7 @@ def convert_pd_to_legacy(data):
             data.reset_index(level=[i+2 for i in range(len(data.index.names)-2)])
         increment = data.index.get_level_values(0).unique().to_list()
         time_values = data.index.get_level_values(1).unique().to_list()
-        time = {inc:time_values[i] for i,inc in enumerate((increment))}
+        time = {inc:time_values[i] for i,inc in enumerate(increment)}
         arrdata = {inc:data.xs(inc).to_numpy(dtype=float) for inc in increment}
         return increment, time, arrdata
     elif isinstance(data, pd.DataFrame):
@@ -150,7 +150,7 @@ def convert_pd_to_legacy(data):
         arrdata = data.to_numpy(dtype=float)
         return time, arrdata
     else:
-        raise ValueError("input must be a pandas DataFrame")
+        raise TypeError("input must be a pandas DataFrame")
 
 def random_euler(N,nrange=np.pi/2):
     '''generates an array of shape Nx3 filled with random numbers between 0 and nrange (np.pi/2 by default, don't need more for cubic symmetry)'''

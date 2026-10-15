@@ -16,7 +16,7 @@ SUBROUTINE Init_All_Field_Output_Files(jobname)
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Inputs:
-  CHARACTER*(*) :: jobname    !<job name
+  CHARACTER(*) :: jobname    !<job name
   CHARACTER(3) :: str_ich
   character(:), allocatable :: col_names(:)
   character(720) :: colnms
@@ -192,8 +192,8 @@ SUBROUTINE Init_Field_File(jobname, unitnumber, loc, vrb)
 !  Inputs:
   CHARACTER(64) :: jobname      !< job name
   INTEGER       :: unitnumber   !< unit number
-  CHARACTER*(*) :: loc          !< location of value in mesh
-  CHARACTER*(*) :: vrb          !< Variable name
+  CHARACTER(*) :: loc          !< location of value in mesh
+  CHARACTER(*) :: vrb          !< Variable name
 !-----------------------------------------------------------------------
 !  Locals:
   CHARACTER(128) :: filename
