@@ -78,9 +78,7 @@ if Nchar==0:
     raise ValueError("cannot find required files for job ",jobname)
 if 'crystalstruct' in inputdata:
     crystalstruct = inputdata['crystalstruct']
-    if crystalstruct=='fcc':
-        Nslip=12
-    elif crystalstruct=='bcc':
+    if crystalstruct=='bcc':
         Nslip=48
 if 'Nslip' in inputdata: 
     Nslip = int(inputdata['Nslip'])
