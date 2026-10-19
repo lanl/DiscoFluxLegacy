@@ -26,11 +26,10 @@ contains
 pure SUBROUTINE Interp1D(Xwant, n, X, F, Fwant)
 
   IMPLICIT NONE
-  REAL(KIND=8)                :: Xwant, Fwant
-  INTEGER               :: n
-  REAL(KIND=8), DIMENSION(n)  :: X, F
-  INTENT (IN)  X, F, n, Xwant
-  INTENT (OUT) Fwant
+  REAL(KIND=8), intent(in)               :: Xwant
+  INTEGER, intent(in)         :: n
+  REAL(KIND=8), DIMENSION(n), intent(in) :: X, F
+  REAL(KIND=8), intent(out)              :: Fwant
 
 !~   REAL(KIND=8) :: b, m
   INTEGER :: i, ip1
