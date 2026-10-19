@@ -75,12 +75,10 @@ END SUBROUTINE Interp1D
 pure SUBROUTINE FindInterval(X, n, Xwant, i)
 
   IMPLICIT NONE
-  INTEGER  :: n
-  REAL(KIND=8), DIMENSION(n) :: X
-  REAL(KIND=8) :: Xwant
-  INTEGER  :: i
-  INTENT (IN) X, n, Xwant
-  INTENT (OUT) i
+  INTEGER, intent(in)  :: n
+  REAL(KIND=8), DIMENSION(n), intent(in) :: X
+  REAL(KIND=8), intent(in) :: Xwant
+  INTEGER, intent(out)  :: i
 
   INTEGER :: ilo, ihi, imid
 
@@ -111,11 +109,9 @@ END SUBROUTINE FindInterval
 pure SUBROUTINE LinSpace(x1,x2,n,xout)
 
   IMPLICIT NONE
-  REAL(KIND=8) :: x1, x2
-  INTEGER :: n
-  REAL(KIND=8), DIMENSION(N) :: xout
-  INTENT (IN) x1, x2, n
-  INTENT (OUT) xout
+  REAL(KIND=8), intent(in) :: x1, x2
+  INTEGER, intent(in) :: n
+  REAL(KIND=8), DIMENSION(N), intent(out) :: xout
   
   REAL(KIND=8) ::dx
   INTEGER :: i

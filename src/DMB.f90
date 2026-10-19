@@ -1505,7 +1505,7 @@ END SUBROUTINE RK_SubIncrement
 !-----------------------------------------------------------------------
 
 !>Computes the dislocation displacement gradient field according to the integral method
-pure SUBROUTINE stroh_dislocation(props,vel,resolution,uij,Sb,Bb,Cmat)
+SUBROUTINE stroh_dislocation(props,vel,resolution,uij,Sb,Bb,Cmat)
   USE GlobalParams
   USE DMB
   use utilities, only: Identity, LinSpace, elbrak, Trapz, DetInv3x3
