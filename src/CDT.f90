@@ -311,7 +311,7 @@ END FUNCTION minmod
 
 !<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><
 
-FUNCTION maxmod(a,b)
+pure FUNCTION maxmod(a,b)
   REAL(KIND=8)                                :: maxmod
   REAL(KIND=8),                   INTENT(IN)  :: a,b
 

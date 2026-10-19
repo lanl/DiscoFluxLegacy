@@ -23,14 +23,13 @@ contains
 
 !>  Given vector F(X), coordinate vector X, and query location Xwant,
 !>    return Fwant=F(Xwant) using linear interpolation.
-SUBROUTINE Interp1D(Xwant, n, X, F, Fwant)
+pure SUBROUTINE Interp1D(Xwant, n, X, F, Fwant)
 
   IMPLICIT NONE
-  REAL(KIND=8)                :: Xwant, Fwant
-  INTEGER               :: n
-  REAL(KIND=8), DIMENSION(n)  :: X, F
-  INTENT (IN)  X, F, n, Xwant
-  INTENT (OUT) Fwant
+  REAL(KIND=8), intent(in)               :: Xwant
+  INTEGER, intent(in)         :: n
+  REAL(KIND=8), DIMENSION(n), intent(in) :: X, F
+  REAL(KIND=8), intent(out)              :: Fwant
 
 !~   REAL(KIND=8) :: b, m
   INTEGER :: i, ip1
@@ -73,15 +72,13 @@ END SUBROUTINE Interp1D
 
 !>  Given a query coordinate Xwant, find which interval in input X
 !>    contains Xwant and return it as i
-SUBROUTINE FindInterval(X, n, Xwant, i)
+pure SUBROUTINE FindInterval(X, n, Xwant, i)
 
   IMPLICIT NONE
-  INTEGER  :: n
-  REAL(KIND=8), DIMENSION(n) :: X
-  REAL(KIND=8) :: Xwant
-  INTEGER  :: i
-  INTENT (IN) X, n, Xwant
-  INTENT (OUT) i
+  INTEGER, intent(in)  :: n
+  REAL(KIND=8), DIMENSION(n), intent(in) :: X
+  REAL(KIND=8), intent(in) :: Xwant
+  INTEGER, intent(out)  :: i
 
   INTEGER :: ilo, ihi, imid
 
@@ -89,9 +86,7 @@ SUBROUTINE FindInterval(X, n, Xwant, i)
   ihi = n+1
 
   do while (.true.)
-    if(.not..true.) then
-      return
-    elseif(ihi-ilo>1) then
+    if(ihi-ilo>1) then
       imid = (ihi+ilo)/2
       if(X(n)>X(1).eqv.Xwant>X(imid)) then
         ilo = imid
@@ -111,14 +106,12 @@ END SUBROUTINE FindInterval
 !-----------------------------------------------------------------------
 
 !>  Generate a linearly-spaced vector from [x1,x2]
-SUBROUTINE LinSpace(x1,x2,n,xout)
+pure SUBROUTINE LinSpace(x1,x2,n,xout)
 
   IMPLICIT NONE
-  REAL(KIND=8) :: x1, x2
-  INTEGER :: n
-  REAL(KIND=8), DIMENSION(N) :: xout
-  INTENT (IN) x1, x2, n
-  INTENT (OUT) xout
+  REAL(KIND=8), intent(in) :: x1, x2
+  INTEGER, intent(in) :: n
+  REAL(KIND=8), DIMENSION(N), intent(out) :: xout
   
   REAL(KIND=8) ::dx
   INTEGER :: i
@@ -141,7 +134,7 @@ END SUBROUTINE LinSpace
 
 !>  Integrate F(X) along X using trapezoidal rule
 !>  Return Integral
-SUBROUTINE Trapz(n, F, X, Integral)
+pure SUBROUTINE Trapz(n, F, X, Integral)
 
   IMPLICIT NONE
   INTEGER, INTENT(IN) :: n
@@ -158,12 +151,12 @@ END SUBROUTINE Trapz
 
 !>  Integrate F(X) along X using trapezoidal rule
 !>  Return Integral, which is the cumulative integral at each interval
-SUBROUTINE CumTrapz(n, F, X, Integral)
+pure SUBROUTINE CumTrapz(n, F, X, Integral)
 
   IMPLICIT NONE
-  INTEGER :: n
-  REAL(KIND=8), DIMENSION(n)  :: F, X
-  REAL(KIND=8), DIMENSION(n-1) :: Integral
+  INTEGER, intent(in) :: n
+  REAL(KIND=8), DIMENSION(n), intent(in)  :: F, X
+  REAL(KIND=8), DIMENSION(n-1), intent(out) :: Integral
   
   INTEGER :: i, ip1, im1
   REAL(KIND=8)  :: dx, fbar
@@ -231,7 +224,7 @@ END FUNCTION Det3x3
 !-----------------------------------------------------------------------
 
 !>  Return determinant and inverse of 3x3 REAL(KIND=8) array A
-SUBROUTINE DetInv3x3(A,D,AINV)
+pure SUBROUTINE DetInv3x3(A,D,AINV)
 !-----------------------------------------------------------------------
   IMPLICIT NONE
 !-----------------------------------------------------------------------
@@ -314,7 +307,7 @@ pure function Cross(a,b) result(axb)
 !<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><
 !-----------------------------------------------------------------------
 !> Compute the bracket (a,b) := a.Cmat.b, where Cmat is a tensor of 2nd order elastic constants.
-SUBROUTINE ElBrak(a,b,Cmat,AB)
+pure SUBROUTINE ElBrak(a,b,Cmat,AB)
 !-----------------------------------------------------------------------
   IMPLICIT NONE
 !-----------------------------------------------------------------------
@@ -437,7 +430,7 @@ END SUBROUTINE Invert_Tensor
 !-----------------------------------------------------------------------
 
 !> generate rotation matrix Mat that rotates by angle phi around unit vector vec
-SUBROUTINE RotAround(vec,phi,Mat)
+pure SUBROUTINE RotAround(vec,phi,Mat)
   IMPLICIT NONE
   ! Inputs
   REAL(KIND=8), INTENT(IN) :: vec(3), phi
@@ -461,7 +454,7 @@ SUBROUTINE RotAround(vec,phi,Mat)
 END SUBROUTINE RotAround
 
 !> generate rotation matrix Mat that rotates unit vector old into unit vector new
-SUBROUTINE RotInto(old,new,Mat)
+pure SUBROUTINE RotInto(old,new,Mat)
   IMPLICIT NONE
   ! Inputs
   REAL(KIND=8), DIMENSION(3), INTENT(IN) :: old,new
@@ -490,7 +483,7 @@ SUBROUTINE RotInto(old,new,Mat)
 END SUBROUTINE RotInto
 
 !> generate rotation matrix that aligns unit vectors n with y and t with z, assuming n.t=0=y.z
-SUBROUTINE RotAlign(n,t,y,z,Mat)
+pure SUBROUTINE RotAlign(n,t,y,z,Mat)
   USE GlobalParams
   IMPLICIT NONE
   ! Inputs
@@ -574,7 +567,7 @@ END SUBROUTINE readcmdline
 SUBROUTINE Fatal(message)
 
   IMPLICIT NONE
-  CHARACTER*(*) message
+  CHARACTER(*) message
 !-----------------------------------------------------------------------
   write(*,10) message
 10  format(                         &
