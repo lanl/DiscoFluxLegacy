@@ -309,7 +309,7 @@ END SUBROUTINE DMB_State_Init
 !> compute "active" rotation matrix using Bunge euler angles
 !> "active" rotation matrix is defined such that E_i = R_ij * e_j where 
 !> e_i are the crystal base vectors and E_j are the global or "sample" base vectors
-SUBROUTINE DMB_Compute_Rotation(euler_angle, rot)
+pure SUBROUTINE DMB_Compute_Rotation(euler_angle, rot)
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Inputs:
@@ -349,7 +349,7 @@ END SUBROUTINE DMB_Compute_Rotation
 
 !> form a fourth order elasticity tensor from elastic constants (in crystal basis) 
 !> and rotate into global basis
-subroutine DMB_form_elasticity(Cg, rotMat, elastic_constants, temperature, pressure)
+pure subroutine DMB_form_elasticity(Cg, rotMat, elastic_constants, temperature, pressure)
 
 implicit none
 
@@ -1505,7 +1505,7 @@ END SUBROUTINE RK_SubIncrement
 !-----------------------------------------------------------------------
 
 !>Computes the dislocation displacement gradient field according to the integral method
-SUBROUTINE stroh_dislocation(props,vel,resolution,uij,Sb,Bb,Cmat)
+pure SUBROUTINE stroh_dislocation(props,vel,resolution,uij,Sb,Bb,Cmat)
   USE GlobalParams
   USE DMB
   use utilities, only: Identity, LinSpace, elbrak, Trapz, DetInv3x3

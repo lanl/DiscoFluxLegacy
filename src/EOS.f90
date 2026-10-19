@@ -13,7 +13,7 @@ contains
 !-----------------------------------------------------------------------
 
 !>  computes the change in temperature due to volumetric compression
-SUBROUTINE EOS_Shock_Heat(props, thermo_coeffs, bulk_q, detFnew, detFold, temperature, &
+pure SUBROUTINE EOS_Shock_Heat(props, thermo_coeffs, bulk_q, detFnew, detFold, temperature, &
            dTemp)
   
   USE GlobalParams
