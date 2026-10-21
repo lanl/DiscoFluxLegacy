@@ -5,7 +5,7 @@
 ! Security Administration. The Government is granted for itself and others acting on its behalf a nonexclusive, paid-up,
 ! irrevocable worldwide license in this material to reproduce, prepare. derivative works, distribute copies to the public, perform
 ! publicly and display publicly, and to permit others to do so.
-module DMB_routines
+module discoflux_DMB_routines
 private
 interface operator(.voigt.)
   module procedure Voigt43to26
@@ -18,7 +18,7 @@ public :: DMB_Init_EOS, DMB_Compute_EOS, DMB_Compute_Rotation, DMB_Invert_Tensor
           operator(.voigt.), operator(.unvoigt.)
 contains
 SUBROUTINE DMB_Init_EOS(Dhat)
-  use utilities, only: LinSpace, CumTrapz
+  use discoflux_utilities, only: LinSpace, CumTrapz
   IMPLICIT NONE
 
 !-----------------------------------------------------------------------
@@ -47,9 +47,9 @@ END SUBROUTINE DMB_Init_EOS
 SUBROUTINE DMB_Compute_EOS(eos_props, detF, temperature, &
            PRESSURE, FREE_ENERGY, ENTROPY, THERMO_COEFFS)
 !-----------------------------------------------------------------------
-  use GlobalParams
-  USE DMB
-  use utilities, only: Interp1D
+  use discoflux_GlobalParams
+  USE discoflux_DMB
+  use discoflux_utilities, only: Interp1D
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Inputs:
@@ -203,8 +203,8 @@ END SUBROUTINE DMB_Compute_EOS
 !-----------------------------------------------------------------------
 
 SUBROUTINE DMB_State(times, state)
-  USE GlobalParams
-  USE DMB
+  USE discoflux_GlobalParams
+  USE discoflux_DMB
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Inputs:
@@ -251,8 +251,8 @@ END SUBROUTINE DMB_State
 
 SUBROUTINE DMB_State_Init(times, X_ref, x, xdot, xddot, Fp, Fe, T, &
            DMB_State)
-  USE GlobalParams
-  USE DMB
+  USE discoflux_GlobalParams
+  USE discoflux_DMB
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Inputs:
@@ -561,7 +561,7 @@ END SUBROUTINE DMB_Invert_Tensor43
 !>  Invert a 6x6 tensor.
 SUBROUTINE DMB_Invert_Tensor26(A,Ainv)
   use stdlib_linalg_lapack, only: getrf, getri
-  use utilities, only: Fatal
+  use discoflux_utilities, only: Fatal
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Inputs:
@@ -601,20 +601,19 @@ END SUBROUTINE DMB_Invert_Tensor26
 
 !>  Populate the slip system normals and directions.
 SUBROUTINE DMB_get_slip_system(name, slip_M_out, slip_S_out, slip_V, line_T, rotM, Aforest)
-  USE GlobalParams
-!-----------------------------------------------------------------------
-  use utilities, only: Fatal, operator(.cross.), RotAlign
+  USE discoflux_GlobalParams
+  use discoflux_utilities, only: Fatal, operator(.cross.), RotAlign
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Inputs:
-  CHARACTER(*), INTENT(IN) :: name    !< Structure
+  CHARACTER(*), INTENT(IN) :: name !! Structure
 !-----------------------------------------------------------------------
 !  Outputs:
-  REAL(KIND=8), DIMENSION(3,Nslip), INTENT(OUT) :: slip_M_out, slip_S_out  !< Slip normals M, slip directions S
-  REAL(KIND=8), DIMENSION(3,Nslip,Nchar), INTENT(OUT) :: slip_V, line_T  !< velocity directions slip_V and line directions line_T
+  REAL(KIND=8), DIMENSION(3,Nslip), INTENT(OUT) :: slip_M_out, slip_S_out  !! Slip normals M, slip directions S
+  REAL(KIND=8), DIMENSION(3,Nslip,Nchar), INTENT(OUT) :: slip_V, line_T  !! velocity directions `slip_V` and line directions `line_T`
+  !> `rotM` = rotation matrices which will align `slip_M` and line sense with Cartesian directions y and z
   REAL(KIND=8), DIMENSION(3,3,Nslip,Nchar), INTENT(OUT) :: rotM
-  REAL(KIND=8), DIMENSION(Nslip,Nslip,Nchar), INTENT(OUT) :: Aforest !< slip_S is char independent, hence alpha=Nslip, beta=Nslip+Nchar
-  !! rotM = rotation matrices which will align slip_M and line sense with Cartesian directions y and z
+  REAL(KIND=8), DIMENSION(Nslip,Nslip,Nchar), INTENT(OUT) :: Aforest !! `slip_S` is char independent, hence alpha=Nslip, beta=Nslip+Nchar
 
 !-----------------------------------------------------------------------
 !  Locals:
@@ -863,9 +862,9 @@ END SUBROUTINE DMB_get_slip_system
 SUBROUTINE xtal_Update_Stress(F_new, Fp_old, F_i, Cg, slip_Sg, slip_Mg, dgamma, &
            cauchy_new, Fe_new, Fp_new)
   use stdlib_linalg, only: expm
-  USE GlobalParams
-  USE DMB
-  use utilities, only: Identity, DetInv3x3, operator(.det.)!, ExpM
+  USE discoflux_GlobalParams
+  USE discoflux_DMB
+  use discoflux_utilities, only: Identity, DetInv3x3, operator(.det.)
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Inputs:
@@ -951,9 +950,9 @@ END SUBROUTINE xtal_Update_Stress
 SUBROUTINE Compute_Velocities(sigma, tau_b, temp, Fe, slip_Sg, slip_Mg, rho,  props, &
            detF, pressure, vel, tau)
   
-  USE GlobalParams
-  USE DMB
-  use utilities, only: DetInv3x3
+  USE discoflux_GlobalParams
+  USE discoflux_DMB
+  use discoflux_utilities, only: DetInv3x3
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Inputs:
@@ -1010,8 +1009,8 @@ END SUBROUTINE Compute_Velocities
 SUBROUTINE Dislocation_Velocity(tau_eff, temp, rho,  props, detF, pressure, &
            vel)
 
-  USE GlobalParams
-  USE DMB
+  USE discoflux_GlobalParams
+  USE discoflux_DMB
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Inputs:
@@ -1160,9 +1159,9 @@ SUBROUTINE RK_Rates(dt, temp, F_old, F_new, Fe_old, Fp_old, cauchy_old, J_new, p
            field_variables, slip_Sg, slip_Mg, Cg, props, &
            gamma_dot, error)
   
-  USE GlobalParams
-  USE DMB
-  use utilities, only: Identity
+  USE discoflux_GlobalParams
+  USE discoflux_DMB
+  use discoflux_utilities, only: Identity
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Inputs:
@@ -1323,9 +1322,9 @@ SUBROUTINE RK_SubIncrement(dt, T_old,  F_old, F_new, J_new, pressure, Fe_old, &
                Fp_old, cauchy_old, field_variables, slip_Sg, slip_Mg, Cmat, props, &
                cauchy, Fe_new, Fp_new, dgamma, Nsub, icutback)
   
-  USE GlobalParams
-  USE DMB
-  use utilities, only: Identity
+  USE discoflux_GlobalParams
+  USE discoflux_DMB
+  use discoflux_utilities, only: Identity
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Inputs:
@@ -1506,9 +1505,9 @@ END SUBROUTINE RK_SubIncrement
 
 !>Computes the dislocation displacement gradient field according to the integral method
 SUBROUTINE stroh_dislocation(props,vel,resolution,uij,Sb,Bb,Cmat)
-  USE GlobalParams
-  USE DMB
-  use utilities, only: Identity, LinSpace, elbrak, Trapz, DetInv3x3
+  USE discoflux_GlobalParams
+  USE discoflux_DMB
+  use discoflux_utilities, only: Identity, LinSpace, elbrak, Trapz, DetInv3x3
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Inputs:
@@ -1638,10 +1637,10 @@ END SUBROUTINE stroh_dislocation
 SUBROUTINE Constitutive_DMB( &
            F_new, F_old, T_old, cauchy_old, Fp_old, Fe_old, field_variables, dt, props, elem_len, &
            cauchy, vel, vel_x, vel_y, vel_z, T_new, Fp_new, Fe_new, tau, dgamma, Nsub, i_cutback)
-  USE GlobalParams
-  USE DMB
-  use EOS
-  use utilities, only: DetInv3x3, operator(.det.)
+  USE discoflux_GlobalParams
+  USE discoflux_DMB
+  use discoflux_EOS
+  use discoflux_utilities, only: DetInv3x3, operator(.det.)
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Inputs:
@@ -1887,10 +1886,10 @@ END SUBROUTINE Constitutive_DMB
 SUBROUTINE DMB_Update_State(state_old, dt, mass_array, xdot_bc, force_bc, & 
            all_props_dmb, cdt_state, ddc_state,                           &
            state_new, xdot_acc_bc)
-  USE GlobalParams
-  USE DMB
-  USE CDT
-  USE DDC
+  USE discoflux_GlobalParams
+  USE discoflux_DMB
+  USE discoflux_CDT
+  USE discoflux_DDC
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Inputs:
@@ -2073,5 +2072,5 @@ SUBROUTINE DMB_Update_State(state_old, dt, mass_array, xdot_bc, force_bc, &
   state_new%x(:,:) = state_old%x(:,:) + dt * state_new%xdot(:,:)
 
 END SUBROUTINE DMB_Update_State
-end module DMB_routines
+end module discoflux_DMB_routines
 

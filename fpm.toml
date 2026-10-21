@@ -1,5 +1,5 @@
 name = "DiscoFlux_Legacy"
-version = "2026.10.19"
+version = "2026.10.21"
 license = "BSD-3"
 author = "Darby J. Luscher, Jason R. Mayeur, Hashem Mourad, Abigail Hunter, Mark A. Kenamond, Daniel N. Blaschke"
 maintainer = "40176390+dblaschke-LANL@users.noreply.github.com"
@@ -54,4 +54,4 @@ main = "runtests.f90"
 project = "" ## we include the README.md file in the ford-docs for this and other info, see ford.yml
 year = "2014-2026"
 project_github  = "https://github.com/lanl/DiscoFluxLegacy"
-
+graph = true

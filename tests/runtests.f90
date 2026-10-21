@@ -5,7 +5,7 @@
 ! Security Administration. The Government is granted for itself and others acting on its behalf a nonexclusive, paid-up,
 ! irrevocable worldwide license in this material to reproduce, prepare. derivative works, distribute copies to the public, perform
 ! publicly and display publicly, and to permit others to do so.
-module checks
+module discoflux_checks
 implicit none
 character(*), parameter :: esc = achar(27), red = '[31m', green = '[32m', reset = '[0m'
 character(*), parameter :: passed = char(9)//esc//green//"PASSED"//esc//reset
@@ -69,26 +69,26 @@ SUBROUTINE testzero(A,string,tolerance,count_pass,count_fail)
   call testequalarray([A],[0.d0],1,string,tolerance,count_pass,count_fail)
   RETURN
 END SUBROUTINE testzero
-end module checks
+end module discoflux_checks
 
 !-----------------------------------------------------------------------
 !<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><
 !-----------------------------------------------------------------------
 
-PROGRAM RunTests
+PROGRAM discoflux_RunTests
   use stdlib_version, only : get_stdlib_version
   use stdlib_linalg, only: expm
   use dislocdyn_parameters, only: version
-  USE GlobalParams
-  USE DMB
-  USE CDT
-  USE DDC
-  use DMB_routines, only: DMB_Compute_Rotation, DMB_form_elasticity, DMB_get_slip_system, DMB_Invert_Tensor26, DMB_Invert_Tensor43,&
-                        stroh_dislocation, operator(.voigt.), operator(.unvoigt.)
-  use CDT_routines
-  use DDC_routines
-  use utilities
-  use checks
+  USE discoflux_GlobalParams
+  USE discoflux_DMB
+  USE discoflux_CDT
+  USE discoflux_DDC
+  use discoflux_DMB_routines, only: DMB_Compute_Rotation, DMB_form_elasticity, DMB_get_slip_system, DMB_Invert_Tensor26, &
+                        DMB_Invert_Tensor43, stroh_dislocation, operator(.voigt.), operator(.unvoigt.)
+  use discoflux_CDT_routines
+  use discoflux_DDC_routines
+  use discoflux_utilities
+  use discoflux_checks
 
   IMPLICIT NONE
   
@@ -458,4 +458,4 @@ PROGRAM RunTests
   print*,"time: ",int(1000.d0*real(finish_time-start_time)/real(countrate)), "ms"
 
   if (count_fail>0) error stop "some tests failed"
-END PROGRAM RunTests
+END PROGRAM discoflux_RunTests

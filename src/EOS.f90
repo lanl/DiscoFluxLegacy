@@ -5,7 +5,7 @@
 ! Security Administration. The Government is granted for itself and others acting on its behalf a nonexclusive, paid-up,
 ! irrevocable worldwide license in this material to reproduce, prepare. derivative works, distribute copies to the public, perform
 ! publicly and display publicly, and to permit others to do so.
-module EOS
+module discoflux_EOS
 public
 contains
 !-----------------------------------------------------------------------
@@ -16,8 +16,8 @@ contains
 pure SUBROUTINE EOS_Shock_Heat(props, thermo_coeffs, bulk_q, detFnew, detFold, temperature, &
            dTemp)
   
-  USE GlobalParams
-  USE DMB
+  USE discoflux_GlobalParams
+  USE discoflux_DMB
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Inputs:
@@ -44,6 +44,5 @@ pure SUBROUTINE EOS_Shock_Heat(props, thermo_coeffs, bulk_q, detFnew, detFold, t
   dTemp(3) = -bulk_q*(detFnew - detFold)/(rho0*Cv)                       ! heating due to dissipation from bulk viscosity
   dTemp(1) = dTemp(2) + dTemp(3)
 
-  RETURN
 END SUBROUTINE EOS_Shock_Heat
-end module EOS
+end module discoflux_EOS

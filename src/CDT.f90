@@ -5,13 +5,13 @@
 ! Security Administration. The Government is granted for itself and others acting on its behalf a nonexclusive, paid-up,
 ! irrevocable worldwide license in this material to reproduce, prepare. derivative works, distribute copies to the public, perform
 ! publicly and display publicly, and to permit others to do so.
-module CDT_routines
+module discoflux_CDT_routines
 private
 public :: CDT_Combine_State, CDT_State_Init, CDT_Update_State
 contains
 SUBROUTINE CDT_State_Init(cell_sizes, cdt_state)
-  USE GlobalParams
-  USE CDT
+  USE discoflux_GlobalParams
+  USE discoflux_CDT
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Inputs:
@@ -23,7 +23,6 @@ SUBROUTINE CDT_State_Init(cell_sizes, cdt_state)
 !~   call cdt_state%allocatememory()
   cdt_state%cell_sizes(:) = cell_sizes
 
-  RETURN
 END SUBROUTINE CDT_State_Init
 
 !-----------------------------------------------------------------------
@@ -32,11 +31,11 @@ END SUBROUTINE CDT_State_Init
 
 SUBROUTINE CDT_Update_State(cdt_state_old, ddc_state_new, dmb_state_new,  &
            all_cdt_props, dt, flux_bc, cdt_state_new)
-  USE GlobalParams
-  USE CDT
-  USE DDC
-  USE DMB
-  use utilities, only: Fatal
+  USE discoflux_GlobalParams
+  USE discoflux_CDT
+  USE discoflux_DDC
+  USE discoflux_DMB
+  use discoflux_utilities, only: Fatal
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Inputs:
@@ -120,7 +119,6 @@ SUBROUTINE CDT_Update_State(cdt_state_old, ddc_state_new, dmb_state_new,  &
 
   end if
 
-  RETURN
 END SUBROUTINE CDT_Update_State
 
 !-----------------------------------------------------------------------
@@ -129,9 +127,9 @@ END SUBROUTINE CDT_Update_State
 
 SUBROUTINE FV_Update(concentration, velocity, flux_bc, src, Lc, dt, nsc, &
            limiter, c_new)
-  USE GlobalParams
-  USE CDT
-  use utilities, only: Fatal
+  USE discoflux_GlobalParams
+  USE discoflux_CDT
+  use discoflux_utilities, only: Fatal
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Inputs:
@@ -205,15 +203,14 @@ SUBROUTINE FV_Update(concentration, velocity, flux_bc, src, Lc, dt, nsc, &
   c_dot(1:Nel) = src(1:Nel) - (flux(2:Nel+1)-flux(1:Nel)) / Lc(1:Nel)
   c_new(:) = concentration(:) + c_dot(:) * dt
   
-  RETURN
 END SUBROUTINE FV_Update
 
 !<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><
 
 SUBROUTINE reconstruct(concentration,Lc,limiter, slopes)
-  USE GlobalParams
-  USE CDT
-  use utilities, only: Fatal
+  USE discoflux_GlobalParams
+  USE discoflux_CDT
+  use discoflux_utilities, only: Fatal
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Inputs:
@@ -230,18 +227,6 @@ SUBROUTINE reconstruct(concentration,Lc,limiter, slopes)
   REAL(KIND=8), DIMENSION(Nel+4)                  :: Q,h
   REAL(KIND=8)                                    :: sed,awk
 !-----------------------------------------------------------------------
-!~ !  Function interfaces:
-!~   INTERFACE
-!~     FUNCTION minmod(a,b)
-!~       REAL(KIND=8)                                :: minmod
-!~       REAL(KIND=8),                   INTENT(IN)  :: a,b
-!~     END FUNCTION minmod
-!~     FUNCTION maxmod(a,b)
-!~       REAL(KIND=8)                                :: maxmod
-!~       REAL(KIND=8),                   INTENT(IN)  :: a,b
-!~     END FUNCTION maxmod
-!~   END INTERFACE
-!~ !-----------------------------------------------------------------------
 
   slopes  = 0.d0
 
@@ -330,7 +315,7 @@ END FUNCTION maxmod
 !<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><
 
 FUNCTION numFlux(c,v,dX,dt,nsc)
-  use utilities, only: Fatal
+  use discoflux_utilities, only: Fatal
   IMPLICIT NONE
   REAL(KIND=8)                                    :: numFlux
 !-----------------------------------------------------------------------
@@ -389,9 +374,9 @@ END FUNCTION numFlux
 SUBROUTINE FEM_Update(concentration, velocity, flux_bc, src, Lc, dt, nsc, &
            c_new)
   use stdlib_linalg_lapack, only: GTSV
-  USE GlobalParams
-  USE CDT
-  use utilities, only: Fatal
+  USE discoflux_GlobalParams
+  USE discoflux_CDT
+  use discoflux_utilities, only: Fatal
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Inputs:
@@ -525,7 +510,6 @@ SUBROUTINE FEM_Update(concentration, velocity, flux_bc, src, Lc, dt, nsc, &
 
   c_new(:) = concentration(:) + c_dot(:) * dt
 
-  RETURN
 END SUBROUTINE FEM_Update
 
 !<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><
@@ -533,7 +517,7 @@ END SUBROUTINE FEM_Update
 SUBROUTINE SUPG_Arrays(v, c, src, Lc, &
                        M_supg, M_supg_lumped, flux_supg, source_supg)
 
-  USE GlobalParams
+  USE discoflux_GlobalParams
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Inputs:
@@ -602,7 +586,6 @@ SUBROUTINE SUPG_Arrays(v, c, src, Lc, &
   end do  !e
 !~   !$OMP END PARALLEL DO
 
-  RETURN
 END SUBROUTINE SUPG_Arrays
 
 !-----------------------------------------------------------------------
@@ -610,8 +593,8 @@ END SUBROUTINE SUPG_Arrays
 !-----------------------------------------------------------------------
 
 SUBROUTINE CDT_Combine_State(state_A, state_B, mult_A, mult_B, state_new)
-  USE GlobalParams
-  USE CDT
+  USE discoflux_GlobalParams
+  USE discoflux_CDT
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Inputs:
@@ -627,7 +610,6 @@ SUBROUTINE CDT_Combine_State(state_A, state_B, mult_A, mult_B, state_new)
   state_new%varrho_field = mult_A*state_A%varrho_field + mult_B*state_B%varrho_field
   state_new%varrho_node  = mult_A*state_A%varrho_node  + mult_B*state_B%varrho_node
 
-  RETURN
 END SUBROUTINE CDT_Combine_State
 
 !-----------------------------------------------------------------------
@@ -637,10 +619,10 @@ END SUBROUTINE CDT_Combine_State
 !> Compute the dislocation source terms.
 SUBROUTINE CDT_Src_Calc(cdt_state_old, ddc_state_new, dmb_state_new, all_cdt_props, &
            varrho_src, velocity)
-  USE GlobalParams
-  USE CDT
-  USE DDC
-  USE DMB
+  USE discoflux_GlobalParams
+  USE discoflux_CDT
+  USE discoflux_DDC
+  USE discoflux_DMB
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Inputs:
@@ -731,10 +713,9 @@ SUBROUTINE CDT_Src_Calc(cdt_state_old, ddc_state_new, dmb_state_new, all_cdt_pro
 
   varrho_src = s_mult + s_ann + s_nuc_hom
 
-  RETURN
 END SUBROUTINE CDT_Src_Calc
 
 !-----------------------------------------------------------------------
 !<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><
 !-----------------------------------------------------------------------
-end module CDT_routines
+end module discoflux_CDT_routines
