@@ -36,8 +36,8 @@ default = ["baseline"]
 
 [[executable]]
 name = "impactshear"
-source-dir = "src"
-main = "Driver.f90"
+source-dir = "app"
+main = "impactshear.f90"
 
 [[test]]
 name = "runtests"
