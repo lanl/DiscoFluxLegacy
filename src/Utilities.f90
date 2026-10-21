@@ -21,8 +21,8 @@ contains
 !<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><
 !-----------------------------------------------------------------------
 
-!>  Given vector F(X), coordinate vector X, and query location Xwant,
-!>    return Fwant=F(Xwant) using linear interpolation.
+!>  Given vector F(X), coordinate vector X, and query location `Xwant`,
+!>    return `Fwant`=`F`(`Xwant`) using linear interpolation.
 pure SUBROUTINE Interp1D(Xwant, n, X, F, Fwant)
 
   IMPLICIT NONE
@@ -70,8 +70,8 @@ END SUBROUTINE Interp1D
 !<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><
 !-----------------------------------------------------------------------
 
-!>  Given a query coordinate Xwant, find which interval in input X
-!>    contains Xwant and return it as i
+!>  Given a query coordinate `Xwant`, find which interval in input `X`
+!>    contains `Xwant` and return it as `i`
 pure SUBROUTINE FindInterval(X, n, Xwant, i)
 
   IMPLICIT NONE
@@ -306,7 +306,7 @@ pure function Cross(a,b) result(axb)
 !-----------------------------------------------------------------------
 !<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><
 !-----------------------------------------------------------------------
-!> Compute the bracket (a,b) := a.Cmat.b, where Cmat is a tensor of 2nd order elastic constants.
+!> Compute the bracket (a,b) := `a.Cmat.b`, where `Cmat` is a tensor of 2nd order elastic constants.
 pure SUBROUTINE ElBrak(a,b,Cmat,AB)
 !-----------------------------------------------------------------------
   IMPLICIT NONE
@@ -405,7 +405,7 @@ pure SUBROUTINE RotAround(vec,phi,Mat)
 
 END SUBROUTINE RotAround
 
-!> generate rotation matrix Mat that rotates unit vector old into unit vector new
+!> generate rotation matrix `Mat` that rotates unit vector `old` into unit vector `new`
 pure SUBROUTINE RotInto(old,new,Mat)
   IMPLICIT NONE
   ! Inputs
