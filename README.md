@@ -31,7 +31,7 @@ Darby J. Luscher, Jason R. Mayeur, Hashem Mourad, Abigail Hunter, Mark A. Kenamo
 * A Fortran 2018 compiler
 * the [Fortran standard library](https://stdlib.fortran-lang.org/)
 * the [Fortran package manager (fpm)](https://fpm.fortran-lang.org/)
-* [Doxygen](https://www.doxygen.nl/) or [Ford](https://forddocs.readthedocs.io/en/stable/)>=7 to build the code documentation
+* [Ford](https://forddocs.readthedocs.io/en/stable/)>=7 to build the code documentation
 * the Fortran code has been tested manually with the following compilers:
     - gfortran 10 &mdash; 16 
     - flang 22 (linux)

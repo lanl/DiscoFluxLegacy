@@ -5,7 +5,7 @@
 ! Security Administration. The Government is granted for itself and others acting on its behalf a nonexclusive, paid-up,
 ! irrevocable worldwide license in this material to reproduce, prepare. derivative works, distribute copies to the public, perform
 ! publicly and display publicly, and to permit others to do so.
-module UTILITIES
+module discoflux_UTILITIES
 public
 interface operator(.cross.)
   module procedure Cross
@@ -484,7 +484,7 @@ END SUBROUTINE RotInto
 
 !> generate rotation matrix that aligns unit vectors n with y and t with z, assuming n.t=0=y.z
 pure SUBROUTINE RotAlign(n,t,y,z,Mat)
-  USE GlobalParams
+  USE discoflux_GlobalParams
   IMPLICIT NONE
   ! Inputs
   REAL(KIND=8), DIMENSION(3), INTENT(IN) :: n,t,y,z
@@ -518,7 +518,7 @@ END SUBROUTINE RotAlign
 
 SUBROUTINE readcmdline(jobname)
   use stdlib_version, only : get_stdlib_version
-  USE GlobalParams
+  USE discoflux_GlobalParams
 !$   Use omp_lib
   IMPLICIT NONE
   ! Output
@@ -580,4 +580,4 @@ SUBROUTINE Fatal(message)
   STOP
 
 END SUBROUTINE Fatal
-end module UTILITIES
+end module discoflux_UTILITIES

@@ -5,18 +5,18 @@
 ! Security Administration. The Government is granted for itself and others acting on its behalf a nonexclusive, paid-up,
 ! irrevocable worldwide license in this material to reproduce, prepare. derivative works, distribute copies to the public, perform
 ! publicly and display publicly, and to permit others to do so.
-module OUTPUTFILES
+module discoflux_OUTPUTFILES
 public
 contains
 !-----------------------------------------------------------------------
 !>  Opens all output files.
 SUBROUTINE Init_All_Field_Output_Files(jobname)
 !-----------------------------------------------------------------------
-  USE OUTPUT ! defined in Modules.f90, makes GlobalParams available
+  USE discoflux_OUTPUT ! defined in Modules.f90, makes GlobalParams available
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Inputs:
-  CHARACTER(*) :: jobname    !<job name
+  CHARACTER(*) :: jobname    !!job name
   CHARACTER(3) :: str_ich
   character(:), allocatable :: col_names(:)
   character(720) :: colnms
@@ -176,7 +176,6 @@ SUBROUTINE Init_All_Field_Output_Files(jobname)
    "##",a9,a8,6a22,/,  &
    "## -------- -------",6(3x, 19('-')))
 
-  RETURN
 END SUBROUTINE Init_All_Field_Output_Files
 
 !-----------------------------------------------------------------------
@@ -186,14 +185,14 @@ END SUBROUTINE Init_All_Field_Output_Files
 !>  Opens one output file.
 SUBROUTINE Init_Field_File(jobname, unitnumber, loc, vrb)
 !-----------------------------------------------------------------------
-  USE OUTPUT
+  USE discoflux_OUTPUT
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Inputs:
-  CHARACTER(64) :: jobname      !< job name
-  INTEGER       :: unitnumber   !< unit number
-  CHARACTER(*) :: loc          !< location of value in mesh
-  CHARACTER(*) :: vrb          !< Variable name
+  CHARACTER(64) :: jobname      !! job name
+  INTEGER       :: unitnumber   !! unit number
+  CHARACTER(*) :: loc          !! location of value in mesh
+  CHARACTER(*) :: vrb          !! Variable name
 !-----------------------------------------------------------------------
 !  Locals:
   CHARACTER(128) :: filename
@@ -201,7 +200,6 @@ SUBROUTINE Init_Field_File(jobname, unitnumber, loc, vrb)
   filename = jobname(1:len_trim(jobname)) // "." // loc // "." // vrb // ".F90txt"
   open(unit=unitnumber, file=filename)
 
-  RETURN
 END SUBROUTINE Init_Field_File
 
 !-----------------------------------------------------------------------
@@ -211,7 +209,7 @@ END SUBROUTINE Init_Field_File
 !>  Closes all output files.
 SUBROUTINE Close_Field_Files()
 !-----------------------------------------------------------------------
-  USE OUTPUT
+  USE discoflux_OUTPUT
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Locals:
@@ -221,7 +219,6 @@ SUBROUTINE Close_Field_Files()
     close(unit=i)
   end do  !i
 
-  RETURN
 END SUBROUTINE Close_Field_Files
 
 !-----------------------------------------------------------------------
@@ -230,11 +227,11 @@ END SUBROUTINE Close_Field_Files
 
 SUBROUTINE Write_State(iinc, dmb_state_new, cdt_state_new, ddc_state_new)
 !-----------------------------------------------------------------------
-  USE GlobalParams
-  USE OUTPUT
-  USE DMB
-  USE CDT
-  USE DDC
+  USE discoflux_GlobalParams
+  USE discoflux_OUTPUT
+  USE discoflux_DMB
+  USE discoflux_CDT
+  USE discoflux_DDC
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Inputs:
@@ -355,7 +352,6 @@ SUBROUTINE Write_State(iinc, dmb_state_new, cdt_state_new, ddc_state_new)
 100 format(i9,2x,es11.4,i8,48(2x,es16.9)) !! 48=max Nslip on same line
 110 format(//)
 
-  RETURN
 END SUBROUTINE Write_State
 
 !-----------------------------------------------------------------------
@@ -365,11 +361,11 @@ END SUBROUTINE Write_State
 
 subroutine write_history(ipOut, dmb_state_new) !, cdt_state_new, ddc_state_new)
 !-----------------------------------------------------------------------
-  USE GlobalParams
-  USE OUTPUT
-  USE DMB
-  USE CDT
-  USE DDC
+  USE discoflux_GlobalParams
+  USE discoflux_OUTPUT
+  USE discoflux_DMB
+  USE discoflux_CDT
+  USE discoflux_DDC
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Inputs:
@@ -393,17 +389,15 @@ subroutine write_history(ipOut, dmb_state_new) !, cdt_state_new, ddc_state_new)
   
 100 format(es11.4,i8,20(2x,es20.13))
 
-  return 
-  
 end subroutine write_history
 
 
 !>  Print DDC state to terminal.
 SUBROUTINE Print_DDC_State(ddc_state,ich)
 !-----------------------------------------------------------------------
-  USE GlobalParams
-  USE OUTPUT
-  USE DDC
+  USE discoflux_GlobalParams
+  USE discoflux_OUTPUT
+  USE discoflux_DDC
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Inputs:
@@ -421,11 +415,11 @@ SUBROUTINE Print_DDC_State(ddc_state,ich)
   allocate(stress_i(Nel,3,3), epsilon_i(Nel,3,3))
   
   !DDC state members:
-  cell_sizes = ddc_state%cell_sizes  !< (Ncell)
-  tau_i      = ddc_state%tau_i       !< (Ncell, Nslip, Nchar)
-  tau_b      = ddc_state%tau_b       !< (Ncell, Nslip)
-  stress_i   = ddc_state%stress_i    !< (Ncell, 3,3)
-  epsilon_i  = ddc_state%epsilon_i   !< (Ncell, 3,3)
+  cell_sizes = ddc_state%cell_sizes  !! (Ncell)
+  tau_i      = ddc_state%tau_i       !! (Ncell, Nslip, Nchar)
+  tau_b      = ddc_state%tau_b       !! (Ncell, Nslip)
+  stress_i   = ddc_state%stress_i    !! (Ncell, 3,3)
+  epsilon_i  = ddc_state%epsilon_i   !! (Ncell, 3,3)
 
   write(*,'(a)') "DDC State:"
   write(*,'(a)') "  cell_sizes:"
@@ -453,7 +447,6 @@ SUBROUTINE Print_DDC_State(ddc_state,ich)
     write(*,'(   4x,3es28.16)')   epsilon_i(i,:,3)
   end do
 
-  RETURN
 END SUBROUTINE Print_DDC_State
 
 !-----------------------------------------------------------------------
@@ -463,9 +456,9 @@ END SUBROUTINE Print_DDC_State
 !>  Print DMB state to terminal.
 SUBROUTINE Print_DMB_State(dmb_state,ich)
 !-----------------------------------------------------------------------
-  USE GlobalParams
-  USE OUTPUT
-  USE DMB
+  USE discoflux_GlobalParams
+  USE discoflux_OUTPUT
+  USE discoflux_DMB
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Inputs:
@@ -569,7 +562,6 @@ SUBROUTINE Print_DMB_State(dmb_state,ich)
     write(*,'(i2,2x,i5)') i,i_cutback(i)
   end do
 
-  RETURN
 END SUBROUTINE Print_DMB_State
 
 !-----------------------------------------------------------------------
@@ -579,9 +571,9 @@ END SUBROUTINE Print_DMB_State
 !>  Print CDT state to terminal.
 SUBROUTINE Print_CDT_State(cdt_state,ich)
 !-----------------------------------------------------------------------
-  USE GlobalParams
-  USE OUTPUT
-  USE CDT
+  USE discoflux_GlobalParams
+  USE discoflux_OUTPUT
+  USE discoflux_CDT
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Inputs:
@@ -621,6 +613,5 @@ SUBROUTINE Print_CDT_State(cdt_state,ich)
     write(*,'(i2,2x,12es28.16)') i,varrho_node(i,:,ich,2)
   end do
 
-  RETURN
 END SUBROUTINE Print_CDT_State
-end module OUTPUTFILES
+end module discoflux_OUTPUTFILES

@@ -8,17 +8,17 @@
 ! Security Administration. The Government is granted for itself and others acting on its behalf a nonexclusive, paid-up,
 ! irrevocable worldwide license in this material to reproduce, prepare. derivative works, distribute copies to the public, perform
 ! publicly and display publicly, and to permit others to do so.
-PROGRAM CaseA
-  USE GlobalParams
-  USE DMB
-  USE CDT
-  USE DDC
-  use utilities
-  use DMB_routines
-  use CDT_routines
-  use DDC_routines
-  use OUTPUTFILES
-  use readfiles
+PROGRAM impactshear
+  USE discoflux_GlobalParams
+  USE discoflux_DMB
+  USE discoflux_CDT
+  USE discoflux_DDC
+  use discoflux_utilities
+  use discoflux_DMB_routines
+  use discoflux_CDT_routines
+  use discoflux_DDC_routines
+  use discoflux_OUTPUTFILES
+  use discoflux_readfiles
 !-----------------------------------------------------------------------
   IMPLICIT NONE
 !-----------------------------------------------------------------------
@@ -50,7 +50,7 @@ PROGRAM CaseA
   REAL(KIND=8)                :: cdt_A
   REAL(KIND=8)                :: cdt_Y_e
   REAL(KIND=8)                :: cdt_Aint
-  REAL(KIND=8), DIMENSION(:,:,:), allocatable :: Aforest !< generalization of Aint, used if input variable Aint<0
+  REAL(KIND=8), DIMENSION(:,:,:), allocatable :: Aforest !! generalization of `Aint`, used if input variable `Aint`<0
   REAL(KIND=8)                :: cdt_rhoDot_n0
   REAL(KIND=8)                :: cdt_G_n0
   REAL(KIND=8)                :: cdt_tau_n0
@@ -662,5 +662,5 @@ PROGRAM CaseA
   print*,"------------------------------------------------------------"
   print*,"time: ",int(real(finish_time-start_time)/real(countrate)), "s"
 
-END PROGRAM CaseA
+END PROGRAM impactshear
 

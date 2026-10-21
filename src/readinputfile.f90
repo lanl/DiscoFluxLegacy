@@ -5,13 +5,12 @@
 ! Security Administration. The Government is granted for itself and others acting on its behalf a nonexclusive, paid-up,
 ! irrevocable worldwide license in this material to reproduce, prepare. derivative works, distribute copies to the public, perform
 ! publicly and display publicly, and to permit others to do so.
-module readfiles
+module discoflux_readfiles
+USE discoflux_GlobalParams
+use discoflux_utilities, only: Fatal
 public
 contains
 SUBROUTINE ReadSizes(jobname)
-
-USE GlobalParams
-use utilities, only: Fatal
 implicit none
 
 CHARACTER(64), INTENT(IN) :: jobname
@@ -75,8 +74,6 @@ SUBROUTINE ReadInput(jobname, simulation_type, B0, C11, C12, C44, CDT_update, CD
   eos_perc_v_star, q, rho0, rhobar0, t_stop, t_vel, tau0, temperature0, wave_vel, drag_flag, drag_Trho_flag, &
   backstress_model)
 
-USE GlobalParams
-use utilities, only: Fatal
 !$   Use omp_lib
 implicit none
 
@@ -431,4 +428,4 @@ end if
 !$    print*, 'using ',omp_get_max_threads(),' of ',omp_get_num_procs(),' processors'
 
 END SUBROUTINE ReadInput
-end module readfiles
+end module discoflux_readfiles
