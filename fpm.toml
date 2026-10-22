@@ -51,4 +51,6 @@ main = "runtests.f90"
 project = "" ## we include the README.md file in the ford-docs for this and other info, see ford.yml
 year = "2014-2026"
 project_github  = "https://github.com/lanl/DiscoFluxLegacy"
+src_dir = ["./src","./app"]
 graph = true
+incl_src = false
