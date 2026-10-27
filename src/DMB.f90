@@ -105,7 +105,14 @@ SUBROUTINE DMB_Compute_EOS(eos_props, detF, temperature, &
   p_elect  =  0.5d0*(kappa/v)*Gamma0*(v/v0)**kappa*temperature**2
         
   temp_debye = Td0*(v/v0)**(-gamma)*exp(-a*((v/v0) - 1.d0) - 0.5d0*b*( (v/v0)**2 - 1.d0) )
-  temp_ratio = temp_debye / temperature
+  if (temp_debye>10000.d0) then
+    print*,"WARNING: unphysically high Debye temperature encountered, limiting to 10000"
+    temp_debye = 10000.d0
+  else if (temp_debye<1.d-15) then
+    print*,"WARNING: unphysically low Debye temperature encountered, limiting to 1K"
+    temp_debye = 1.d0
+  end if
+  temp_ratio = temp_debye / (max(temperature,1.d0))
         
   exp_n   = exp(-temp_ratio)
   exp_p   = exp( temp_ratio)
@@ -907,7 +914,7 @@ SUBROUTINE xtal_Update_Stress(F_new, Fp_old, F_i, Cg, slip_Sg, slip_Mg, dgamma, 
   else if ((3==nonzero) .AND. (abs(dE(1,1))>rzero) .AND. (abs(dE(2,2))>rzero) .AND. (abs(dE(3,3))>rzero)) then
     exp_dE = Identity(3)
     do k=1,3
-      exp_dE(k,k) = exp(exp_dE(k,k))
+      exp_dE(k,k) = exp(dE(k,k))
     end do
   else
     exp_dE = ExpM(dE,order=6)
@@ -1072,7 +1079,7 @@ SUBROUTINE Dislocation_Velocity(tau_eff, temp, rho,  props, detF, pressure, &
     deltamu = muT*(temp(1)-props%T_ref) + muP*pressure
     rhobar0 = props%rhobar0/detF
     brgr    = props%burger*detF**(1./3.)
-    mu(:)   = max(rhobar0*props%wave_vel(:)**2 + deltamu,rzero)
+    mu(:)   = max(rhobar0*props%wave_vel(:)**2 + deltamu,1.d-15)
     vcrit   = sqrt(mu/rhobar0)
     B0      = props%B0*(temp(1)/props%T_ref)*sqrt(1.d0 - deltamu/mu)/(detF**(7./6.))
   else
@@ -1768,10 +1775,14 @@ SUBROUTINE Constitutive_DMB( &
   !==============================================================================!
 
   J_old = .det. F_old
+  if (J_old<0.d0) then
+    print*,"WARNING: negative det(F_old), setting to tiny. timestep too large?"
+    J_old = 1.d-40
+  end if
   J_new = .det. F_new
   if (J_new<0.d0) then
-    print*,"WARNING: negative det(F_new), setting to zero. timestep too large?"
-    J_new = rzero
+    print*,"WARNING: negative det(F_new), setting to tiny. timestep too large?"
+    J_new = 1.d-40
   end if
     
   if (props%eos%eos_flag) then
@@ -1831,7 +1842,7 @@ SUBROUTINE Constitutive_DMB( &
        thermo_coeffs(1) = props%specific_heat
     end if
     specific_heat = thermo_coeffs(1)
-    bulk_modulus  = max(thermo_coeffs(3),rzero)
+    bulk_modulus  = max(thermo_coeffs(3),1.d-15)
     wave_speed    = sqrt(bulk_modulus / rhobar0)
   
   else
