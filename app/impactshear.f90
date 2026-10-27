@@ -442,6 +442,7 @@ PROGRAM impactshear
   ! 0.C.2 ---->  initialize DDC backstress
   call DDC_State_Init(cell_sizes,ddc_state_old)
   ddc_state_old%tau_b = 0.d0
+  ddc_state_old%epsilon_i = 0.d0
 
   !small = 1.e-6  !Defined in GlobalParams module
 

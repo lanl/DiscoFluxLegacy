@@ -374,7 +374,9 @@ PROGRAM discoflux_RunTests
   ddc_props%burger = props_dmb%burger
   ddc_props%euler_angle = euler
   props_dmb%Lbar = 1.d0 / sqrt(rho0)
+  props_dmb%tau_back_nokappa = 0.d0
 
+  tau_back_nokappa = 0.d0
   call DDC_Zaiser_Backstress_noKappa(vel, ddc_props, props_dmb, tau_back_nokappa)
   do i=1,Nchar
     do j=1,Nslip
