@@ -37,7 +37,7 @@ Darby J. Luscher, Jason R. Mayeur, Hashem Mourad, Abigail Hunter, Mark A. Kenamo
     - gfortran 10 &mdash; 16 
     - flang 22 (linux)
     - lfortran 0.68 (linux and macos); known issue: openmp not working
-<!--     - ifx intel oneapi 2024.1 &mdash; 2026.1 (linux); known issue: production runs producing NaNs. -->
+    - ifx intel oneapi 2024.1 &mdash; 2026.2 (linux)
 
 ### ... and for the postprocessing python-scripts:
 

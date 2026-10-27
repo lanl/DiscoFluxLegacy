@@ -29,7 +29,7 @@ baseline.gfortran.flags = "-O3 -march=native -std=f2018"
 #baseline.gfortran.flags = "-O0 -std=f2023 -finit-real=snan -ffpe-trap=invalid,zero,overflow -g -fbacktrace"
 baseline.flang.flags = "-O3 -march=native -std=f2018"
 baseline.lfortran.flags = "--legacy-array-sections --realloc-lhs-arrays --std=f23" ## flag --fast is causing issues
-baseline.ifx.flags = "-O3 -heap-arrays -stand f18" ## needed for dislocdynlib (phonondrag specifically)
+baseline.ifx.flags = "-O3 -heap-arrays -stand f18 -fp-model=strict" ## needed for dislocdynlib (phonondrag specifically)
 #baseline.ifx.flags = "-O0 -heap-arrays -stand f23 -g -fpe0 -traceback -check-all -init=snan,arrays -fp-model=strict" 
 
 [profiles]
