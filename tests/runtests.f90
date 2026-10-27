@@ -77,6 +77,7 @@ end module discoflux_checks
 
 PROGRAM discoflux_RunTests
   use stdlib_version, only : get_stdlib_version
+  use stdlib_math, only: linspace
   use dislocdyn_parameters, only: version
   USE discoflux_GlobalParams
   USE discoflux_DMB
@@ -201,12 +202,12 @@ PROGRAM discoflux_RunTests
   call testequal(eye6,B6,6,6,"DMB_Invert_Tensor43",1.d-12,count_pass,count_fail)
   
   ! test linspace
-  call LinSpace(0.2d0,1.d0,5,array1)
+  array1 = LinSpace(0.2d0,1.d0,5)
   array2 = [0.2d0,0.4d0,0.6d0,0.8d0,1.d0]
   call testequalarray(array1,array2,5,"LinSpace",1.d-15,count_pass,count_fail)
   
   ! test CumTrapz / Trapz
-  call LinSpace(1.d-15, 100.d0, 10000, x)
+  x = linspace(1.d-15, 100.d0, 10000)
   func(:) = sin(pi*x(:)/25.d0) + x(:)**3 / (exp(x(:))-1.d0)
   call CumTrapz(10000,func,x,Integral)
   call testzero(pi**4/15.d0 - integral(9999),"CumTrapz",1.d-6,count_pass,count_fail)
@@ -359,7 +360,7 @@ PROGRAM discoflux_RunTests
       end do
     end do
   end do
-  call LinSpace(0.d0,2.d0*pi,resolution,phi)
+  phi = linspace(0.d0,2.d0*pi,resolution)
   call Trapz(resolution, strainenergydensity, phi, tmpintegral)
   call testzero(tmpintegral-props_dmb%C44/(4.d0*pi*(1-nu_poisson)),&
                       "isotropic strainenergy",1.d-15,count_pass,count_fail)
@@ -402,7 +403,7 @@ PROGRAM discoflux_RunTests
   varrho(125,:,:,2) = 0.6d0*rho0/(Nslip*Nchar)
   rho_total(:,:,:) = varrho(:,:,:,1) + varrho(:,:,:,2)
   dmb_state%vel = 1.d0
-  call LinSpace(0.d0, 1.d0, Nnode, X_ref)
+  X_ref = linspace(0.d0, 1.d0, Nnode)
   call DDC_Gradient_Backstress(Nel,varrho, ddc_props, X_ref, tau_back1)
 !   print*,tau_back1(124,9,1)
 !   print*,tau_back1(124,9,2)

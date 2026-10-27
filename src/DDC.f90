@@ -171,7 +171,8 @@ SUBROUTINE DDC_Zaiser_Backstress_noKappa(vel, ddc_props, dmb_props, tau_back_nok
   USE discoflux_DDC
   USE discoflux_DMB
   use discoflux_DMB_routines, only: DMB_Compute_Rotation, stroh_dislocation
-  use discoflux_utilities, only: LinSpace, operator(.otimes.), Trapz
+  use discoflux_utilities, only: operator(.otimes.), Trapz
+  use stdlib_math, only: linspace
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Inputs:
@@ -231,7 +232,7 @@ SUBROUTINE DDC_Zaiser_Backstress_noKappa(vel, ddc_props, dmb_props, tau_back_nok
   call DMB_Compute_Rotation(euler,Q)
 
   ! derived back stress from tau_internal and kappa
-  call LinSpace(0.d0,2.d0*pi,resolution,phi)
+  phi = linspace(0.d0,2.d0*pi,resolution)
   tau_back_nokappa = 0.d0
   do i=1,Nchar
     do j=1,Nslip

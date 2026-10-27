@@ -105,33 +105,6 @@ END SUBROUTINE FindInterval
 !<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><
 !-----------------------------------------------------------------------
 
-!>  Generate a linearly-spaced vector from [x1,x2]
-pure SUBROUTINE LinSpace(x1,x2,n,xout)
-
-  IMPLICIT NONE
-  REAL(KIND=8), intent(in) :: x1, x2
-  INTEGER, intent(in) :: n
-  REAL(KIND=8), DIMENSION(N), intent(out) :: xout
-  
-  REAL(KIND=8) ::dx
-  INTEGER :: i
-  
-  dx = (x2 - x1) / (n-1)
-
-  xout(1) = x1
-
-  do i=2,n
-    xout(i) = x1 + dx*(i-1)
-  end do  !i
-
-  xout(n) = x2
-
-END SUBROUTINE LinSpace
-
-!-----------------------------------------------------------------------
-!<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><
-!-----------------------------------------------------------------------
-
 !>  Integrate F(X) along X using trapezoidal rule
 !>  Return Integral
 pure SUBROUTINE Trapz(n, F, X, Integral)
@@ -337,7 +310,7 @@ END SUBROUTINE ElBrak
 !<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><
 !-----------------------------------------------------------------------
 !>  Invert a NxN tensor.
-SUBROUTINE Invert_Tensor(A,n,Ainv)
+pure SUBROUTINE Invert_Tensor(A,n,Ainv)
 !-----------------------------------------------------------------------
   use stdlib_linalg_lapack, only: getrf, getri
   IMPLICIT NONE
@@ -361,18 +334,18 @@ SUBROUTINE Invert_Tensor(A,n,Ainv)
   call GETRF(n,n,Ainv,n,ipiv,info)
 
   if(info/=0) then
-    write(*,*) 'Invert_Tensor(): Lapack DGETRF() failed.'
-    print*,A
-    print*,"Ainv"
-    print*,Ainv
-    call Fatal('Bad matrix.')
+!~     write(*,*) 'Invert_Tensor(): Lapack DGETRF() failed.'
+!~     print*,A
+!~     print*,"Ainv"
+!~     print*,Ainv
+    error stop 'Invert_Tensor(): Lapack GETRF() failed.'//new_line('a')//'Bad matrix.'
   end if
 
   call GETRI(n,Ainv,n,ipiv,work,nn,info)
 
   if(info/=0) then
-    write(*,*) 'Invert_Tensor(): Lapack DGETRI() failed.'
-    call Fatal('Bad matrix.')
+!~     write(*,*) 'Invert_Tensor(): Lapack DGETRI() failed.'
+    error stop 'Invert_Tensor(): Lapack GETRI() failed.'//new_line('a')//'Bad matrix.'
   end if
 
 END SUBROUTINE Invert_Tensor

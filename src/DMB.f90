@@ -18,7 +18,8 @@ public :: DMB_Init_EOS, DMB_Compute_EOS, DMB_Compute_Rotation, DMB_Invert_Tensor
           operator(.voigt.), operator(.unvoigt.)
 contains
 SUBROUTINE DMB_Init_EOS(Dhat)
-  use discoflux_utilities, only: LinSpace, CumTrapz
+  use discoflux_utilities, only: CumTrapz
+  use stdlib_math, only: linspace
   IMPLICIT NONE
 
 !-----------------------------------------------------------------------
@@ -29,7 +30,7 @@ SUBROUTINE DMB_Init_EOS(Dhat)
   REAL(KIND=8), DIMENSION(8000) :: x, func!, bigI
   REAL(KIND=8), DIMENSION(7999) :: Integral
 !-----------------------------------------------------------------------
-  call LinSpace(0.01d0, 20.d0, 8000, X)
+  x = linspace(0.01d0, 20.d0, 8000)
 
   func(:) = x(:)**3 / (exp(x(:))-1.d0)
 
@@ -1513,7 +1514,8 @@ END SUBROUTINE RK_SubIncrement
 SUBROUTINE stroh_dislocation(props,vel,resolution,uij,Sb,Bb,Cmat)
   USE discoflux_GlobalParams
   USE discoflux_DMB
-  use discoflux_utilities, only: Identity, LinSpace, elbrak, Trapz, DetInv3x3
+  use discoflux_utilities, only: Identity, elbrak, Trapz, DetInv3x3
+  use stdlib_math, only: linspace
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Inputs:
@@ -1560,7 +1562,7 @@ SUBROUTINE stroh_dislocation(props,vel,resolution,uij,Sb,Bb,Cmat)
   ! backstress computations, so need to check if it's worth it
   call DMB_form_elasticity(Cmat, Qrot, elastic_constants, 0.d0, 0.d0)
   ! now have tensor of SOEC in crystal axis stored in Cmat
-  call LinSpace(0.d0,2.d0*pi,resolution,phi)
+  phi = linspace(0.d0,2.d0*pi,resolution)
 
   do i=1,Nchar
     do j=1,Nslip

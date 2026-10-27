@@ -9,6 +9,7 @@
 ! irrevocable worldwide license in this material to reproduce, prepare. derivative works, distribute copies to the public, perform
 ! publicly and display publicly, and to permit others to do so.
 PROGRAM impactshear
+  use stdlib_math, only: linspace
   USE discoflux_GlobalParams
   USE discoflux_DMB
   USE discoflux_CDT
@@ -328,13 +329,13 @@ PROGRAM impactshear
   ! --------------------- #
 
   ! 0.B.1 ---->  DMB Setup - node coordinates, initial velocities
-  call LinSpace(0.d0, L0, Nnode, X_ref)
+  X_ref = linspace(0.d0, L0, Nnode)
   x_pos(:,:) = 0.d0
   x_pos(:,1) = X_ref(:)
   x_vel(:,:) = 0.d0
   xddot(:,:) = 0.d0
   if (simulation_type=='shear') then
-    call LinSpace(-0.5d0*impact_velocity, 0.5d0*impact_velocity, Nnode, x_vel(:,2))
+    x_vel(:,2) = linspace(-0.5d0*impact_velocity, 0.5d0*impact_velocity, Nnode)
   end if
 
   ! 0.B.2 ---->  DMB Setup - lumped system mass matrices
