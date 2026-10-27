@@ -8,7 +8,7 @@
 MODULE discoflux_GlobalParams
   IMPLICIT NONE
   public
-  CHARACTER(32), PARAMETER :: prog_version="2026.10.21"
+  CHARACTER(32), PARAMETER :: prog_version="2026.10.26"
   INTEGER :: Nel   = 1500
   INTEGER :: Nnode = 1501
   INTEGER :: Nslip = 12

@@ -279,6 +279,7 @@ SUBROUTINE DMB_State_Init(times, X_ref, x, xdot, xddot, Fp, Fe, T, &
   DMB_State%xddot(:,:)    = xddot
   DMB_State%F(:,:,:)      = 0.d0
   DMB_State%T(:,1)        = T
+  DMB_STATE%tau  (:,:)    = 0.d0
   DMB_State%gamma_acc(:,:,:)= 0.d0
   DMB_State%vel(:,:,:)      = 0.d0
   DMB_State%dis_acc(:,:,:)  = 0.d0
@@ -882,7 +883,7 @@ SUBROUTINE xtal_Update_Stress(F_new, Fp_old, F_i, Cg, slip_Sg, slip_Mg, dgamma, 
   REAL(KIND=8), DIMENSION(3,3),           INTENT(OUT)   :: Fp_new
 !-----------------------------------------------------------------------
 !  Locals:
-  INTEGER :: i,j,k,ich
+  INTEGER :: i,j,k,ich, nonzero
   REAL(KIND=8), DIMENSION(3,3) :: dE, exp_dE, Fbar_inv, Fbar, eye, Ee, pk2
   REAL(KIND=8) :: D
 
@@ -899,8 +900,18 @@ SUBROUTINE xtal_Update_Stress(F_new, Fp_old, F_i, Cg, slip_Sg, slip_Mg, dgamma, 
     end do !i
   end do !ich
 
-
-  exp_dE = ExpM(dE,order=6)
+! bypass (slow) matrix exponential when we already know the answer
+  nonzero = count(abs(dE)>rzero)
+  if (0==nonzero) then
+    exp_dE = Identity(3)
+  else if ((3==nonzero) .AND. (abs(dE(1,1))>rzero) .AND. (abs(dE(2,2))>rzero) .AND. (abs(dE(3,3))>rzero)) then
+    exp_dE = Identity(3)
+    do k=1,3
+      exp_dE(k,k) = exp(exp_dE(k,k))
+    end do
+  else
+    exp_dE = ExpM(dE,order=6)
+  end if
   Fp_new = MATMUL(exp_dE, Fp_old)
   
   ! djl --> just as a check 
@@ -1061,7 +1072,7 @@ SUBROUTINE Dislocation_Velocity(tau_eff, temp, rho,  props, detF, pressure, &
     deltamu = muT*(temp(1)-props%T_ref) + muP*pressure
     rhobar0 = props%rhobar0/detF
     brgr    = props%burger*detF**(1./3.)
-    mu(:)   = rhobar0*props%wave_vel(:)**2 + deltamu
+    mu(:)   = max(rhobar0*props%wave_vel(:)**2 + deltamu,rzero)
     vcrit   = sqrt(mu/rhobar0)
     B0      = props%B0*(temp(1)/props%T_ref)*sqrt(1.d0 - deltamu/mu)/(detF**(7./6.))
   else
@@ -1353,7 +1364,7 @@ SUBROUTINE RK_SubIncrement(dt, T_old,  F_old, F_new, J_new, pressure, Fe_old, &
   REAL(KIND=8), DIMENSION(Nslip,Nchar,2) :: varrho_ip
 !  REAL(KIND=8), DIMENSION(Nslip,Nchar)   :: varrho_mobile_sum
   REAL(KIND=8) gtol, t_prime, t_final, dt_prime, dt_fac
-  REAL(KIND=8), DIMENSION(3,3) :: F_i, epsilon_i, F_dot, F0, cauchy0, Fe0, Fp0, Fp, F1, pk2
+  REAL(KIND=8), DIMENSION(3,3) :: F_i, epsilon_i, F_dot, F0, cauchy0, Fe0, Fp0, Fp, F1!, pk2
   LOGICAL :: flag_continue, flag_last_step
   REAL(KIND=8), DIMENSION(Nslip) :: tau_b
   REAL(KIND=8), DIMENSION(Nslip,Nchar) :: gamma_dot, gdot_error, dgamma_total
@@ -1479,7 +1490,7 @@ SUBROUTINE RK_SubIncrement(dt, T_old,  F_old, F_new, J_new, pressure, Fe_old, &
       Fp0 = Fp
 
       if(current_el==debug_element.and.ncycle==debug_cycle) then
-        write(*,'("pk2:",3(/,3es28.16))') ((pk2(i,j),j=1,3),i=1,3)
+        !write(*,'("pk2:",3(/,3es28.16))') ((pk2(i,j),j=1,3),i=1,3)
         write(*,'("Fe0:",3(/,3es28.16))') ((Fe0(i,j),j=1,3),i=1,3)
         write(*,'("Fp0:",3(/,3es28.16))') ((Fp0(i,j),j=1,3),i=1,3)
         write(*,'("cauchy0:",3(/,3es28.16))') ((cauchy0(i,j),j=1,3),i=1,3)
@@ -1758,6 +1769,10 @@ SUBROUTINE Constitutive_DMB( &
 
   J_old = .det. F_old
   J_new = .det. F_new
+  if (J_new<0.d0) then
+    print*,"WARNING: negative det(F_new), setting to zero. timestep too large?"
+    J_new = rzero
+  end if
     
   if (props%eos%eos_flag) then
       
@@ -1816,7 +1831,7 @@ SUBROUTINE Constitutive_DMB( &
        thermo_coeffs(1) = props%specific_heat
     end if
     specific_heat = thermo_coeffs(1)
-    bulk_modulus  = thermo_coeffs(3)
+    bulk_modulus  = max(thermo_coeffs(3),rzero)
     wave_speed    = sqrt(bulk_modulus / rhobar0)
   
   else

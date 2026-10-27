@@ -143,6 +143,7 @@ eos_perc_R_M = 0.d0 ! sets psi_ion=0
 eos_perc_Td0 = 100.d0 ! initialize a value for reference Debye temp. that will not crash the code if not set
 eos_perc_a = 0.d0
 eos_perc_b = 0.d0
+eos_perc_v0 = 0.d0 ! computed from eos_perc_rho0 below
 do j=1,Nregion
   euler_angle(j,:) = (/0d0, 0.d0, 0.d0/)
 end do

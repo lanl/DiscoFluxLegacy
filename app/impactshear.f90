@@ -332,6 +332,7 @@ PROGRAM impactshear
   x_pos(:,:) = 0.d0
   x_pos(:,1) = X_ref(:)
   x_vel(:,:) = 0.d0
+  xddot(:,:) = 0.d0
   if (simulation_type=='shear') then
     call LinSpace(-0.5d0*impact_velocity, 0.5d0*impact_velocity, Nnode, x_vel(:,2))
   end if
