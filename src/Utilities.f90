@@ -381,6 +381,46 @@ END SUBROUTINE Invert_Tensor
 !<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><
 !-----------------------------------------------------------------------
 
+!> compute the matrix exponential exp(A) of 3x3 matrix A
+!> this wrapper around stdlib_linalg expm handles special cases like A=0 or A diagonal
+function ExpMat(A,order) result(expA)
+!-----------------------------------------------------------------------
+  use stdlib_linalg, only: expm
+  IMPLICIT NONE
+!-----------------------------------------------------------------------
+!  Inputs:
+  REAL(KIND=8), DIMENSION(3,3), INTENT(IN)  :: A
+  integer, intent(in), optional :: order
+!-----------------------------------------------------------------------
+!  Outputs:
+  REAL(KIND=8), DIMENSION(3,3) :: expA
+!-----------------------------------------------------------------------
+!  Locals:
+  INTEGER :: nonzero,k,ideg
+  REAL(KIND=8) :: rzero
+  rzero = sqrt(tiny(0.d0))
+  ideg = 6
+  if (present(order)) ideg=order
+
+! bypass (slow) matrix exponential when we already know the answer
+  nonzero = count(abs(A)>rzero)
+  if (0==nonzero) then
+    expA = Identity(3)
+  else if ((3==nonzero) .AND. (abs(A(1,1))>rzero) .AND. (abs(A(2,2))>rzero) .AND. (abs(A(3,3))>rzero)) then
+    expA = Identity(3)
+    do k=1,3
+      expA(k,k) = exp(A(k,k))
+    end do
+  else
+    expA = ExpM(A,order=ideg)
+  end if
+
+end function ExpMat
+
+!-----------------------------------------------------------------------
+!<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><
+!-----------------------------------------------------------------------
+
 !> generate rotation matrix Mat that rotates by angle phi around unit vector vec
 pure SUBROUTINE RotAround(vec,phi,Mat)
   IMPLICIT NONE

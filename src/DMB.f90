@@ -869,10 +869,9 @@ END SUBROUTINE DMB_get_slip_system
 
 SUBROUTINE xtal_Update_Stress(F_new, Fp_old, F_i, Cg, slip_Sg, slip_Mg, dgamma, &
            cauchy_new, Fe_new, Fp_new)
-  use stdlib_linalg, only: expm
   USE discoflux_GlobalParams
   USE discoflux_DMB
-  use discoflux_utilities, only: Identity, DetInv3x3, operator(.det.)
+  use discoflux_utilities, only: Identity, DetInv3x3, operator(.det.), expmat
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Inputs:
@@ -907,18 +906,7 @@ SUBROUTINE xtal_Update_Stress(F_new, Fp_old, F_i, Cg, slip_Sg, slip_Mg, dgamma, 
     end do !i
   end do !ich
 
-! bypass (slow) matrix exponential when we already know the answer
-  nonzero = count(abs(dE)>rzero)
-  if (0==nonzero) then
-    exp_dE = Identity(3)
-  else if ((3==nonzero) .AND. (abs(dE(1,1))>rzero) .AND. (abs(dE(2,2))>rzero) .AND. (abs(dE(3,3))>rzero)) then
-    exp_dE = Identity(3)
-    do k=1,3
-      exp_dE(k,k) = exp(dE(k,k))
-    end do
-  else
-    exp_dE = ExpM(dE,order=6)
-  end if
+  exp_dE = ExpMat(dE)
   Fp_new = MATMUL(exp_dE, Fp_old)
   
   ! djl --> just as a check 

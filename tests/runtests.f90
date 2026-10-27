@@ -77,7 +77,6 @@ end module discoflux_checks
 
 PROGRAM discoflux_RunTests
   use stdlib_version, only : get_stdlib_version
-  use stdlib_linalg, only: expm
   use dislocdyn_parameters, only: version
   USE discoflux_GlobalParams
   USE discoflux_DMB
@@ -221,12 +220,12 @@ PROGRAM discoflux_RunTests
   
   ! test ExpM
   A=0.d0
-  A = ExpM(A,order=6)
-  B = ExpM(1.123d0*eye,order=6)
+  A = ExpMat(A)
+  B = ExpMat(1.123d0*eye)
   call testequal(exp(1.123d0)*eye,matmul(A,B),3,3,"ExpM, trivial cases",1.d-13,count_pass,count_fail)
   call RANDOM_NUMBER(A)
-  B = ExpM(1.d-6*A)
-  A = ExpM(-1.d-6*A)
+  B = ExpMat(1.d-6*A)
+  A = ExpMat(-1.d-6*A)
   call testequal(A+B,2*eye,3,3,"ExpM, small argument",1.d-10,count_pass,count_fail)
   
   ! test rotation matrix with euler angles
