@@ -5,14 +5,14 @@
 ! Security Administration. The Government is granted for itself and others acting on its behalf a nonexclusive, paid-up,
 ! irrevocable worldwide license in this material to reproduce, prepare. derivative works, distribute copies to the public, perform
 ! publicly and display publicly, and to permit others to do so.
-MODULE GlobalParams
+MODULE discoflux_GlobalParams
   IMPLICIT NONE
   public
-  CHARACTER(32), PARAMETER :: prog_version="2026.10.06"
+  CHARACTER(32), PARAMETER :: prog_version="2026.10.27"
   INTEGER :: Nel   = 1500
   INTEGER :: Nnode = 1501
   INTEGER :: Nslip = 12
-  INTEGER :: Nchar = 2 !< number of dislocation characters (2=edge+screw, 1=only edge)
+  INTEGER :: Nchar = 2 !! number of dislocation characters (2=edge+screw, 1=only edge)
 !~   INTEGER, private :: ith_character !! temporary integer variable used only for the array constructor below
   INTEGER, DIMENSION(:), allocatable :: characters != [(ith_character,ith_character=1,Nchar)]
   INTEGER, PARAMETER :: Nsdv  = 300
@@ -24,7 +24,7 @@ MODULE GlobalParams
   INTEGER            :: ncycle        = 0
   REAL(KIND=8), PARAMETER              :: pi = 4.d0*atan(1.d0)
   integer :: Nregion = 1
-  integer, allocatable :: region_mask(:,:) !< call generate_regions() in the Driver to populate this global variable
+  integer, allocatable :: region_mask(:,:) !! call `generate_regions()` in the Driver to populate this global variable
   
   CONTAINS
     SUBROUTINE generate_regions()
@@ -46,14 +46,14 @@ MODULE GlobalParams
       RETURN
     END SUBROUTINE generate_regions
 
-END MODULE GlobalParams
+END MODULE discoflux_GlobalParams
 
 !-----------------------------------------------------------------------
 !<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><
 !-----------------------------------------------------------------------
 
-MODULE CDT
-  USE GlobalParams
+MODULE discoflux_CDT
+  USE discoflux_GlobalParams
   private
 !-----------------------------------------------------------------------
   TYPE, public :: Type_CDT_PROPS
@@ -65,7 +65,7 @@ MODULE CDT
     REAL(KIND=8)         :: A
     REAL(KIND=8)         :: Y_e
     REAL(KIND=8)         :: Aint
-    REAL(KIND=8), DIMENSION(:,:,:), allocatable :: Aforest !< generalization of Aint, used if input variable Aint<0
+    REAL(KIND=8), DIMENSION(:,:,:), allocatable :: Aforest !! generalization of `Aint`, used if input variable `Aint`<0
     REAL(KIND=8)         :: rhoDot_n0
     REAL(KIND=8)         :: G_n0
     REAL(KIND=8)         :: tau_n0
@@ -97,14 +97,14 @@ MODULE CDT
       allocate(some_type%varrho_field(Nel,Nslip,Nchar,2), some_type%varrho_node(Nnode,Nslip,Nchar,2))
     END SUBROUTINE CDT_STATE_allocatememory
 
-END MODULE CDT
+END MODULE discoflux_CDT
 
 !-----------------------------------------------------------------------
 !<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><
 !-----------------------------------------------------------------------
 
-MODULE DDC
-  USE GlobalParams
+MODULE discoflux_DDC
+  USE discoflux_GlobalParams
   private
 !-----------------------------------------------------------------------
   TYPE, public :: Type_DDC_PROPS
@@ -141,14 +141,14 @@ MODULE DDC
       allocate(some_DDC_STATE%stress_i(Nel,3,3), some_DDC_STATE%epsilon_i(Nel,3,3))
     END SUBROUTINE DDC_STATE_allocatememory
 
-END MODULE DDC
+END MODULE discoflux_DDC
 
 !-----------------------------------------------------------------------
 !<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><
 !-----------------------------------------------------------------------
 
-MODULE DMB
-  USE GlobalParams
+MODULE discoflux_DMB
+  USE discoflux_GlobalParams
   private
 !-----------------------------------------------------------------------
   TYPE, public :: Type_DMB_EOS
@@ -239,9 +239,9 @@ MODULE DMB
 !>    pieces of BC information per end of the mesh: If BC active, which
 !>    degrees of freedom are affected and the BC vector itself.
   TYPE, public :: Type_DMB_VECTOR_BC
-    LOGICAL, DIMENSION(2)    :: bc_active  !< True if BC applied to this end
-    LOGICAL, DIMENSION(2,3)  :: dof_active !< True if DOF is affected
-    REAL(KIND=8), DIMENSION(2,3)   :: value      !< BC vector value
+    LOGICAL, DIMENSION(2)    :: bc_active   !! True if BC applied to this end
+    LOGICAL, DIMENSION(2,3)  :: dof_active  !! True if DOF is affected
+    REAL(KIND=8), DIMENSION(2,3)   :: value !! BC vector value
   END TYPE Type_DMB_VECTOR_BC
   
   CONTAINS
@@ -276,14 +276,14 @@ MODULE DMB
       allocate(some_type%varrho_ip(Nslip,Nchar,2), some_type%tau_b(Nslip))
     END SUBROUTINE DMB_FIELD_VARIABLES_allocatememory
 
-END MODULE DMB
+END MODULE discoflux_DMB
 
 !-----------------------------------------------------------------------
 !<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><
 !-----------------------------------------------------------------------
 
-MODULE OUTPUT
-  USE GlobalParams
+MODULE discoflux_OUTPUT
+  USE discoflux_GlobalParams
   public
 !-----------------------------------------------------------------------
     INTEGER :: unit_dmb_pos     = 100
@@ -309,15 +309,15 @@ MODULE OUTPUT
       SUBROUTINE assign_units()
         allocate(unit_vel(Nchar), unit_vel_x(Nchar), unit_vel_y(Nchar), unit_vel_z(Nchar))
         allocate(unit_dis_acc(Nchar), unit_rho_pos(Nchar), unit_rho_neg(Nchar), unit_gamma_acc(Nchar))
-        unit_vel         = 140+characters(:Nchar)
-        unit_vel_x       = 150+characters(:Nchar)
-        unit_vel_y       = 350+characters(:Nchar)
-        unit_vel_z       = 360+characters(:Nchar)
-        unit_dis_acc     = 380+characters(:Nchar)
-        unit_rho_pos     = 160+characters(:Nchar)
-        unit_rho_neg     = 170+characters(:Nchar)
-        unit_gamma_acc   = 260+characters(:Nchar)
+        unit_vel         = 1000+characters(:Nchar)
+        unit_vel_x       = 2000+characters(:Nchar)
+        unit_vel_y       = 3000+characters(:Nchar)
+        unit_vel_z       = 4000+characters(:Nchar)
+        unit_dis_acc     = 5000+characters(:Nchar)
+        unit_rho_pos     = 6000+characters(:Nchar)
+        unit_rho_neg     = 7000+characters(:Nchar)
+        unit_gamma_acc   = 8000+characters(:Nchar)
         RETURN
       END SUBROUTINE assign_units
-END MODULE OUTPUT
+END MODULE discoflux_OUTPUT
 

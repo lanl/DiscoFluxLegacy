@@ -1,14 +1,14 @@
 name = "DiscoFlux_Legacy"
-version = "2026.10.06"
+version = "2026.10.27"
 license = "BSD-3"
 author = "Darby J. Luscher, Jason R. Mayeur, Hashem Mourad, Abigail Hunter, Mark A. Kenamond, Daniel N. Blaschke"
 maintainer = "40176390+dblaschke-LANL@users.noreply.github.com"
 copyright = "Copyright 2026, Triad National Security, LLC"
 homepage = "https://github.com/lanl/DiscoFluxLegacy/"
 
-[fortran]
-source-form = "default"
-implicit-external = true
+#[fortran]
+#source-form = "default"
+#implicit-external = true
 
 #[build]
 #link = ["lapack", "blas"]
@@ -23,9 +23,12 @@ openmp = "*"
 #test-drive.tag = "v0.6.1"
 
 [features]
-baseline.gfortran.flags = "-O3 -march=native"
-baseline.flang.flags = "-O3 -march=native"
-baseline.lfortran.flags = "--fast --legacy-array-sections --realloc-lhs-arrays"
+baseline.gfortran.flags = "-O3 -march=native -std=f2018"
+#baseline.gfortran.flags = "-O0 -std=f2023 -finit-real=snan -ffpe-trap=invalid,zero,overflow -g -fbacktrace"
+baseline.flang.flags = "-O3 -march=native -std=f2018"
+baseline.lfortran.flags = "--legacy-array-sections --realloc-lhs-arrays --std=f23" ## flag --fast is causing issues
+baseline.ifx.flags = "-O3 -heap-arrays -stand f18 -fp-model=strict"
+#baseline.ifx.flags = "-O0 -heap-arrays -stand f23 -g -fpe0 -traceback -check-all -init=snan,arrays -fp-model=strict" 
 
 [profiles]
 default = ["baseline"]
@@ -36,8 +39,8 @@ default = ["baseline"]
 
 [[executable]]
 name = "impactshear"
-source-dir = "src"
-main = "Driver.f90"
+source-dir = "app"
+main = "impactshear.f90"
 
 [[test]]
 name = "runtests"
@@ -51,4 +54,6 @@ main = "runtests.f90"
 project = "" ## we include the README.md file in the ford-docs for this and other info, see ford.yml
 year = "2014-2026"
 project_github  = "https://github.com/lanl/DiscoFluxLegacy"
-
+src_dir = ["./src","./app"]
+graph = true
+incl_src = false

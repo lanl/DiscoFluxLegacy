@@ -8,17 +8,17 @@
 ! Security Administration. The Government is granted for itself and others acting on its behalf a nonexclusive, paid-up,
 ! irrevocable worldwide license in this material to reproduce, prepare. derivative works, distribute copies to the public, perform
 ! publicly and display publicly, and to permit others to do so.
-PROGRAM CaseA
-  USE GlobalParams
-  USE DMB
-  USE CDT
-  USE DDC
-  use utilities
-  use DMB_routines
-  use CDT_routines
-  use DDC_routines
-  use OUTPUTFILES
-  use readfiles
+PROGRAM impactshear
+  USE discoflux_GlobalParams
+  USE discoflux_DMB
+  USE discoflux_CDT
+  USE discoflux_DDC
+  use discoflux_utilities
+  use discoflux_DMB_routines
+  use discoflux_CDT_routines
+  use discoflux_DDC_routines
+  use discoflux_OUTPUTFILES
+  use discoflux_readfiles
 !-----------------------------------------------------------------------
   IMPLICIT NONE
 !-----------------------------------------------------------------------
@@ -50,7 +50,7 @@ PROGRAM CaseA
   REAL(KIND=8)                :: cdt_A
   REAL(KIND=8)                :: cdt_Y_e
   REAL(KIND=8)                :: cdt_Aint
-  REAL(KIND=8), DIMENSION(:,:,:), allocatable :: Aforest !< generalization of Aint, used if input variable Aint<0
+  REAL(KIND=8), DIMENSION(:,:,:), allocatable :: Aforest !! generalization of `Aint`, used if input variable `Aint`<0
   REAL(KIND=8)                :: cdt_rhoDot_n0
   REAL(KIND=8)                :: cdt_G_n0
   REAL(KIND=8)                :: cdt_tau_n0
@@ -87,7 +87,7 @@ PROGRAM CaseA
   CHARACTER(32)         :: CDTintFlux
   character(32)         :: drag_flag
   character(32)         :: backstress_model
-  CHARACTER(32)         :: jobname
+  CHARACTER(64)         :: jobname
 !-----------------------------------------------------------------------
   REAL(KIND=8), DIMENSION(:,:), allocatable     :: slip_M, slip_S
   REAL(KIND=8), DIMENSION(:,:,:), allocatable     :: slip_V, line_T
@@ -332,6 +332,7 @@ PROGRAM CaseA
   x_pos(:,:) = 0.d0
   x_pos(:,1) = X_ref(:)
   x_vel(:,:) = 0.d0
+  xddot(:,:) = 0.d0
   if (simulation_type=='shear') then
     call LinSpace(-0.5d0*impact_velocity, 0.5d0*impact_velocity, Nnode, x_vel(:,2))
   end if
@@ -441,6 +442,7 @@ PROGRAM CaseA
   ! 0.C.2 ---->  initialize DDC backstress
   call DDC_State_Init(cell_sizes,ddc_state_old)
   ddc_state_old%tau_b = 0.d0
+  ddc_state_old%epsilon_i = 0.d0
 
   !small = 1.e-6  !Defined in GlobalParams module
 
@@ -662,5 +664,5 @@ PROGRAM CaseA
   print*,"------------------------------------------------------------"
   print*,"time: ",int(real(finish_time-start_time)/real(countrate)), "s"
 
-END PROGRAM CaseA
+END PROGRAM impactshear
 

@@ -25,7 +25,7 @@ from matplotlib.ticker import AutoMinorLocator
 dir_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(dir_path)
 ##
-from helperfunctions import readfortraninput, read_field_output, read_altfield_output#, random_euler
+from helperfunctions import readfortraninput, read_field_output
 
 vel_direction = 1 ## decide which component of dmb velocities to plot (typically 1 for impact, 2 for shear; 'all' plots for 1,2, and 3)
 slipsystem = 1 ## decide for which slip system to plot disloc. velocities (1-12 for fcc)
@@ -78,9 +78,7 @@ if Nchar==0:
     raise ValueError("cannot find required files for job ",jobname)
 if 'crystalstruct' in inputdata:
     crystalstruct = inputdata['crystalstruct']
-    if crystalstruct=='fcc':
-        Nslip=12
-    elif crystalstruct=='bcc':
+    if crystalstruct=='bcc':
         Nslip=48
 if 'Nslip' in inputdata: 
     Nslip = int(inputdata['Nslip'])
@@ -90,9 +88,6 @@ if 'ipOut' in inputdata:
 elif fs_position == 'auto':
     fs_position = -1
     ipOut = -1
-elif fs_position == 'oldauto': # use this for output created by program version <= 2021.01.11
-    fs_position = -1
-    ipOut = 0
 else:
     ipOut = 0
 print(f"{crystalstruct=}, {Nslip=}, {Nchar=}")
@@ -138,58 +133,58 @@ number_of_plots = Nchar*Nslipsystems*(plot_rho_pos + plot_rho_neg + plot_dis_vel
 print(f"reading data for {number_of_plots} plots")
 for ich in characters:
     if plot_rho_pos or plot_av_dis_vel_x:
-        inc_list, time_values, rho_pos[ich]   = read_field_output(f"{jobname}.ip.rho_pos.{ich}.F90txt")
+        inc_list, time_values, rho_pos[ich]   = read_field_output(f"{jobname}.ip.rho_pos.{ich}.F90txt",multiindex=2,return_pd=False)
         Nnode = len(rho_pos[ich][inc_list[0]])+1
         len_time = min(len(inc_list),len_time)
     if plot_rho_neg or plot_av_dis_vel_x:
-        inc_list, time_values, rho_neg[ich]   = read_field_output(f"{jobname}.ip.rho_neg.{ich}.F90txt")
+        inc_list, time_values, rho_neg[ich]   = read_field_output(f"{jobname}.ip.rho_neg.{ich}.F90txt",multiindex=2,return_pd=False)
         Nnode = len(rho_neg[ich][inc_list[0]])+1
         len_time = min(len(inc_list),len_time)
     if plot_dis_vel:
-        inc_list, time_values, dis_vel[ich]   = read_field_output(f"{jobname}.ip.dis_vel.{ich}.F90txt")
+        inc_list, time_values, dis_vel[ich]   = read_field_output(f"{jobname}.ip.dis_vel.{ich}.F90txt",multiindex=2,return_pd=False)
         Nnode = len(dis_vel[ich][inc_list[0]])+1
         len_time = min(len(inc_list),len_time)
     if plot_dis_acc:
-        inc_list, time_values, dis_acc[ich]   = read_field_output(f"{jobname}.ip.dis_acc.{ich}.F90txt")
+        inc_list, time_values, dis_acc[ich]   = read_field_output(f"{jobname}.ip.dis_acc.{ich}.F90txt",multiindex=2,return_pd=False)
         Nnode = len(dis_acc[ich][inc_list[0]])+1
         len_time = min(len(inc_list),len_time)
     if plot_dis_vel_x or plot_av_dis_vel_x:
-        inc_list, time_values, dis_vel_x[ich]   = read_field_output(f"{jobname}.ip.dis_vel_x.{ich}.F90txt")
+        inc_list, time_values, dis_vel_x[ich]   = read_field_output(f"{jobname}.ip.dis_vel_x.{ich}.F90txt",multiindex=2,return_pd=False)
         Nnode = len(dis_vel_x[ich][inc_list[0]])+1
         len_time = min(len(inc_list),len_time)
     if plot_dis_vel_y:
-        inc_list, time_values, dis_vel_y[ich]   = read_field_output(f"{jobname}.ip.dis_vel_y.{ich}.F90txt")
+        inc_list, time_values, dis_vel_y[ich]   = read_field_output(f"{jobname}.ip.dis_vel_y.{ich}.F90txt",multiindex=2,return_pd=False)
         Nnode = len(dis_vel_y[ich][inc_list[0]])+1
         len_time = min(len(inc_list),len_time)
     if plot_dis_vel_z: ## TODO: determine from sqrt(vel^2 - vel_x^2 - vel_y^2), dont need to write this file
-        inc_list, time_values, dis_vel_z[ich]   = read_field_output(f"{jobname}.ip.dis_vel_z.{ich}.F90txt")
+        inc_list, time_values, dis_vel_z[ich]   = read_field_output(f"{jobname}.ip.dis_vel_z.{ich}.F90txt",multiindex=2,return_pd=False)
         Nnode = len(dis_vel_z[ich][inc_list[0]])+1
         len_time = min(len(inc_list),len_time)
 ###
 if plot_tau:
-    inc_list, time_values, tau  = read_field_output(f"{jobname}.ip.tau.F90txt")
+    inc_list, time_values, tau  = read_field_output(f"{jobname}.ip.tau.F90txt",multiindex=2,return_pd=False)
     Nnode = len(tau[inc_list[0]])+1
     len_time = min(len(inc_list),len_time)
 if plot_tau_back:
-    inc_list, time_values, tau_back  = read_field_output(f"{jobname}.ip.tau_back.F90txt")
+    inc_list, time_values, tau_back  = read_field_output(f"{jobname}.ip.tau_back.F90txt",multiindex=2,return_pd=False)
     Nnode = len(tau_back[inc_list[0]])+1
     len_time = min(len(inc_list),len_time)
 if plot_dmb_vel or plot_fs_vel:
-    inc_list, time_values, dmb_vel   = read_field_output(f"{jobname}.node.dmb_vel.F90txt")
+    inc_list, time_values, dmb_vel   = read_field_output(f"{jobname}.node.dmb_vel.F90txt",multiindex=2,return_pd=False)
     Nnode = len(dmb_vel[inc_list[0]])
     len_time = min(len(inc_list),len_time)
 if plot_stress or plot_dev_stress or plot_fs_stress or plot_pressure or plot_model_stress:
-    inc_list, time_values, stress    = read_field_output(f"{jobname}.ip.stress.F90txt")
+    inc_list, time_values, stress    = read_field_output(f"{jobname}.ip.stress.F90txt",multiindex=2,return_pd=False)
     Nnode = len(stress[inc_list[0]])+1
     len_time = min(len(inc_list),len_time)
 if plot_T:
-    inc_list, time_values, tmp  = read_field_output(f"{jobname}.ip.T.F90txt")
+    inc_list, time_values, tmp  = read_field_output(f"{jobname}.ip.T.F90txt",multiindex=2,return_pd=False)
     Nnode = len(tmp[inc_list[0]])+1
     len_time = min(len(inc_list),len_time)
 if plot_fs_vel:
-    fs_time_values, fs_vel = read_altfield_output(f"{jobname}.th.vel.F90txt")
+    fs_time_values, fs_vel = read_field_output(f"{jobname}.th.vel.F90txt",multiindex=1,return_pd=False)
 if plot_fs_stress:
-    fs_time_values, fs_stress = read_altfield_output(f"{jobname}.th.stress.F90txt")
+    fs_time_values, fs_stress = read_field_output(f"{jobname}.th.stress.F90txt",multiindex=1,return_pd=False)
 
 ## if fortran was still running, the files above may have different len(inc_list), take the shortest in this case:
 inc_list = inc_list[:len_time]
@@ -219,8 +214,6 @@ def generate_dof_history(node_index = -1, dof='dmb_vel'):
         for ind, inc in enumerate(inc_list):
             cauchy     = stress[inc][:,1:]
             pressure   = -np.sum(cauchy[:,:3], axis=1) / 3.
-            # dev        = cauchy
-            # dev[:,:3] += np.tile(pressure, (3,1)).T
             data[inc][:,1:4] += np.tile(pressure, (3,1)).T
     if ipOut == 0:
         for ii, inc in enumerate(inc_list):
@@ -243,9 +236,8 @@ txt_size    = 10      # size for text in axis labels in points
 nmrks       = 0      # number of 'markers' to place along data line
 markers     = ['d','^','o','*','s','v','+','h']
 linecolors = ['#1f77b4','#ff7f0e','#2ca02c','#d62728','#9467bd', '#8c564b'] ## mimic matplotlibs default color cycle (of mpl >=2)
-# timestamps  = [15,30,45,60,75] ## old hard coded indices for impact problem
 maxtimestamp = max_snapshot_time*len(inc_list) ## in impact problem this was 0.375*len(inc_list) assuming the input file ran up to 0.4 microsec, and index 75 corresponded to 0.15 microsec.
-timestamps = list(np.linspace(int(maxtimestamp/5),maxtimestamp,5).astype(int)) ## perhaps better: automatic distribution of time stamp indices
+timestamps = list(np.linspace(int(maxtimestamp/5),maxtimestamp,5).astype(int)) ## automatic distribution of time stamp indices
 timestamplist = np.copy(timestamps)
 ## if calculation is ongoing, some or all timestamps may not be available yet
 for i in range(len(timestamps)):
@@ -384,8 +376,6 @@ def plot_snapshots(data,pl_typ,vel_dir=vel_direction,char=0,annotate=True,setlim
             else:
                 currentdata=np.average(data[inc_list[ind]][:,1:],axis=-1,weights=weights[inc_list[ind]][:,1:])/1e3
         elif pl_typ=='dis_acc':
-            # deltat = (time_values[inc_list[ind]] - time_values[inc_list[ind-1]])  ## output-timestep too large to resolve disloc-acceleration
-            # currentdata=(data[inc_list[ind]][:,slipsystem] - data[inc_list[ind-1]][:,slipsystem])/deltat/1e3
             currentdata=data[inc_list[ind]][:,slipsystem]/1e3
         elif pl_typ=='tau' or pl_typ=='tau_back':
             currentdata=data[inc_list[ind]][:,slipsystem]
@@ -430,7 +420,6 @@ def plot_snapshots(data,pl_typ,vel_dir=vel_direction,char=0,annotate=True,setlim
     
     # Optional stuff (often unecessary)
     if setlimits:
-        # set axis limits (not necessary, default is often good enough
         ax.set_xlim(0.0, L0)
         # ax.set_xlim(0.0, 0.5)
         # ax.set_ylim(250,450)
@@ -496,7 +485,6 @@ def plot_history(pl_typ, node_index=-1, fs_direction=fs_direction,stresscomp=1,a
     
     # Optional stuff (often unecessary)
     if setlimits:
-        # set axis limits (not necessary, default is often good enough
         ax.set_xlim(0.05, 0.15)
         # ax.set_ylim(-5., 0.1)
         # ax.set_xlim(0.15, 0.2)
@@ -673,7 +661,6 @@ if plot_dev_stress: # begin plot functions
     
     # Optional stuff (often unecessary)
     if 1:
-        # set axis limits (not necessary, default is often good enough
         ax.set_xlim(0.0, L0*1.05)
         ##    ax.set_ylim(-200., 120)
     
@@ -760,7 +747,6 @@ if plot_model_stress:
     
     # Optional stuff (often unecessary)
     if 1:
-        # set axis limits (not necessary, default is often good enough
         ax.set_xlim(0.0, L0*1.05)
     ##    ax.set_ylim(-200., 120)
     

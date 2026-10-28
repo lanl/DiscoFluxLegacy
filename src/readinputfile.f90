@@ -5,21 +5,20 @@
 ! Security Administration. The Government is granted for itself and others acting on its behalf a nonexclusive, paid-up,
 ! irrevocable worldwide license in this material to reproduce, prepare. derivative works, distribute copies to the public, perform
 ! publicly and display publicly, and to permit others to do so.
-module readfiles
+module discoflux_readfiles
+USE discoflux_GlobalParams
+use discoflux_utilities, only: Fatal
 public
 contains
 SUBROUTINE ReadSizes(jobname)
-
-USE GlobalParams
-use utilities, only: Fatal
 implicit none
 
-CHARACTER(32), INTENT(IN) :: jobname
+CHARACTER(64), INTENT(IN) :: jobname
 !------------ local variables:
 integer :: ios
 character(6) :: crystalstruct
 character(32) :: key
-character(54) :: inputfilename
+character(64) :: inputfilename
 character(256) :: line, values
 crystalstruct = 'fcc' ! default value, only used in this function to determine Nslip if not set explicitly
 
@@ -75,16 +74,14 @@ SUBROUTINE ReadInput(jobname, simulation_type, B0, C11, C12, C44, CDT_update, CD
   eos_perc_v_star, q, rho0, rhobar0, t_stop, t_vel, tau0, temperature0, wave_vel, drag_flag, drag_Trho_flag, &
   backstress_model)
 
-USE GlobalParams
-use utilities, only: Fatal
 !$   Use omp_lib
 implicit none
 
-CHARACTER(32), INTENT(IN) :: jobname
+CHARACTER(64), INTENT(IN) :: jobname
 !------------ local variables:
 integer :: ios, j, ich, j_eul
 character(32) :: key
-character(54) :: inputfilename
+character(64) :: inputfilename
 REAL(KIND=8) :: value1, Zener
 character(256) :: line, values
 LOGICAL :: echoinput
@@ -143,6 +140,7 @@ eos_perc_R_M = 0.d0 ! sets psi_ion=0
 eos_perc_Td0 = 100.d0 ! initialize a value for reference Debye temp. that will not crash the code if not set
 eos_perc_a = 0.d0
 eos_perc_b = 0.d0
+eos_perc_v0 = 0.d0 ! computed from eos_perc_rho0 below
 do j=1,Nregion
   euler_angle(j,:) = (/0d0, 0.d0, 0.d0/)
 end do
@@ -168,6 +166,9 @@ if (ios/=0) then
     close(unit=42)
     call Fatal("Error: cannot open input file, tried "//trim(inputfilename)//" and "//jobname)
   end if
+end if
+if ( (Nchar>999) .or. (Nchar<1) ) then
+  call Fatal("Error, Nchar must be between 1 and 999.")
 end if
 do
   read(42,'(a)',iostat=ios) line
@@ -266,8 +267,8 @@ do
     read(line,*)key,euler_angle(j_eul,1),euler_angle(j_eul,2),euler_angle(j_eul,3)
     j_eul = j_eul + 1
   end if
-  if (key=='drag_flag') read(line,*)key,drag_flag
-  if (key=='drag_Trho_flag') read(line,*)key,drag_Trho_flag
+  if (key=='drag_flag') read(values,*)drag_flag
+  if (key=='drag_Trho_flag') read(values,*)drag_Trho_flag
   if (key=='debug_cycle') then
     read(values,*)debug_cycle
     print*,"setting debug_cycle=",debug_cycle
@@ -300,7 +301,7 @@ end if
 Zener = 2*C44/(C11-C12)
 
 ! calculate an estimate for character dependent wave_vel, if not provided by the user (WARNING: implemented only for fcc):
-if ( abs(wave_vel(1)) < 1.d-15) then
+if ( crystalstruct=='fcc' .and. (abs(wave_vel(1)) < 1.d-15) ) then
   wave_vel(1) = sqrt((3.d0*C44*(C11-C12))/(rhobar0*2.d0*(C44+C11-C12))) ! analytic solution for vcrit of fcc screw
   wave_vel(Nchar) = min(sqrt((C11-C12)/(2.d0*rhobar0)),sqrt(C44/rhobar0)) ! analytic solution for vcrit of fcc edge
   do ich=2, Nchar-1
@@ -428,4 +429,4 @@ end if
 !$    print*, 'using ',omp_get_max_threads(),' of ',omp_get_num_procs(),' processors'
 
 END SUBROUTINE ReadInput
-end module readfiles
+end module discoflux_readfiles

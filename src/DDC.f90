@@ -5,12 +5,12 @@
 ! Security Administration. The Government is granted for itself and others acting on its behalf a nonexclusive, paid-up,
 ! irrevocable worldwide license in this material to reproduce, prepare. derivative works, distribute copies to the public, perform
 ! publicly and display publicly, and to permit others to do so.
-module DDC_routines
+module discoflux_DDC_routines
 public
 contains
 SUBROUTINE DDC_State_Init(cell_sizes, ddc_state)
-  USE GlobalParams
-  USE DDC
+  USE discoflux_GlobalParams
+  USE discoflux_DDC
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Inputs:
@@ -22,7 +22,6 @@ SUBROUTINE DDC_State_Init(cell_sizes, ddc_state)
 !~   call ddc_state%allocatememory()
   ddc_state%cell_sizes(:) = cell_sizes
 
-  RETURN
 END SUBROUTINE DDC_State_Init
 
 !-----------------------------------------------------------------------
@@ -32,10 +31,10 @@ END SUBROUTINE DDC_State_Init
 SUBROUTINE DDC_Update(ddc_state_old, dmb_state, cdt_state,  &
            all_props_ddc, all_props_dmb, &
            ddc_state_new)
-  USE GlobalParams
-  USE DDC
-  USE CDT
-  USE DMB
+  USE discoflux_GlobalParams
+  USE discoflux_DDC
+  USE discoflux_CDT
+  USE discoflux_DMB
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Inputs:
@@ -56,7 +55,6 @@ SUBROUTINE DDC_Update(ddc_state_old, dmb_state, cdt_state,  &
   REAL(KIND=8), DIMENSION(:,:,:), allocatable :: pk2_i
 !  REAL(KIND=8), DIMENSION(3,3)       :: Csum
   INTEGER :: iip,islip,i,j,ich,iregion,e1,e2,n
-  REAL(KIND=8) :: sum
 !-----------------------------------------------------------------------
   allocate(pk2_i(Nel,3,3))
 !~   call ddc_state_new%allocatememory()
@@ -120,7 +118,6 @@ SUBROUTINE DDC_Update(ddc_state_old, dmb_state, cdt_state,  &
 
   ddc_state_new%stress_i = pk2_i
 
-  RETURN
 END SUBROUTINE DDC_Update
 
 !-----------------------------------------------------------------------
@@ -129,10 +126,10 @@ END SUBROUTINE DDC_Update
 
 SUBROUTINE DDC_Compute_Backstress(n, varrho, ddc_props, dmb_props, vel, X_ref,  &
            tau_back)
-  USE GlobalParams
-  USE DDC
-  USE DMB
-  use utilities, only: Fatal
+  USE discoflux_GlobalParams
+  USE discoflux_DDC
+  USE discoflux_DMB
+  use discoflux_utilities, only: Fatal
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Inputs:
@@ -163,7 +160,6 @@ SUBROUTINE DDC_Compute_Backstress(n, varrho, ddc_props, dmb_props, vel, X_ref,  
     call Fatal('unknown backstress_model flag: '//ddc_props%backstress_model)
   end if
 
-  RETURN
 END SUBROUTINE DDC_Compute_Backstress
 
 !-----------------------------------------------------------------------
@@ -171,11 +167,11 @@ END SUBROUTINE DDC_Compute_Backstress
 !-----------------------------------------------------------------------
 
 SUBROUTINE DDC_Zaiser_Backstress_noKappa(vel, ddc_props, dmb_props, tau_back_nokappa)
-  USE GlobalParams
-  USE DDC
-  USE DMB
-  use DMB_routines, only: DMB_Compute_Rotation, stroh_dislocation
-  use utilities, only: LinSpace, operator(.otimes.), Trapz
+  USE discoflux_GlobalParams
+  USE discoflux_DDC
+  USE discoflux_DMB
+  use discoflux_DMB_routines, only: DMB_Compute_Rotation, stroh_dislocation
+  use discoflux_utilities, only: LinSpace, operator(.otimes.), Trapz
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Inputs:
@@ -188,7 +184,7 @@ SUBROUTINE DDC_Zaiser_Backstress_noKappa(vel, ddc_props, dmb_props, tau_back_nok
 !-----------------------------------------------------------------------
 !  Locals:
   REAL(KIND=8) :: burger, tmpintegral
-  INTEGER, PARAMETER :: resolution=361 !< resolve polar angle phi to 1 degree (tradeoff accuracy for speed)
+  INTEGER, PARAMETER :: resolution=361 !! resolve polar angle phi to 1 degree (tradeoff accuracy for speed)
   REAL(KIND=8), DIMENSION(:,:,:,:,:), allocatable :: uij
   REAL(KIND=8), DIMENSION(:,:,:), allocatable :: tau_internal
   REAL(KIND=8), DIMENSION(resolution) :: phi
@@ -254,8 +250,7 @@ SUBROUTINE DDC_Zaiser_Backstress_noKappa(vel, ddc_props, dmb_props, tau_back_nok
       tau_back_nokappa(:,j,i) = MATMUL(Q,tau_back_nokappa(:,j,i)) ! rotate into global coordinates
     end do !Nslip
   end do !Nchar
-  
-  RETURN
+
 END SUBROUTINE DDC_Zaiser_Backstress_noKappa
 
 !-----------------------------------------------------------------------
@@ -264,9 +259,9 @@ END SUBROUTINE DDC_Zaiser_Backstress_noKappa
 
 SUBROUTINE DDC_Zaiser_Backstress(n, varrho, ddc_props, dmb_props, vel_state, X_ref, &
            tau_back)
-  USE GlobalParams
-  USE DDC
-  USE DMB
+  USE discoflux_GlobalParams
+  USE discoflux_DDC
+  USE discoflux_DMB
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Inputs:
@@ -297,6 +292,7 @@ SUBROUTINE DDC_Zaiser_Backstress(n, varrho, ddc_props, dmb_props, vel_state, X_r
     vel = 0.d0
   end if
   vel_zero = 0.d0
+  integral_zero = 0.d0
   Lbar   = dmb_props%Lbar ! length scale associated with initial total disloc. density
   ! this length scale was used in gradient back stress to approximate the dislocation spacing
   ! here we might try something more sophisticated, namely the local disloc density rho_total
@@ -333,7 +329,6 @@ SUBROUTINE DDC_Zaiser_Backstress(n, varrho, ddc_props, dmb_props, vel_state, X_r
     tau_back(el,:,:)   = integral(1,:,:)*grad_kappa(el,:,:)/rho_total(el,:,:) ! only need x-comp. of integral for 1D problem
   end do  !el
   
-  RETURN
 END SUBROUTINE DDC_Zaiser_Backstress
 
 !-----------------------------------------------------------------------
@@ -342,9 +337,9 @@ END SUBROUTINE DDC_Zaiser_Backstress
 
 SUBROUTINE DDC_Gradient_Backstress(n, varrho, ddc_props, X_ref, &
            tau_back)
-  USE GlobalParams
-  USE DDC
-  use DMB_routines, only: DMB_Compute_Rotation
+  USE discoflux_GlobalParams
+  USE discoflux_DDC
+  use discoflux_DMB_routines, only: DMB_Compute_Rotation
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Inputs:
@@ -400,8 +395,7 @@ SUBROUTINE DDC_Gradient_Backstress(n, varrho, ddc_props, X_ref, &
       tau_back(el,:,ich)   = mu*burger*Lrho*grad_kappa(el,:,ich)*slip_Sg(1,:)
     end do !ich
   end do  !el
-  
-  RETURN
+
 END SUBROUTINE DDC_Gradient_Backstress
 
 !-----------------------------------------------------------------------
@@ -409,8 +403,8 @@ END SUBROUTINE DDC_Gradient_Backstress
 !-----------------------------------------------------------------------
 
 !~ SUBROUTINE DDC_Field_Backstress(n, varrho, ddc_props, X_ref, tau_back)
-!~   USE GlobalParams
-!~   USE DDC
+!~   USE discoflux_GlobalParams
+!~   USE discoflux_DDC
 !~   IMPLICIT NONE
 !~ !-----------------------------------------------------------------------
 !~ !  Inputs:
@@ -447,7 +441,6 @@ END SUBROUTINE DDC_Gradient_Backstress
 !~     end do  !ii
 !~   end do  !ich
 
-!~   RETURN
 !~ END SUBROUTINE DDC_Field_Backstress
 
 !-----------------------------------------------------------------------
@@ -457,8 +450,8 @@ END SUBROUTINE DDC_Gradient_Backstress
 !~ SUBROUTINE Compute_CPV(f, x, a, b, Fout)
 !~   ! Compute the Cauchy Principal Value I(x) = Int f(t)/(t-x) dt a<x<b
 !~   ! for functions values f given at locations x.  
-!~   USE GlobalParams
-!~   use utilities, only: Fatal
+!~   USE discoflux_GlobalParams
+!~   use discoflux_utilities, only: Fatal
 !~   IMPLICIT NONE
 !~ !-----------------------------------------------------------------------
 !~ !  Inputs:
@@ -496,6 +489,5 @@ END SUBROUTINE DDC_Gradient_Backstress
   
 !~   Fout  = I1 + I2
 
-!~   RETURN
 !~ END SUBROUTINE Compute_CPV
-end module DDC_routines
+end module discoflux_DDC_routines

@@ -5,7 +5,7 @@
 ! Security Administration. The Government is granted for itself and others acting on its behalf a nonexclusive, paid-up,
 ! irrevocable worldwide license in this material to reproduce, prepare. derivative works, distribute copies to the public, perform
 ! publicly and display publicly, and to permit others to do so.
-module UTILITIES
+module discoflux_UTILITIES
 public
 interface operator(.cross.)
   module procedure Cross
@@ -21,16 +21,15 @@ contains
 !<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><
 !-----------------------------------------------------------------------
 
-!>  Given vector F(X), coordinate vector X, and query location Xwant,
-!>    return Fwant=F(Xwant) using linear interpolation.
-SUBROUTINE Interp1D(Xwant, n, X, F, Fwant)
+!>  Given vector F(X), coordinate vector X, and query location `Xwant`,
+!>    return `Fwant`=`F`(`Xwant`) using linear interpolation.
+pure SUBROUTINE Interp1D(Xwant, n, X, F, Fwant)
 
   IMPLICIT NONE
-  REAL(KIND=8)                :: Xwant, Fwant
-  INTEGER               :: n
-  REAL(KIND=8), DIMENSION(n)  :: X, F
-  INTENT (IN)  X, F, n, Xwant
-  INTENT (OUT) Fwant
+  REAL(KIND=8), intent(in)               :: Xwant
+  INTEGER, intent(in)         :: n
+  REAL(KIND=8), DIMENSION(n), intent(in) :: X, F
+  REAL(KIND=8), intent(out)              :: Fwant
 
 !~   REAL(KIND=8) :: b, m
   INTEGER :: i, ip1
@@ -71,17 +70,15 @@ END SUBROUTINE Interp1D
 !<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><
 !-----------------------------------------------------------------------
 
-!>  Given a query coordinate Xwant, find which interval in input X
-!>    contains Xwant and return it as i
-SUBROUTINE FindInterval(X, n, Xwant, i)
+!>  Given a query coordinate `Xwant`, find which interval in input `X`
+!>    contains `Xwant` and return it as `i`
+pure SUBROUTINE FindInterval(X, n, Xwant, i)
 
   IMPLICIT NONE
-  INTEGER  :: n
-  REAL(KIND=8), DIMENSION(n) :: X
-  REAL(KIND=8) :: Xwant
-  INTEGER  :: i
-  INTENT (IN) X, n, Xwant
-  INTENT (OUT) i
+  INTEGER, intent(in)  :: n
+  REAL(KIND=8), DIMENSION(n), intent(in) :: X
+  REAL(KIND=8), intent(in) :: Xwant
+  INTEGER, intent(out)  :: i
 
   INTEGER :: ilo, ihi, imid
 
@@ -89,9 +86,7 @@ SUBROUTINE FindInterval(X, n, Xwant, i)
   ihi = n+1
 
   do while (.true.)
-    if(.not..true.) then
-      return
-    elseif(ihi-ilo>1) then
+    if(ihi-ilo>1) then
       imid = (ihi+ilo)/2
       if(X(n)>X(1).eqv.Xwant>X(imid)) then
         ilo = imid
@@ -111,14 +106,12 @@ END SUBROUTINE FindInterval
 !-----------------------------------------------------------------------
 
 !>  Generate a linearly-spaced vector from [x1,x2]
-SUBROUTINE LinSpace(x1,x2,n,xout)
+pure SUBROUTINE LinSpace(x1,x2,n,xout)
 
   IMPLICIT NONE
-  REAL(KIND=8) :: x1, x2
-  INTEGER :: n
-  REAL(KIND=8), DIMENSION(N) :: xout
-  INTENT (IN) x1, x2, n
-  INTENT (OUT) xout
+  REAL(KIND=8), intent(in) :: x1, x2
+  INTEGER, intent(in) :: n
+  REAL(KIND=8), DIMENSION(N), intent(out) :: xout
   
   REAL(KIND=8) ::dx
   INTEGER :: i
@@ -141,7 +134,7 @@ END SUBROUTINE LinSpace
 
 !>  Integrate F(X) along X using trapezoidal rule
 !>  Return Integral
-SUBROUTINE Trapz(n, F, X, Integral)
+pure SUBROUTINE Trapz(n, F, X, Integral)
 
   IMPLICIT NONE
   INTEGER, INTENT(IN) :: n
@@ -158,12 +151,12 @@ END SUBROUTINE Trapz
 
 !>  Integrate F(X) along X using trapezoidal rule
 !>  Return Integral, which is the cumulative integral at each interval
-SUBROUTINE CumTrapz(n, F, X, Integral)
+pure SUBROUTINE CumTrapz(n, F, X, Integral)
 
   IMPLICIT NONE
-  INTEGER :: n
-  REAL(KIND=8), DIMENSION(n)  :: F, X
-  REAL(KIND=8), DIMENSION(n-1) :: Integral
+  INTEGER, intent(in) :: n
+  REAL(KIND=8), DIMENSION(n), intent(in)  :: F, X
+  REAL(KIND=8), DIMENSION(n-1), intent(out) :: Integral
   
   INTEGER :: i, ip1, im1
   REAL(KIND=8)  :: dx, fbar
@@ -231,7 +224,7 @@ END FUNCTION Det3x3
 !-----------------------------------------------------------------------
 
 !>  Return determinant and inverse of 3x3 REAL(KIND=8) array A
-SUBROUTINE DetInv3x3(A,D,AINV)
+pure SUBROUTINE DetInv3x3(A,D,AINV)
 !-----------------------------------------------------------------------
   IMPLICIT NONE
 !-----------------------------------------------------------------------
@@ -313,8 +306,8 @@ pure function Cross(a,b) result(axb)
 !-----------------------------------------------------------------------
 !<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><
 !-----------------------------------------------------------------------
-!> Compute the bracket (a,b) := a.Cmat.b, where Cmat is a tensor of 2nd order elastic constants.
-SUBROUTINE ElBrak(a,b,Cmat,AB)
+!> Compute the bracket (a,b) := `a.Cmat.b`, where `Cmat` is a tensor of 2nd order elastic constants.
+pure SUBROUTINE ElBrak(a,b,Cmat,AB)
 !-----------------------------------------------------------------------
   IMPLICIT NONE
 !-----------------------------------------------------------------------
@@ -388,37 +381,41 @@ END SUBROUTINE Invert_Tensor
 !<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><
 !-----------------------------------------------------------------------
 
-!~ !> compute the matrix exponential exp(A) of 3x3 matrix A
-!~ !> this drop-in replacement for stdlib_linalg expm uses expokit's DGPADM routine under the hood
-!~ function ExpM(A,order) result(expA)
-!~ !-----------------------------------------------------------------------
-!~   IMPLICIT NONE
-!~ !-----------------------------------------------------------------------
-!~ !  Inputs:
-!~   REAL(KIND=8), DIMENSION(3,3), INTENT(IN)  :: A
-!~   integer, intent(in), optional :: order
-!~ !-----------------------------------------------------------------------
-!~ !  Outputs:
-!~   REAL(KIND=8), DIMENSION(3,3) :: expA
-!~ !-----------------------------------------------------------------------
-!~ !  Locals:
-!~   INTEGER :: nonzero,k,j,l1,l2,ideg,ipiv(3),m,ldh,lwsp,iexph,ns,iflag
+!> compute the matrix exponential exp(A) of 3x3 matrix A
+!> this wrapper around stdlib_linalg expm handles special cases like A=0 or A diagonal
+function ExpMat(A,order) result(expA)
+!-----------------------------------------------------------------------
+  use stdlib_linalg, only: expm
+  IMPLICIT NONE
+!-----------------------------------------------------------------------
+!  Inputs:
+  REAL(KIND=8), DIMENSION(3,3), INTENT(IN)  :: A
+  integer, intent(in), optional :: order
+!-----------------------------------------------------------------------
+!  Outputs:
+  REAL(KIND=8), DIMENSION(3,3) :: expA
+!-----------------------------------------------------------------------
+!  Locals:
+  INTEGER :: nonzero,k,ideg!,j,l1,l2,ipiv(3),m,ldh,lwsp,iexph,ns,iflag
 !~   REAL(KIND=8), DIMENSION(43) :: wsp
-!~   REAL(KIND=8) :: rzero
-!~   ideg=6; m=3; ldh=3; lwsp=43
-!~   rzero = sqrt(tiny(0.d0))
-!~   if (present(order)) ideg=order
+  REAL(KIND=8) :: rzero
+!~   m=3; ldh=3; lwsp=43
+  rzero = sqrt(tiny(0.d0))
+  ideg = 6
+  if (present(order)) ideg=order
 
-!~ ! bypass (slow) matrix exponential DGPADM() when we already know the answer
-!~   nonzero = count(abs(A)>rzero)
-!~   if (0==nonzero) then
-!~     expA = Identity(3)
-!~   else if ((3==nonzero) .AND. (abs(A(1,1))>rzero) .AND. (abs(A(2,2))>rzero) .AND. (abs(A(3,3))>rzero)) then
-!~     expA = Identity(3)
-!~     do k=1,3
-!~       expA(k,k) = exp(A(k,k))
-!~     end do
-!~   else
+! bypass (slow) matrix exponential when we already know the answer
+  nonzero = count(abs(A)>rzero)
+  if (0==nonzero) then
+    expA = Identity(3)
+  else if ((3==nonzero) .AND. (abs(A(1,1))>rzero) .AND. (abs(A(2,2))>rzero) .AND. (abs(A(3,3))>rzero)) then
+    expA = Identity(3)
+    do k=1,3
+      expA(k,k) = exp(A(k,k))
+    end do
+  else
+    expA = ExpM(A,order=ideg)
+! expokit version (can be used instead of stdlib expm):
 !~     call DGPADM(ideg,m,1.d0,A,ldh,wsp,lwsp,ipiv,iexph,ns,iflag)
     
 !~     l1 = iexph - 1
@@ -428,16 +425,16 @@ END SUBROUTINE Invert_Tensor
 !~         expA(j,k) = wsp(l2 + j)
 !~       end do  !j
 !~     end do  !k
-!~   end if
+  end if
 
-!~ end function ExpM
+end function ExpMat
 
 !-----------------------------------------------------------------------
 !<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><
 !-----------------------------------------------------------------------
 
 !> generate rotation matrix Mat that rotates by angle phi around unit vector vec
-SUBROUTINE RotAround(vec,phi,Mat)
+pure SUBROUTINE RotAround(vec,phi,Mat)
   IMPLICIT NONE
   ! Inputs
   REAL(KIND=8), INTENT(IN) :: vec(3), phi
@@ -446,7 +443,7 @@ SUBROUTINE RotAround(vec,phi,Mat)
   ! Locals
   REAL(KIND=8) :: vx(3,3), eye(3,3), s, c
   !-----------------------------------
-  vx(3,3)=0.d0
+  vx=0.d0
   s = sin(phi)
   c = cos(phi)
   eye = Identity(3)
@@ -460,8 +457,8 @@ SUBROUTINE RotAround(vec,phi,Mat)
 
 END SUBROUTINE RotAround
 
-!> generate rotation matrix Mat that rotates unit vector old into unit vector new
-SUBROUTINE RotInto(old,new,Mat)
+!> generate rotation matrix `Mat` that rotates unit vector `old` into unit vector `new`
+pure SUBROUTINE RotInto(old,new,Mat)
   IMPLICIT NONE
   ! Inputs
   REAL(KIND=8), DIMENSION(3), INTENT(IN) :: old,new
@@ -490,8 +487,8 @@ SUBROUTINE RotInto(old,new,Mat)
 END SUBROUTINE RotInto
 
 !> generate rotation matrix that aligns unit vectors n with y and t with z, assuming n.t=0=y.z
-SUBROUTINE RotAlign(n,t,y,z,Mat)
-  USE GlobalParams
+pure SUBROUTINE RotAlign(n,t,y,z,Mat)
+  USE discoflux_GlobalParams
   IMPLICIT NONE
   ! Inputs
   REAL(KIND=8), DIMENSION(3), INTENT(IN) :: n,t,y,z
@@ -524,13 +521,15 @@ END SUBROUTINE RotAlign
 !-----------------------------------------------------------------------
 
 SUBROUTINE readcmdline(jobname)
-  USE GlobalParams
+  use stdlib_version, only : get_stdlib_version
+  USE discoflux_GlobalParams
 !$   Use omp_lib
   IMPLICIT NONE
   ! Output
-  CHARACTER(32), INTENT(OUT) :: jobname
+  CHARACTER(64), INTENT(OUT) :: jobname
   ! Locals
-  CHARACTER(32) :: cmdlinearg, exe_name
+  character(:), allocatable :: stdlibversion
+  CHARACTER(64) :: cmdlinearg, exe_name
   !----------------------------------------
   call get_command_argument(1, cmdlinearg)
   call get_command_argument(0, exe_name)
@@ -544,7 +543,9 @@ SUBROUTINE readcmdline(jobname)
       print*,"       (needed to read 'input_parameters.<jobname>.dat')"
       print*,"       or ",trim(exe_name)," <inputfilename>"
       print*,""
-      print*,"program version: ",prog_version
+      print*,"DiscoFlux Legacy version: ",prog_version
+      call get_stdlib_version(string=stdlibversion)
+      print*,"  ... using stdlib version "//stdlibversion//new_line('a')
       print*,"simulation types: impact or shear"
       print*,"compiled with these defaults:"
       print*,"# of elements, Nel = ",Nel
@@ -570,7 +571,7 @@ END SUBROUTINE readcmdline
 SUBROUTINE Fatal(message)
 
   IMPLICIT NONE
-  CHARACTER*(*) message
+  CHARACTER(*) message
 !-----------------------------------------------------------------------
   write(*,10) message
 10  format(                         &
@@ -583,4 +584,4 @@ SUBROUTINE Fatal(message)
   STOP
 
 END SUBROUTINE Fatal
-end module UTILITIES
+end module discoflux_UTILITIES

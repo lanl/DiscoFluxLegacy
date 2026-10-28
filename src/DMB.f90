@@ -5,7 +5,7 @@
 ! Security Administration. The Government is granted for itself and others acting on its behalf a nonexclusive, paid-up,
 ! irrevocable worldwide license in this material to reproduce, prepare. derivative works, distribute copies to the public, perform
 ! publicly and display publicly, and to permit others to do so.
-module DMB_routines
+module discoflux_DMB_routines
 private
 interface operator(.voigt.)
   module procedure Voigt43to26
@@ -18,7 +18,7 @@ public :: DMB_Init_EOS, DMB_Compute_EOS, DMB_Compute_Rotation, DMB_Invert_Tensor
           operator(.voigt.), operator(.unvoigt.)
 contains
 SUBROUTINE DMB_Init_EOS(Dhat)
-  use utilities, only: LinSpace, CumTrapz
+  use discoflux_utilities, only: LinSpace, CumTrapz
   IMPLICIT NONE
 
 !-----------------------------------------------------------------------
@@ -47,9 +47,9 @@ END SUBROUTINE DMB_Init_EOS
 SUBROUTINE DMB_Compute_EOS(eos_props, detF, temperature, &
            PRESSURE, FREE_ENERGY, ENTROPY, THERMO_COEFFS)
 !-----------------------------------------------------------------------
-  use GlobalParams
-  USE DMB
-  use utilities, only: Interp1D
+  use discoflux_GlobalParams
+  USE discoflux_DMB
+  use discoflux_utilities, only: Interp1D
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Inputs:
@@ -105,7 +105,14 @@ SUBROUTINE DMB_Compute_EOS(eos_props, detF, temperature, &
   p_elect  =  0.5d0*(kappa/v)*Gamma0*(v/v0)**kappa*temperature**2
         
   temp_debye = Td0*(v/v0)**(-gamma)*exp(-a*((v/v0) - 1.d0) - 0.5d0*b*( (v/v0)**2 - 1.d0) )
-  temp_ratio = temp_debye / temperature
+  if (temp_debye>10000.d0) then
+    print*,"WARNING: unphysically high Debye temperature encountered, limiting to 10000"
+    temp_debye = 10000.d0
+  else if (temp_debye<1.d-15) then
+    print*,"WARNING: unphysically low Debye temperature encountered, limiting to 1K"
+    temp_debye = 1.d0
+  end if
+  temp_ratio = temp_debye / (max(temperature,1.d0))
         
   exp_n   = exp(-temp_ratio)
   exp_p   = exp( temp_ratio)
@@ -203,8 +210,8 @@ END SUBROUTINE DMB_Compute_EOS
 !-----------------------------------------------------------------------
 
 SUBROUTINE DMB_State(times, state)
-  USE GlobalParams
-  USE DMB
+  USE discoflux_GlobalParams
+  USE discoflux_DMB
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Inputs:
@@ -251,8 +258,8 @@ END SUBROUTINE DMB_State
 
 SUBROUTINE DMB_State_Init(times, X_ref, x, xdot, xddot, Fp, Fe, T, &
            DMB_State)
-  USE GlobalParams
-  USE DMB
+  USE discoflux_GlobalParams
+  USE discoflux_DMB
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Inputs:
@@ -279,6 +286,7 @@ SUBROUTINE DMB_State_Init(times, X_ref, x, xdot, xddot, Fp, Fe, T, &
   DMB_State%xddot(:,:)    = xddot
   DMB_State%F(:,:,:)      = 0.d0
   DMB_State%T(:,1)        = T
+  DMB_STATE%tau  (:,:)    = 0.d0
   DMB_State%gamma_acc(:,:,:)= 0.d0
   DMB_State%vel(:,:,:)      = 0.d0
   DMB_State%dis_acc(:,:,:)  = 0.d0
@@ -309,7 +317,7 @@ END SUBROUTINE DMB_State_Init
 !> compute "active" rotation matrix using Bunge euler angles
 !> "active" rotation matrix is defined such that E_i = R_ij * e_j where 
 !> e_i are the crystal base vectors and E_j are the global or "sample" base vectors
-SUBROUTINE DMB_Compute_Rotation(euler_angle, rot)
+pure SUBROUTINE DMB_Compute_Rotation(euler_angle, rot)
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Inputs:
@@ -349,7 +357,7 @@ END SUBROUTINE DMB_Compute_Rotation
 
 !> form a fourth order elasticity tensor from elastic constants (in crystal basis) 
 !> and rotate into global basis
-subroutine DMB_form_elasticity(Cg, rotMat, elastic_constants, temperature, pressure)
+pure subroutine DMB_form_elasticity(Cg, rotMat, elastic_constants, temperature, pressure)
 
 implicit none
 
@@ -561,7 +569,7 @@ END SUBROUTINE DMB_Invert_Tensor43
 !>  Invert a 6x6 tensor.
 SUBROUTINE DMB_Invert_Tensor26(A,Ainv)
   use stdlib_linalg_lapack, only: getrf, getri
-  use utilities, only: Fatal
+  use discoflux_utilities, only: Fatal
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Inputs:
@@ -601,20 +609,19 @@ END SUBROUTINE DMB_Invert_Tensor26
 
 !>  Populate the slip system normals and directions.
 SUBROUTINE DMB_get_slip_system(name, slip_M_out, slip_S_out, slip_V, line_T, rotM, Aforest)
-  USE GlobalParams
-!-----------------------------------------------------------------------
-  use utilities, only: Fatal, operator(.cross.), RotAlign
+  USE discoflux_GlobalParams
+  use discoflux_utilities, only: Fatal, operator(.cross.), RotAlign
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Inputs:
-  CHARACTER*(*), INTENT(IN) :: name    !< Structure
+  CHARACTER(*), INTENT(IN) :: name !! Structure
 !-----------------------------------------------------------------------
 !  Outputs:
-  REAL(KIND=8), DIMENSION(3,Nslip), INTENT(OUT) :: slip_M_out, slip_S_out  !< Slip normals M, slip directions S
-  REAL(KIND=8), DIMENSION(3,Nslip,Nchar), INTENT(OUT) :: slip_V, line_T  !< velocity directions slip_V and line directions line_T
+  REAL(KIND=8), DIMENSION(3,Nslip), INTENT(OUT) :: slip_M_out, slip_S_out  !! Slip normals M, slip directions S
+  REAL(KIND=8), DIMENSION(3,Nslip,Nchar), INTENT(OUT) :: slip_V, line_T  !! velocity directions `slip_V` and line directions `line_T`
+  !> `rotM` = rotation matrices which will align `slip_M` and line sense with Cartesian directions y and z
   REAL(KIND=8), DIMENSION(3,3,Nslip,Nchar), INTENT(OUT) :: rotM
-  REAL(KIND=8), DIMENSION(Nslip,Nslip,Nchar), INTENT(OUT) :: Aforest !< slip_S is char independent, hence alpha=Nslip, beta=Nslip+Nchar
-  !! rotM = rotation matrices which will align slip_M and line sense with Cartesian directions y and z
+  REAL(KIND=8), DIMENSION(Nslip,Nslip,Nchar), INTENT(OUT) :: Aforest !! `slip_S` is char independent, hence alpha=Nslip, beta=Nslip+Nchar
 
 !-----------------------------------------------------------------------
 !  Locals:
@@ -862,10 +869,9 @@ END SUBROUTINE DMB_get_slip_system
 
 SUBROUTINE xtal_Update_Stress(F_new, Fp_old, F_i, Cg, slip_Sg, slip_Mg, dgamma, &
            cauchy_new, Fe_new, Fp_new)
-  use stdlib_linalg, only: expm
-  USE GlobalParams
-  USE DMB
-  use utilities, only: Identity, DetInv3x3, operator(.det.)!, ExpM
+  USE discoflux_GlobalParams
+  USE discoflux_DMB
+  use discoflux_utilities, only: Identity, DetInv3x3, operator(.det.), expmat
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Inputs:
@@ -900,8 +906,7 @@ SUBROUTINE xtal_Update_Stress(F_new, Fp_old, F_i, Cg, slip_Sg, slip_Mg, dgamma, 
     end do !i
   end do !ich
 
-
-  exp_dE = ExpM(dE,order=6)
+  exp_dE = ExpMat(dE)
   Fp_new = MATMUL(exp_dE, Fp_old)
   
   ! djl --> just as a check 
@@ -951,9 +956,9 @@ END SUBROUTINE xtal_Update_Stress
 SUBROUTINE Compute_Velocities(sigma, tau_b, temp, Fe, slip_Sg, slip_Mg, rho,  props, &
            detF, pressure, vel, tau)
   
-  USE GlobalParams
-  USE DMB
-  use utilities, only: DetInv3x3
+  USE discoflux_GlobalParams
+  USE discoflux_DMB
+  use discoflux_utilities, only: DetInv3x3
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Inputs:
@@ -1010,8 +1015,8 @@ END SUBROUTINE Compute_Velocities
 SUBROUTINE Dislocation_Velocity(tau_eff, temp, rho,  props, detF, pressure, &
            vel)
 
-  USE GlobalParams
-  USE DMB
+  USE discoflux_GlobalParams
+  USE discoflux_DMB
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Inputs:
@@ -1062,7 +1067,7 @@ SUBROUTINE Dislocation_Velocity(tau_eff, temp, rho,  props, detF, pressure, &
     deltamu = muT*(temp(1)-props%T_ref) + muP*pressure
     rhobar0 = props%rhobar0/detF
     brgr    = props%burger*detF**(1./3.)
-    mu(:)   = rhobar0*props%wave_vel(:)**2 + deltamu
+    mu(:)   = max(rhobar0*props%wave_vel(:)**2 + deltamu,1.d-15)
     vcrit   = sqrt(mu/rhobar0)
     B0      = props%B0*(temp(1)/props%T_ref)*sqrt(1.d0 - deltamu/mu)/(detF**(7./6.))
   else
@@ -1160,9 +1165,9 @@ SUBROUTINE RK_Rates(dt, temp, F_old, F_new, Fe_old, Fp_old, cauchy_old, J_new, p
            field_variables, slip_Sg, slip_Mg, Cg, props, &
            gamma_dot, error)
   
-  USE GlobalParams
-  USE DMB
-  use utilities, only: Identity
+  USE discoflux_GlobalParams
+  USE discoflux_DMB
+  use discoflux_utilities, only: Identity
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Inputs:
@@ -1323,9 +1328,9 @@ SUBROUTINE RK_SubIncrement(dt, T_old,  F_old, F_new, J_new, pressure, Fe_old, &
                Fp_old, cauchy_old, field_variables, slip_Sg, slip_Mg, Cmat, props, &
                cauchy, Fe_new, Fp_new, dgamma, Nsub, icutback)
   
-  USE GlobalParams
-  USE DMB
-  use utilities, only: Identity
+  USE discoflux_GlobalParams
+  USE discoflux_DMB
+  use discoflux_utilities, only: Identity
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Inputs:
@@ -1354,7 +1359,7 @@ SUBROUTINE RK_SubIncrement(dt, T_old,  F_old, F_new, J_new, pressure, Fe_old, &
   REAL(KIND=8), DIMENSION(Nslip,Nchar,2) :: varrho_ip
 !  REAL(KIND=8), DIMENSION(Nslip,Nchar)   :: varrho_mobile_sum
   REAL(KIND=8) gtol, t_prime, t_final, dt_prime, dt_fac
-  REAL(KIND=8), DIMENSION(3,3) :: F_i, epsilon_i, F_dot, F0, cauchy0, Fe0, Fp0, Fp, F1, pk2
+  REAL(KIND=8), DIMENSION(3,3) :: F_i, epsilon_i, F_dot, F0, cauchy0, Fe0, Fp0, Fp, F1!, pk2
   LOGICAL :: flag_continue, flag_last_step
   REAL(KIND=8), DIMENSION(Nslip) :: tau_b
   REAL(KIND=8), DIMENSION(Nslip,Nchar) :: gamma_dot, gdot_error, dgamma_total
@@ -1480,7 +1485,7 @@ SUBROUTINE RK_SubIncrement(dt, T_old,  F_old, F_new, J_new, pressure, Fe_old, &
       Fp0 = Fp
 
       if(current_el==debug_element.and.ncycle==debug_cycle) then
-        write(*,'("pk2:",3(/,3es28.16))') ((pk2(i,j),j=1,3),i=1,3)
+        !write(*,'("pk2:",3(/,3es28.16))') ((pk2(i,j),j=1,3),i=1,3)
         write(*,'("Fe0:",3(/,3es28.16))') ((Fe0(i,j),j=1,3),i=1,3)
         write(*,'("Fp0:",3(/,3es28.16))') ((Fp0(i,j),j=1,3),i=1,3)
         write(*,'("cauchy0:",3(/,3es28.16))') ((cauchy0(i,j),j=1,3),i=1,3)
@@ -1506,9 +1511,9 @@ END SUBROUTINE RK_SubIncrement
 
 !>Computes the dislocation displacement gradient field according to the integral method
 SUBROUTINE stroh_dislocation(props,vel,resolution,uij,Sb,Bb,Cmat)
-  USE GlobalParams
-  USE DMB
-  use utilities, only: Identity, LinSpace, elbrak, Trapz, DetInv3x3
+  USE discoflux_GlobalParams
+  USE discoflux_DMB
+  use discoflux_utilities, only: Identity, LinSpace, elbrak, Trapz, DetInv3x3
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Inputs:
@@ -1638,10 +1643,10 @@ END SUBROUTINE stroh_dislocation
 SUBROUTINE Constitutive_DMB( &
            F_new, F_old, T_old, cauchy_old, Fp_old, Fe_old, field_variables, dt, props, elem_len, &
            cauchy, vel, vel_x, vel_y, vel_z, T_new, Fp_new, Fe_new, tau, dgamma, Nsub, i_cutback)
-  USE GlobalParams
-  USE DMB
-  use EOS
-  use utilities, only: DetInv3x3, operator(.det.)
+  USE discoflux_GlobalParams
+  USE discoflux_DMB
+  use discoflux_EOS
+  use discoflux_utilities, only: DetInv3x3, operator(.det.)
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Inputs:
@@ -1758,7 +1763,15 @@ SUBROUTINE Constitutive_DMB( &
   !==============================================================================!
 
   J_old = .det. F_old
+  if (J_old<0.d0) then
+    print*,"WARNING: negative det(F_old), setting to tiny. timestep too large?"
+    J_old = 1.d-40
+  end if
   J_new = .det. F_new
+  if (J_new<0.d0) then
+    print*,"WARNING: negative det(F_new), setting to tiny. timestep too large?"
+    J_new = 1.d-40
+  end if
     
   if (props%eos%eos_flag) then
       
@@ -1817,7 +1830,7 @@ SUBROUTINE Constitutive_DMB( &
        thermo_coeffs(1) = props%specific_heat
     end if
     specific_heat = thermo_coeffs(1)
-    bulk_modulus  = thermo_coeffs(3)
+    bulk_modulus  = max(thermo_coeffs(3),1.d-15)
     wave_speed    = sqrt(bulk_modulus / rhobar0)
   
   else
@@ -1886,10 +1899,10 @@ END SUBROUTINE Constitutive_DMB
 SUBROUTINE DMB_Update_State(state_old, dt, mass_array, xdot_bc, force_bc, & 
            all_props_dmb, cdt_state, ddc_state,                           &
            state_new, xdot_acc_bc)
-  USE GlobalParams
-  USE DMB
-  USE CDT
-  USE DDC
+  USE discoflux_GlobalParams
+  USE discoflux_DMB
+  USE discoflux_CDT
+  USE discoflux_DDC
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Inputs:
@@ -2072,5 +2085,5 @@ SUBROUTINE DMB_Update_State(state_old, dt, mass_array, xdot_bc, force_bc, &
   state_new%x(:,:) = state_old%x(:,:) + dt * state_new%xdot(:,:)
 
 END SUBROUTINE DMB_Update_State
-end module DMB_routines
+end module discoflux_DMB_routines
 

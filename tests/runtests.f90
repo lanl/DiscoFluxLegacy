@@ -5,7 +5,7 @@
 ! Security Administration. The Government is granted for itself and others acting on its behalf a nonexclusive, paid-up,
 ! irrevocable worldwide license in this material to reproduce, prepare. derivative works, distribute copies to the public, perform
 ! publicly and display publicly, and to permit others to do so.
-module checks
+module discoflux_checks
 implicit none
 character(*), parameter :: esc = achar(27), red = '[31m', green = '[32m', reset = '[0m'
 character(*), parameter :: passed = char(9)//esc//green//"PASSED"//esc//reset
@@ -69,27 +69,28 @@ SUBROUTINE testzero(A,string,tolerance,count_pass,count_fail)
   call testequalarray([A],[0.d0],1,string,tolerance,count_pass,count_fail)
   RETURN
 END SUBROUTINE testzero
-end module checks
+end module discoflux_checks
 
 !-----------------------------------------------------------------------
 !<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><
 !-----------------------------------------------------------------------
 
-PROGRAM RunTests
-  use stdlib_linalg, only: expm
-  USE GlobalParams
-  USE DMB
-  USE CDT
-  USE DDC
-  use DMB_routines, only: DMB_Compute_Rotation, DMB_form_elasticity, DMB_get_slip_system, DMB_Invert_Tensor26, DMB_Invert_Tensor43,&
-                        stroh_dislocation, operator(.voigt.), operator(.unvoigt.)
-  use CDT_routines
-  use DDC_routines
-  use utilities
-  use checks
+PROGRAM discoflux_RunTests
+  use stdlib_version, only : get_stdlib_version
+  USE discoflux_GlobalParams
+  USE discoflux_DMB
+  USE discoflux_CDT
+  USE discoflux_DDC
+  use discoflux_DMB_routines, only: DMB_Compute_Rotation, DMB_form_elasticity, DMB_get_slip_system, DMB_Invert_Tensor26, &
+                        DMB_Invert_Tensor43, stroh_dislocation, operator(.voigt.), operator(.unvoigt.)
+  use discoflux_CDT_routines
+  use discoflux_DDC_routines
+  use discoflux_utilities
+  use discoflux_checks
 
   IMPLICIT NONE
   
+  character(:), allocatable :: stdlibversion
   INTEGER, PARAMETER :: resolution=361 ! resolve polar angle phi to 1 degree (tradeoff accuracy for speed)
   REAL(KIND=8) :: num, nu_poisson, rho0, Fwant, tmpintegral
   Real(KIND=8), DIMENSION(5) :: array1,array2
@@ -138,7 +139,10 @@ PROGRAM RunTests
   unit_z=[0.d0,0.d0,1.d0]
   rho0 = 10000000.0d0
 
-  print*,"running tests for program version: ",prog_version
+  print*,"running tests for DiscoFlux Legacy version: ",prog_version
+  call get_stdlib_version(string=stdlibversion)
+  print*,"  ... using stdlib version "//stdlibversion//new_line('a')
+
   print*,"compiled with these defaults:"
   print*,"# of elements, Nel = ",Nel
   print*,"# of regions, Nregion = ",Nregion
@@ -214,12 +218,12 @@ PROGRAM RunTests
   
   ! test ExpM
   A=0.d0
-  A = ExpM(A,order=6)
-  B = ExpM(1.123d0*eye,order=6)
+  A = ExpMat(A)
+  B = ExpMat(1.123d0*eye)
   call testequal(exp(1.123d0)*eye,matmul(A,B),3,3,"ExpM, trivial cases",1.d-13,count_pass,count_fail)
   call RANDOM_NUMBER(A)
-  B = ExpM(1.d-6*A)
-  A = ExpM(-1.d-6*A)
+  B = ExpMat(1.d-6*A)
+  A = ExpMat(-1.d-6*A)
   call testequal(A+B,2*eye,3,3,"ExpM, small argument",1.d-10,count_pass,count_fail)
   
   ! test rotation matrix with euler angles
@@ -302,10 +306,10 @@ PROGRAM RunTests
                       "Sb (fcc Cu): validate against python implementation",1.d-8,count_pass,count_fail)
   if (Nchar > 1) then
     call testequalarray(Bb(:,9,1)/props_dmb%C44,[0.06277008d0,  0.06277008d0, 0.d0],3, &
-                      "Bb (fcc Cu) screw: validate against python implementation",1.d-8,count_pass,count_fail)
+                      "Bb (fcc Cu) screw: validate against python impl.",1.d-8,count_pass,count_fail)
   end if
   call testequalarray(Bb(:,9,Nchar)/props_dmb%C44,[0.110293506d0,  0.110293506d0, 0.d0],3, &
-                      "Bb (fcc Cu) edge: validate against python implementation",1.d-8,count_pass,count_fail)
+                      "Bb (fcc Cu) edge: validate against python impl.",1.d-8,count_pass,count_fail)
 
   ! test form_elasticity
   call DMB_form_elasticity(Cg, props_dmb%rotM(:,:,3,Nchar), props_dmb%elastic_constants, 0.d0, 0.d0)
@@ -367,7 +371,9 @@ PROGRAM RunTests
   ddc_props%burger = props_dmb%burger
   ddc_props%euler_angle = euler
   props_dmb%Lbar = 1.d0 / sqrt(rho0)
+  props_dmb%tau_back_nokappa = 0.d0
 
+  tau_back_nokappa = 0.d0
   call DDC_Zaiser_Backstress_noKappa(vel, ddc_props, props_dmb, tau_back_nokappa)
   do i=1,Nchar
     do j=1,Nslip
@@ -434,10 +440,10 @@ PROGRAM RunTests
                       "Sb (bcc Fe): validate against python implementation",1.d-8,count_pass,count_fail)
   if (Nchar > 1) then
     call testequalarray(Bb(:,9,1)/props_dmb%C44,[0.04651684d0, -0.04651684d0,  0.04651684d0],3, &
-                      "Bb (bcc Fe) screw: validate against python implementation",1.d-8,count_pass,count_fail)
+                      "Bb (bcc Fe) screw: validate against python impl.",1.d-8,count_pass,count_fail)
   end if
   call testequalarray(Bb(:,9,Nchar)/props_dmb%C44,[0.08475254d0, -0.08475254d0,  0.10570937d0],3, &
-                      "Bb (bcc Fe) edge: validate against python implementation",1.d-8,count_pass,count_fail)
+                      "Bb (bcc Fe) edge: validate against python impl.",1.d-8,count_pass,count_fail)
   
   
   call system_clock(finish_time)
@@ -451,4 +457,4 @@ PROGRAM RunTests
   print*,"time: ",int(1000.d0*real(finish_time-start_time)/real(countrate)), "ms"
 
   if (count_fail>0) error stop "some tests failed"
-END PROGRAM RunTests
+END PROGRAM discoflux_RunTests
