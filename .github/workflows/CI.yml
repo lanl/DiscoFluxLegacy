@@ -19,10 +19,11 @@ jobs:
           - {compiler: gcc, version: '11'}
           - {compiler: gcc, version: 'latest'}
           - {compiler: intel, version: '2024.1'}
+          - {compiler: intel, version: '2025.3'}
           - {compiler: intel, version: 'latest'}
           #~ - {compiler: nvidia-hpc, version: 'latest'}
           - {compiler: lfortran, version: '0.68.0'}
-          #~ - {compiler: aocc, version: 'latest'}
+          - {compiler: aocc, version: 'latest'}
         exclude:
           - os: ubuntu-latest
             toolchain: {compiler: gcc, version: '11'}
@@ -30,12 +31,14 @@ jobs:
             #~ toolchain: {compiler: nvidia-hpc}
           #~ - os: macos-latest
             #~ toolchain: {compiler: aocc}
-          #~ - os: macos-latest
-            #~ toolchain: {compiler: intel}
+          - os: macos-latest
+            toolchain: {compiler: intel}
           - os: macos-latest
             toolchain: {compiler: gcc, version: '10'}
-          #~ - os: windows-latest
-            #~ toolchain: {compiler: intel}
+          - os: windows-latest
+            toolchain: {compiler: intel, version: '2024.1'}
+          - os: windows-latest
+            toolchain: {compiler: intel, version: 'latest'}
           - os: windows-latest
             toolchain: {compiler: gcc, version: '10'}
           - os: windows-latest
@@ -55,6 +58,12 @@ jobs:
       #~ - name: Install Reference BLAS
         #~ run: sudo apt-get update && sudo apt-get install -y libblas-dev liblapack-dev
         #~ if: runner.os == 'Linux'
+      - name: Run tests MacOS
+        shell: bash
+        run: |
+          fpm test --compiler ${{ env.FC }}
+        if: runner.os == 'MacOS'
       - name: Run tests
         run: |
-          fpm test --compiler ${{ env.FC }} 
+          fpm test --compiler ${{ env.FC }}
+        if: runner.os != 'MacOS'
