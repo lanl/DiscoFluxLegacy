@@ -35,8 +35,8 @@ Darby J. Luscher, Jason R. Mayeur, Hashem Mourad, Abigail Hunter, Mark A. Kenamo
 * the Fortran code has been tested manually with the following compilers:
     - gfortran 10 &mdash; 16 
     - flang 22 (linux)
-<!--     - lfortran 0.67 (linux and macos); known issues: openmp not working, reading arrays from input file (such as B0 and wave_vel) not working, production runs producing NaNs. -->
-<!--     - ifx intel oneapi 2024.1 &mdash; 2026.1 (linux); known issue: production runs producing NaNs. -->
+    - lfortran 0.68 (linux and macos); known issue: openmp not working
+    - ifx intel oneapi 2024.1 &mdash; 2026.2 (linux)
 
 ### ... and for the postprocessing python-scripts:
 

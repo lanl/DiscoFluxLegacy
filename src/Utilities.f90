@@ -21,8 +21,8 @@ contains
 !<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><
 !-----------------------------------------------------------------------
 
-!>  Given vector F(X), coordinate vector X, and query location Xwant,
-!>    return Fwant=F(Xwant) using linear interpolation.
+!>  Given vector F(X), coordinate vector X, and query location `Xwant`,
+!>    return `Fwant`=`F`(`Xwant`) using linear interpolation.
 pure SUBROUTINE Interp1D(Xwant, n, X, F, Fwant)
 
   IMPLICIT NONE
@@ -70,8 +70,8 @@ END SUBROUTINE Interp1D
 !<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><
 !-----------------------------------------------------------------------
 
-!>  Given a query coordinate Xwant, find which interval in input X
-!>    contains Xwant and return it as i
+!>  Given a query coordinate `Xwant`, find which interval in input `X`
+!>    contains `Xwant` and return it as `i`
 pure SUBROUTINE FindInterval(X, n, Xwant, i)
 
   IMPLICIT NONE
@@ -306,7 +306,7 @@ pure function Cross(a,b) result(axb)
 !-----------------------------------------------------------------------
 !<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><
 !-----------------------------------------------------------------------
-!> Compute the bracket (a,b) := a.Cmat.b, where Cmat is a tensor of 2nd order elastic constants.
+!> Compute the bracket (a,b) := `a.Cmat.b`, where `Cmat` is a tensor of 2nd order elastic constants.
 pure SUBROUTINE ElBrak(a,b,Cmat,AB)
 !-----------------------------------------------------------------------
   IMPLICIT NONE
@@ -381,37 +381,41 @@ END SUBROUTINE Invert_Tensor
 !<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><
 !-----------------------------------------------------------------------
 
-!~ !> compute the matrix exponential exp(A) of 3x3 matrix A
-!~ !> this drop-in replacement for stdlib_linalg expm uses expokit's DGPADM routine under the hood
-!~ function ExpM(A,order) result(expA)
-!~ !-----------------------------------------------------------------------
-!~   IMPLICIT NONE
-!~ !-----------------------------------------------------------------------
-!~ !  Inputs:
-!~   REAL(KIND=8), DIMENSION(3,3), INTENT(IN)  :: A
-!~   integer, intent(in), optional :: order
-!~ !-----------------------------------------------------------------------
-!~ !  Outputs:
-!~   REAL(KIND=8), DIMENSION(3,3) :: expA
-!~ !-----------------------------------------------------------------------
-!~ !  Locals:
-!~   INTEGER :: nonzero,k,j,l1,l2,ideg,ipiv(3),m,ldh,lwsp,iexph,ns,iflag
+!> compute the matrix exponential exp(A) of 3x3 matrix A
+!> this wrapper around stdlib_linalg expm handles special cases like A=0 or A diagonal
+function ExpMat(A,order) result(expA)
+!-----------------------------------------------------------------------
+  use stdlib_linalg, only: expm
+  IMPLICIT NONE
+!-----------------------------------------------------------------------
+!  Inputs:
+  REAL(KIND=8), DIMENSION(3,3), INTENT(IN)  :: A
+  integer, intent(in), optional :: order
+!-----------------------------------------------------------------------
+!  Outputs:
+  REAL(KIND=8), DIMENSION(3,3) :: expA
+!-----------------------------------------------------------------------
+!  Locals:
+  INTEGER :: nonzero,k,ideg!,j,l1,l2,ipiv(3),m,ldh,lwsp,iexph,ns,iflag
 !~   REAL(KIND=8), DIMENSION(43) :: wsp
-!~   REAL(KIND=8) :: rzero
-!~   ideg=6; m=3; ldh=3; lwsp=43
-!~   rzero = sqrt(tiny(0.d0))
-!~   if (present(order)) ideg=order
+  REAL(KIND=8) :: rzero
+!~   m=3; ldh=3; lwsp=43
+  rzero = sqrt(tiny(0.d0))
+  ideg = 6
+  if (present(order)) ideg=order
 
-!~ ! bypass (slow) matrix exponential DGPADM() when we already know the answer
-!~   nonzero = count(abs(A)>rzero)
-!~   if (0==nonzero) then
-!~     expA = Identity(3)
-!~   else if ((3==nonzero) .AND. (abs(A(1,1))>rzero) .AND. (abs(A(2,2))>rzero) .AND. (abs(A(3,3))>rzero)) then
-!~     expA = Identity(3)
-!~     do k=1,3
-!~       expA(k,k) = exp(A(k,k))
-!~     end do
-!~   else
+! bypass (slow) matrix exponential when we already know the answer
+  nonzero = count(abs(A)>rzero)
+  if (0==nonzero) then
+    expA = Identity(3)
+  else if ((3==nonzero) .AND. (abs(A(1,1))>rzero) .AND. (abs(A(2,2))>rzero) .AND. (abs(A(3,3))>rzero)) then
+    expA = Identity(3)
+    do k=1,3
+      expA(k,k) = exp(A(k,k))
+    end do
+  else
+    expA = ExpM(A,order=ideg)
+! expokit version (can be used instead of stdlib expm):
 !~     call DGPADM(ideg,m,1.d0,A,ldh,wsp,lwsp,ipiv,iexph,ns,iflag)
     
 !~     l1 = iexph - 1
@@ -421,9 +425,9 @@ END SUBROUTINE Invert_Tensor
 !~         expA(j,k) = wsp(l2 + j)
 !~       end do  !j
 !~     end do  !k
-!~   end if
+  end if
 
-!~ end function ExpM
+end function ExpMat
 
 !-----------------------------------------------------------------------
 !<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><
@@ -453,7 +457,7 @@ pure SUBROUTINE RotAround(vec,phi,Mat)
 
 END SUBROUTINE RotAround
 
-!> generate rotation matrix Mat that rotates unit vector old into unit vector new
+!> generate rotation matrix `Mat` that rotates unit vector `old` into unit vector `new`
 pure SUBROUTINE RotInto(old,new,Mat)
   IMPLICIT NONE
   ! Inputs

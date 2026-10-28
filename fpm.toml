@@ -1,5 +1,5 @@
 name = "DiscoFlux_Legacy"
-version = "2026.10.21"
+version = "2026.10.27"
 license = "BSD-3"
 author = "Darby J. Luscher, Jason R. Mayeur, Hashem Mourad, Abigail Hunter, Mark A. Kenamond, Daniel N. Blaschke"
 maintainer = "40176390+dblaschke-LANL@users.noreply.github.com"
@@ -24,8 +24,11 @@ openmp = "*"
 
 [features]
 baseline.gfortran.flags = "-O3 -march=native -std=f2018"
+#baseline.gfortran.flags = "-O0 -std=f2023 -finit-real=snan -ffpe-trap=invalid,zero,overflow -g -fbacktrace"
 baseline.flang.flags = "-O3 -march=native -std=f2018"
-baseline.lfortran.flags = "--fast --legacy-array-sections --realloc-lhs-arrays --std=f23"
+baseline.lfortran.flags = "--legacy-array-sections --realloc-lhs-arrays --std=f23" ## flag --fast is causing issues
+baseline.ifx.flags = "-O3 -heap-arrays -stand f18 -fp-model=strict"
+#baseline.ifx.flags = "-O0 -heap-arrays -stand f23 -g -fpe0 -traceback -check-all -init=snan,arrays -fp-model=strict" 
 
 [profiles]
 default = ["baseline"]

@@ -332,6 +332,7 @@ PROGRAM impactshear
   x_pos(:,:) = 0.d0
   x_pos(:,1) = X_ref(:)
   x_vel(:,:) = 0.d0
+  xddot(:,:) = 0.d0
   if (simulation_type=='shear') then
     call LinSpace(-0.5d0*impact_velocity, 0.5d0*impact_velocity, Nnode, x_vel(:,2))
   end if
@@ -441,6 +442,7 @@ PROGRAM impactshear
   ! 0.C.2 ---->  initialize DDC backstress
   call DDC_State_Init(cell_sizes,ddc_state_old)
   ddc_state_old%tau_b = 0.d0
+  ddc_state_old%epsilon_i = 0.d0
 
   !small = 1.e-6  !Defined in GlobalParams module
 

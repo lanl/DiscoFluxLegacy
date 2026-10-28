@@ -77,7 +77,6 @@ end module discoflux_checks
 
 PROGRAM discoflux_RunTests
   use stdlib_version, only : get_stdlib_version
-  use stdlib_linalg, only: expm
   USE discoflux_GlobalParams
   USE discoflux_DMB
   USE discoflux_CDT
@@ -219,12 +218,12 @@ PROGRAM discoflux_RunTests
   
   ! test ExpM
   A=0.d0
-  A = ExpM(A,order=6)
-  B = ExpM(1.123d0*eye,order=6)
+  A = ExpMat(A)
+  B = ExpMat(1.123d0*eye)
   call testequal(exp(1.123d0)*eye,matmul(A,B),3,3,"ExpM, trivial cases",1.d-13,count_pass,count_fail)
   call RANDOM_NUMBER(A)
-  B = ExpM(1.d-6*A)
-  A = ExpM(-1.d-6*A)
+  B = ExpMat(1.d-6*A)
+  A = ExpMat(-1.d-6*A)
   call testequal(A+B,2*eye,3,3,"ExpM, small argument",1.d-10,count_pass,count_fail)
   
   ! test rotation matrix with euler angles
@@ -372,7 +371,9 @@ PROGRAM discoflux_RunTests
   ddc_props%burger = props_dmb%burger
   ddc_props%euler_angle = euler
   props_dmb%Lbar = 1.d0 / sqrt(rho0)
+  props_dmb%tau_back_nokappa = 0.d0
 
+  tau_back_nokappa = 0.d0
   call DDC_Zaiser_Backstress_noKappa(vel, ddc_props, props_dmb, tau_back_nokappa)
   do i=1,Nchar
     do j=1,Nslip

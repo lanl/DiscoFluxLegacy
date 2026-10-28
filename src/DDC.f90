@@ -292,6 +292,7 @@ SUBROUTINE DDC_Zaiser_Backstress(n, varrho, ddc_props, dmb_props, vel_state, X_r
     vel = 0.d0
   end if
   vel_zero = 0.d0
+  integral_zero = 0.d0
   Lbar   = dmb_props%Lbar ! length scale associated with initial total disloc. density
   ! this length scale was used in gradient back stress to approximate the dislocation spacing
   ! here we might try something more sophisticated, namely the local disloc density rho_total
