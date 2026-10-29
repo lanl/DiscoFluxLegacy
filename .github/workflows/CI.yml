@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - '**.f90'
+      - '**.py'
       - '**.yml'
 
 jobs:
@@ -25,7 +26,7 @@ jobs:
           - {compiler: lfortran, version: '0.68.0'}
           #~ - {compiler: aocc, version: 'latest'}
         exclude:
-          - os: ubuntu-latest
+          - os: ubuntu-24.04
             toolchain: {compiler: gcc, version: '11'}
           #~ - os: macos-latest
             #~ toolchain: {compiler: nvidia-hpc}
@@ -70,4 +71,5 @@ jobs:
       - name: Run tests
         run: |
           fpm test --compiler ${{ env.FC }} 
+          fpm run --compiler ${{ env.FC }} -- tests/test_Cu1.dat
           pytest -s --durations=0 tests
