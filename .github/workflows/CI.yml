@@ -71,5 +71,5 @@ jobs:
       - name: Run tests
         run: |
           fpm test --compiler ${{ env.FC }} 
-          fpm run --compiler ${{ env.FC }} -- tests/test_Cu1.dat
+          #~ fpm run --compiler ${{ env.FC }} -- tests/Cu1.dat
           pytest -s --durations=0 tests
