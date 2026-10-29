@@ -62,7 +62,9 @@ def test_impactCu(newbaseline=False):
     command.append(test_path / fname)
     with open("test_impactCu.log", 'w', encoding="utf8") as logfile, \
       subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True) as subproc:
-        logfile.writelines(subproc.stdout)
+        for line in subproc.stdout:
+            sys.stdout.write(line)
+            logfile.write(line)
         subproc.wait()
 
     for k,v in baseline.items():
