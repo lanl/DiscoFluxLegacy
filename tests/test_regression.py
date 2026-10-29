@@ -79,7 +79,7 @@ def test_impactCu(newbaseline=False):
         if newbaseline:
             baseline[k] = v= round(x, 12 - math.floor(math.log10(abs(x))))
 
-        acc = 1e11
+        acc = 1e-11
         if k in ('Ei', 'tau', 'tau_back', 'dis_acc'):
             acc = 1e-4
         elif k in ('stress', 'rho_pos.1', 'rho_neg.1', 'dis_vel.1', 'dis_vel_x.1', 
