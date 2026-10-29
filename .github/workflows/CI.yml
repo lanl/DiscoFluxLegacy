@@ -63,9 +63,11 @@ jobs:
       #~ - name: Install Reference BLAS
         #~ run: sudo apt-get update && sudo apt-get install -y libblas-dev liblapack-dev
         #~ if: runner.os == 'Linux'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install ${{ matrix.module-versions }}
       - name: Run tests
         run: |
           fpm test --compiler ${{ env.FC }} 
-          python -m pip install --upgrade pip
-          pip install ${{ matrix.module-versions }}
           pytest -s --durations=0 tests
