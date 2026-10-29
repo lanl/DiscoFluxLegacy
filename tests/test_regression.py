@@ -51,7 +51,7 @@ print(f"\nrunning regression tests using {compiler=}")
 def test_impactCu(newbaseline=False):
     """regression test for 1D impact simulation on copper"""
     command = basecommand.copy()
-    fname = "test_Cu1.dat"
+    fname = "Cu1.dat"
     print(f"\nrunning a regression test for {fname}")
     baseline = {'T':246855.3369005, "Ei":0.0749191082212, "Fe":2460.001066108, "Fp":2460.002187059, 
                 "tau":80914.152052, "tau_back":8643.48995368, "stress":562124.0340608, 
@@ -69,9 +69,9 @@ def test_impactCu(newbaseline=False):
 
     for k,v in baseline.items():
         if k in ['dmb_vel', 'dmb_acc', 'dmb_pos']:
-            outfile = test_path /f"test_Cu1.dat.node.{k}.F90txt"
+            outfile = test_path /f"{fname}.node.{k}.F90txt"
         else:
-            outfile = test_path /f"test_Cu1.dat.ip.{k}.F90txt"
+            outfile = test_path /f"{fname}.ip.{k}.F90txt"
         f1 = read_field_output(outfile)
         f1_thinned = f1.iloc[::50].iloc[:,2:]
         x = f1_thinned.abs().sum().sum()
@@ -94,6 +94,6 @@ def test_impactCu(newbaseline=False):
 
 def test_plots():
     """make sure the plotting script runs without failing"""
-    commandargs = [test_path / "test_Cu1.dat"]
+    commandargs = [test_path / "Cu1.dat"]
     print("\nrunning the simple_postprocess.py script")
     assert runscript(root_path / "postprocessing" / "simple_postprocess.py",commandargs,'plots.log')==0
