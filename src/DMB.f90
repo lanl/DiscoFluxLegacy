@@ -890,7 +890,7 @@ SUBROUTINE xtal_Update_Stress(F_new, Fp_old, F_i, Cg, slip_Sg, slip_Mg, dgamma, 
   REAL(KIND=8), DIMENSION(3,3),           INTENT(OUT)   :: Fp_new
 !-----------------------------------------------------------------------
 !  Locals:
-  INTEGER :: i,j,k,ich, nonzero
+  INTEGER :: i,j,k,ich
   REAL(KIND=8), DIMENSION(3,3) :: dE, exp_dE, Fbar_inv, Fbar, eye, Ee, pk2
   REAL(KIND=8) :: D
 
