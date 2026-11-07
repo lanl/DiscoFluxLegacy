@@ -18,7 +18,7 @@ jobs:
         python-version: ["3.15"]
         toolchain:
           - {compiler: gcc, version: '10'}
-          - {compiler: gcc, version: '11'}
+          - {compiler: gcc, version: '12'}
           - {compiler: gcc, version: 'latest'}
           - {compiler: intel, version: '2024.1'}
           - {compiler: intel, version: 'latest'}
@@ -27,7 +27,7 @@ jobs:
           #~ - {compiler: aocc, version: 'latest'}
         exclude:
           - os: ubuntu-24.04
-            toolchain: {compiler: gcc, version: '11'}
+            toolchain: {compiler: gcc, version: '12'}
           #~ - os: macos-latest
             #~ toolchain: {compiler: nvidia-hpc}
           #~ - os: macos-latest
