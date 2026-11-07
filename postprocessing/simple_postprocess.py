@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 A postprocessing script for DiscoFlux Legacy that will generate a number of plots from the output data.
-python 3.9 or higher required
-Also: plot_model_stress=True requires PyDislocDyn >=1.2.9
+python 3.10 or higher required
+Also: plot_model_stress=True requires PyDislocDyn >=1.4.0
 © 2026. Triad National Security, LLC. All rights reserved.
 This program was produced under U.S. Government contract 89233218CNA000001 for Los Alamos National Laboratory (LANL), 
 which is operated by Triad National Security, LLC for the U.S. Department of Energy/National Nuclear Security Administration.
@@ -101,21 +101,23 @@ try:
         "pgf.rcfonts": True,
     })
     have_poly = True
-    rho = 1e12*inputdata['rhobar0'] ## material density in kg/m^3
+    example_slip_plane = pydislocdyn.metal_data.example_slip_planes['fcc']
+    if crystalstruct=='bcc':
+      example_slip_plane = pydislocdyn.metal_data.example_slip_planes['bcc110']
     if inputdata.get('B0') is None:
         inputdata['cijk'] = [v*1e6 for v in inputdata['cijk']]
-        disl_data = pydislocdyn.utilities.material_data(inputdata|{'a':inputdata['burger']*np.sqrt(2)*1e-3, 'sym':'fcc','rho':inputdata['rhobar0']*1e12,'cij':[inputdata['C11']*1e6,inputdata['C12']*1e6,inputdata['C44']*1e6],'Millerb':[0.5,0.5,0],'Millern0':[1,-1,1]})
+        disl_data = pydislocdyn.utilities.material_data(inputdata|{'a':inputdata['burger']*np.sqrt(2)*1e-3, 'sym':crystalstruct,'rho':inputdata['rhobar0']*1e12,'cij':[inputdata['C11']*1e6,inputdata['C12']*1e6,inputdata['C44']*1e6]}|example_slip_plane)
         disl = pydislocdyn.readinputfile(disl_data)
         B0 = np.min(pydislocdyn.phonondrag(disl,0,Debye_series=True).to_numpy()*1e-3)
         vcrit = disl.computevcrit()[-1]
     elif inputdata.get('wave_vel') is None:
-        disl_data = pydislocdyn.utilities.material_data(inputdata|{'a':inputdata['burger']*np.sqrt(2)*1e-3, 'sym':'fcc','rho':inputdata['rhobar0']*1e12,'cij':[inputdata['C11']*1e6,inputdata['C12']*1e6,inputdata['C 44']*1e6],'Millerb':[0.5,0.5,0],'Millern0':[1,-1,1]})
+        disl_data = pydislocdyn.utilities.material_data(inputdata|{'a':inputdata['burger']*np.sqrt(2)*1e-3, 'sym':'fcc','rho':inputdata['rhobar0']*1e12,'cij':[inputdata['C11']*1e6,inputdata['C12']*1e6,inputdata['C 44']*1e6]}|example_slip_plane)
         disl = pydislocdyn.readinputfile(disl_data)
         vcrit = disl.computevcrit()[-1]
     else:
         B0 = 1e6*min(inputdata.get('B0')) ## Pas, 24.0e-6 for edge dislocations in copper
         vcrit = min(inputdata.get('wave_vel'))/1e3 ## m/s, 1620 for edge dislocations in copper
-    print(f"{B0=}, {vcrit=}")
+    #print(f"{B0=}, {vcrit=}")
 except ImportError as exc:
     if plot_model_stress:
         print("ERROR: Cannot find PyDislocDyn, need this packge to generate requested plot 'plot_model_stress': \

@@ -41,12 +41,12 @@ Darby J. Luscher, Jason R. Mayeur, Hashem Mourad, Abigail Hunter, Mark A. Kenamo
 
 ### ... and for the postprocessing python-scripts:
 
-* Python >=3.9,</br>
-* [numpy](https://numpy.org/doc/stable/user/) >=1.19,</br>
-* [scipy](https://docs.scipy.org/doc/scipy/reference/) >=1.9,</br>
-* [matplotlib](https://matplotlib.org/) >=3.3</br>
+* Python >=3.10,</br>
+* [numpy](https://numpy.org/doc/stable/user/) >=1.26,</br>
+* [scipy](https://docs.scipy.org/doc/scipy/reference/) >=1.10,</br>
+* [matplotlib](https://matplotlib.org/) >=3.8</br>
 * [pandas](https://pandas.pydata.org/) >=1.5</br>
-* [PyDislocDyn](https://github.com/dblaschke-LANL/PyDislocDyn) >=1.2.9 (optional, used for additional plots)
+* [PyDislocDyn](https://github.com/dblaschke-LANL/PyDislocDyn) >=1.4.0 (optional, used for additional plots)
 
 ## Installation
 
