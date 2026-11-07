@@ -93,6 +93,7 @@ else:
 print(f"{crystalstruct=}, {Nslip=}, {Nchar=}")
     
 try:
+    import pydislocdyn
     from pydislocdyn import metal_props
     mpl.use('Agg') # ensure we are not using the LaTeX backend (even if pydislocdyn selected it)
     pyl.rcParams.update({
@@ -100,11 +101,28 @@ try:
         "pgf.rcfonts": True,
     })
     have_poly = True
+    rho = 1e12*inputdata['rhobar0'] ## material density in kg/m^3
+    if inputdata.get('B0') is None:
+        inputdata['cijk'] = [v*1e6 for v in inputdata['cijk']]
+        disl_data = pydislocdyn.utilities.material_data(inputdata|{'a':inputdata['burger']*np.sqrt(2)*1e-3, 'sym':'fcc','rho':inputdata['rhobar0']*1e12,'cij':[inputdata['C11']*1e6,inputdata['C12']*1e6,inputdata['C44']*1e6],'Millerb':[0.5,0.5,0],'Millern0':[1,-1,1]})
+        disl = pydislocdyn.readinputfile(disl_data)
+        B0 = np.min(pydislocdyn.phonondrag(disl,0,Debye_series=True).to_numpy()*1e-3)
+        vcrit = disl.computevcrit()[-1]
+    elif inputdata.get('wave_vel') is None:
+        disl_data = pydislocdyn.utilities.material_data(inputdata|{'a':inputdata['burger']*np.sqrt(2)*1e-3, 'sym':'fcc','rho':inputdata['rhobar0']*1e12,'cij':[inputdata['C11']*1e6,inputdata['C12']*1e6,inputdata['C 44']*1e6],'Millerb':[0.5,0.5,0],'Millern0':[1,-1,1]})
+        disl = pydislocdyn.readinputfile(disl_data)
+        vcrit = disl.computevcrit()[-1]
+    else:
+        B0 = 1e6*min(inputdata.get('B0')) ## Pas, 24.0e-6 for edge dislocations in copper
+        vcrit = min(inputdata.get('wave_vel'))/1e3 ## m/s, 1620 for edge dislocations in copper
+    print(f"{B0=}, {vcrit=}")
 except ImportError as exc:
     if plot_model_stress:
-        raise ImportError("ERROR: Cannot find PyDislocDyn, need this packge to generate requested plot 'plot_model_stress': \
+        print("ERROR: Cannot find PyDislocDyn, need this packge to generate requested plot 'plot_model_stress': \
               either set plot_model_stress=False or download 'https://github.com/dblaschke-LANL/PyDislocDyn' \
-              and copy its contents to the same folder as this script.\n") from exc
+              and copy its contents to the same folder as this script.\n\
+              Setting plot_model_stress=False for now.")
+    plot_model_stress = False
     have_poly = False
 
 rho_pos = {}
@@ -259,8 +277,8 @@ def modelprec(pos,modelstress,rhom,G_over_cl='auto_edge'):
        G_over_cl='auto_edge' will compute the effective shear modulus and longitudinal sound speed in the direction of edge dislocation glide motion in an fcc crystal.
        For both computations, we require the Python package 'PyDislocDyn'', which is available on Github.'''
     burgers = inputdata['burger']/1e3 ## m ~3e-10 for copper
-    B0 = 1e6*min(inputdata['B0']) ## Pas, 24.0e-6 for edge dislocations in copper
-    vcrit = min(inputdata['wave_vel'])/1e3 ## m/s, 1620 for edge dislocations in copper
+    # B0 = 1e6*min(inputdata['B0']) ## Pas, 24.0e-6 for edge dislocations in copper
+    # vcrit = min(inputdata['wave_vel'])/1e3 ## m/s, 1620 for edge dislocations in copper
     rho = 1e12*inputdata['rhobar0'] ## material density in kg/m^3
     shear = rho*vcrit**2 ## effective shear modulus corresponding to limiting velocity
     # c44 = 1e6*inputdata['C44']
