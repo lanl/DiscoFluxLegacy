@@ -102,16 +102,18 @@ try:
     })
     have_poly = True
     example_slip_plane = pydislocdyn.metal_data.example_slip_planes['fcc']
+    lat_a = inputdata['burger']*np.sqrt(2)*1e-3
     if crystalstruct=='bcc':
       example_slip_plane = pydislocdyn.metal_data.example_slip_planes['bcc110']
+      lat_a = inputdata['burger']*np.sqrt(3)*1*0.5e-3
     if inputdata.get('B0') is None:
         inputdata['cijk'] = [v*1e6 for v in inputdata['cijk']]
-        disl_data = pydislocdyn.utilities.material_data(inputdata|{'a':inputdata['burger']*np.sqrt(2)*1e-3, 'sym':crystalstruct,'rho':inputdata['rhobar0']*1e12,'cij':[inputdata['C11']*1e6,inputdata['C12']*1e6,inputdata['C44']*1e6]}|example_slip_plane)
+        disl_data = pydislocdyn.utilities.material_data(inputdata|{'a':lat_a, 'sym':crystalstruct,'rho':inputdata['rhobar0']*1e12,'cij':[inputdata['C11']*1e6,inputdata['C12']*1e6,inputdata['C44']*1e6]}|example_slip_plane)
         disl = pydislocdyn.readinputfile(disl_data)
         B0 = np.min(pydislocdyn.phonondrag(disl,0,Debye_series=True).to_numpy()*1e-3)
         vcrit = disl.computevcrit()[-1]
     elif inputdata.get('wave_vel') is None:
-        disl_data = pydislocdyn.utilities.material_data(inputdata|{'a':inputdata['burger']*np.sqrt(2)*1e-3, 'sym':'fcc','rho':inputdata['rhobar0']*1e12,'cij':[inputdata['C11']*1e6,inputdata['C12']*1e6,inputdata['C 44']*1e6]}|example_slip_plane)
+        disl_data = pydislocdyn.utilities.material_data(inputdata|{'a':lat_a, 'sym':'fcc','rho':inputdata['rhobar0']*1e12,'cij':[inputdata['C11']*1e6,inputdata['C12']*1e6,inputdata['C 44']*1e6]}|example_slip_plane)
         disl = pydislocdyn.readinputfile(disl_data)
         vcrit = disl.computevcrit()[-1]
     else:

@@ -319,7 +319,7 @@ if (abs(wave_vel(1)) < 1.d-15) then
       ! TODO: enlarge B0 and wave_vel so that they hold values for each slip system
       ! for bcc we need B0 and wave_vel for each of 110, 112, and 123 (only 110 implemented here for now)
     end if
-    mat = disloc(sym=crystalstruct,metal="mat",rho=rhobar0*1.d12,lat_a = [burger*sqrt(2.d0)*1.d-3,0.d0,0.d0])
+    mat = disloc(sym=crystalstruct,metal="mat",rho=rhobar0*1.d12,lat_a = [lat_a,0.d0,0.d0])
     mat%cij = [C11*1.d6, C12*1.d6, C44*1.d6]
     mat%cijk = cijk*1.d6
     mat%ntheta = Nchar
