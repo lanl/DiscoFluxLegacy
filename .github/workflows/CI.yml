@@ -24,6 +24,8 @@ jobs:
           - {compiler: intel, version: 'latest'}
           #~ - {compiler: nvidia-hpc, version: 'latest'}
           - {compiler: lfortran, version: '0.68.0'}
+          - {compiler: flang, version: '22'}
+          - {compiler: flang, version: 'latest'}
           #~ - {compiler: aocc, version: 'latest'}
         exclude:
           - os: ubuntu-24.04
@@ -42,6 +44,8 @@ jobs:
             toolchain: {compiler: gcc, version: '10'}
           - os: windows-latest
             toolchain: {compiler: lfortran}
+          - os: windows-latest
+            toolchain: {compiler: flang}
         include:
           - python-version: '3.15'
             module-versions: "numpy scipy matplotlib pandas pytest"
@@ -57,7 +61,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Setup Fortran Package Manager
-        uses: fortran-lang/setup-fpm@v10
+        uses: fortran-lang/setup-fpm@v11
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           fpm-version: 'current'
@@ -71,5 +75,4 @@ jobs:
       - name: Run tests
         run: |
           fpm test --compiler ${{ env.FC }} 
-          #~ fpm run --compiler ${{ env.FC }} -- tests/Cu1.dat
           pytest -s --durations=0 tests
