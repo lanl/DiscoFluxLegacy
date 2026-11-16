@@ -17,7 +17,7 @@ pure SUBROUTINE EOS_Shock_Heat(props, thermo_coeffs, bulk_q, detFnew, detFold, t
            dTemp)
   
   USE discoflux_GlobalParams
-  USE discoflux_DMB
+  USE discoflux_DMB, only: Type_DMB_EOS
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Inputs:

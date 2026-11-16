@@ -6,11 +6,11 @@
 ! irrevocable worldwide license in this material to reproduce, prepare. derivative works, distribute copies to the public, perform
 ! publicly and display publicly, and to permit others to do so.
 module discoflux_DDC_routines
+USE discoflux_GlobalParams
 public
 contains
 SUBROUTINE DDC_State_Init(cell_sizes, ddc_state)
-  USE discoflux_GlobalParams
-  USE discoflux_DDC
+  USE discoflux_DDC, only: Type_DDC_STATE
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Inputs:
@@ -31,10 +31,9 @@ END SUBROUTINE DDC_State_Init
 SUBROUTINE DDC_Update(ddc_state_old, dmb_state, cdt_state,  &
            all_props_ddc, all_props_dmb, &
            ddc_state_new)
-  USE discoflux_GlobalParams
-  USE discoflux_DDC
-  USE discoflux_CDT
-  USE discoflux_DMB
+  USE discoflux_DDC, only: Type_DDC_STATE, Type_DDC_PROPS
+  USE discoflux_CDT, only: Type_CDT_STATE
+  USE discoflux_DMB, only: Type_DMB_STATE, Type_DMB_PROPS
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Inputs:
@@ -126,9 +125,8 @@ END SUBROUTINE DDC_Update
 
 SUBROUTINE DDC_Compute_Backstress(n, varrho, ddc_props, dmb_props, vel, X_ref,  &
            tau_back)
-  USE discoflux_GlobalParams
-  USE discoflux_DDC
-  USE discoflux_DMB
+  USE discoflux_DDC, only: Type_DDC_PROPS
+  USE discoflux_DMB, only: Type_DMB_PROPS
   use discoflux_utilities, only: Fatal
   IMPLICIT NONE
 !-----------------------------------------------------------------------
@@ -167,9 +165,8 @@ END SUBROUTINE DDC_Compute_Backstress
 !-----------------------------------------------------------------------
 
 SUBROUTINE DDC_Zaiser_Backstress_noKappa(vel, ddc_props, dmb_props, tau_back_nokappa)
-  USE discoflux_GlobalParams
-  USE discoflux_DDC
-  USE discoflux_DMB
+  USE discoflux_DDC, only: Type_DDC_PROPS
+  USE discoflux_DMB, only: Type_DMB_PROPS
   use discoflux_DMB_routines, only: DMB_Compute_Rotation, stroh_dislocation
   use discoflux_utilities, only: operator(.otimes.), Trapz
   use stdlib_math, only: linspace
@@ -260,9 +257,8 @@ END SUBROUTINE DDC_Zaiser_Backstress_noKappa
 
 SUBROUTINE DDC_Zaiser_Backstress(n, varrho, ddc_props, dmb_props, vel_state, X_ref, &
            tau_back)
-  USE discoflux_GlobalParams
-  USE discoflux_DDC
-  USE discoflux_DMB
+  USE discoflux_DDC, only: Type_DDC_PROPS
+  USE discoflux_DMB, only: Type_DMB_PROPS
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Inputs:
@@ -338,8 +334,7 @@ END SUBROUTINE DDC_Zaiser_Backstress
 
 SUBROUTINE DDC_Gradient_Backstress(n, varrho, ddc_props, X_ref, &
            tau_back)
-  USE discoflux_GlobalParams
-  USE discoflux_DDC
+  USE discoflux_DDC, only: Type_DDC_PROPS
   use discoflux_DMB_routines, only: DMB_Compute_Rotation
   IMPLICIT NONE
 !-----------------------------------------------------------------------
@@ -404,8 +399,7 @@ END SUBROUTINE DDC_Gradient_Backstress
 !-----------------------------------------------------------------------
 
 !~ SUBROUTINE DDC_Field_Backstress(n, varrho, ddc_props, X_ref, tau_back)
-!~   USE discoflux_GlobalParams
-!~   USE discoflux_DDC
+!~   USE discoflux_DDC, only: Type_DDC_PROPS
 !~   IMPLICIT NONE
 !~ !-----------------------------------------------------------------------
 !~ !  Inputs:
@@ -451,7 +445,6 @@ END SUBROUTINE DDC_Gradient_Backstress
 !~ SUBROUTINE Compute_CPV(f, x, a, b, Fout)
 !~   ! Compute the Cauchy Principal Value I(x) = Int f(t)/(t-x) dt a<x<b
 !~   ! for functions values f given at locations x.  
-!~   USE discoflux_GlobalParams
 !~   use discoflux_utilities, only: Fatal
 !~   IMPLICIT NONE
 !~ !-----------------------------------------------------------------------

@@ -8,7 +8,8 @@
 MODULE discoflux_GlobalParams
   IMPLICIT NONE
   public
-  CHARACTER(32), PARAMETER :: prog_version="2026.10.27"
+  CHARACTER(32), PARAMETER :: prog_version="2026.11.16"
+  real(8) :: Boltz = 1.380649d-20 !! Boltzmann constant in mJ/K
   INTEGER :: Nel   = 1500
   INTEGER :: Nnode = 1501
   INTEGER :: Nslip = 12
@@ -71,7 +72,6 @@ MODULE discoflux_CDT
     REAL(KIND=8)         :: tau_n0
     REAL(KIND=8)         :: pn
     REAL(KIND=8)         :: qn
-    REAL(KIND=8)         :: boltz
     LOGICAL        :: no_flux
     contains
       procedure :: allocatememory => CDT_PROPS_allocatememory
@@ -187,7 +187,6 @@ MODULE discoflux_DMB
     REAL(KIND=8)                       :: g0
     REAL(KIND=8)                       :: omega0
     character(32)                      :: drag_flag
-    REAL(KIND=8)                       :: boltz
     REAL(KIND=8)                       :: p
     REAL(KIND=8)                       :: q
     REAL(KIND=8), DIMENSION(3)         :: euler_angle

@@ -6,7 +6,9 @@
 ! irrevocable worldwide license in this material to reproduce, prepare. derivative works, distribute copies to the public, perform
 ! publicly and display publicly, and to permit others to do so.
 module discoflux_OUTPUTFILES
-public
+private
+public :: Init_All_Field_Output_Files, Close_Field_Files, Print_CDT_State, Print_DDC_State, Print_DMB_State, &
+          Write_State, write_history
 contains
 !-----------------------------------------------------------------------
 !>  Opens all output files.
@@ -229,9 +231,9 @@ SUBROUTINE Write_State(iinc, dmb_state_new, cdt_state_new, ddc_state_new)
 !-----------------------------------------------------------------------
   USE discoflux_GlobalParams
   USE discoflux_OUTPUT
-  USE discoflux_DMB
-  USE discoflux_CDT
-  USE discoflux_DDC
+  USE discoflux_DMB, only: Type_DMB_STATE
+  USE discoflux_CDT, only: Type_CDT_STATE
+  USE discoflux_DDC, only: Type_DDC_STATE
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Inputs:
@@ -363,9 +365,9 @@ subroutine write_history(ipOut, dmb_state_new) !, cdt_state_new, ddc_state_new)
 !-----------------------------------------------------------------------
   USE discoflux_GlobalParams
   USE discoflux_OUTPUT
-  USE discoflux_DMB
-  USE discoflux_CDT
-  USE discoflux_DDC
+  USE discoflux_DMB, only: Type_DMB_STATE
+!~   USE discoflux_CDT, only: Type_CDT_STATE
+!~   USE discoflux_DDC, only: Type_DDC_STATE
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Inputs:
@@ -397,7 +399,7 @@ SUBROUTINE Print_DDC_State(ddc_state,ich)
 !-----------------------------------------------------------------------
   USE discoflux_GlobalParams
   USE discoflux_OUTPUT
-  USE discoflux_DDC
+  USE discoflux_DDC, only: Type_DDC_STATE
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Inputs:
@@ -458,7 +460,7 @@ SUBROUTINE Print_DMB_State(dmb_state,ich)
 !-----------------------------------------------------------------------
   USE discoflux_GlobalParams
   USE discoflux_OUTPUT
-  USE discoflux_DMB
+  USE discoflux_DMB, only: Type_DMB_STATE
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Inputs:
@@ -573,7 +575,7 @@ SUBROUTINE Print_CDT_State(cdt_state,ich)
 !-----------------------------------------------------------------------
   USE discoflux_GlobalParams
   USE discoflux_OUTPUT
-  USE discoflux_CDT
+  USE discoflux_CDT, only: Type_CDT_STATE
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Inputs:

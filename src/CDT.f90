@@ -637,7 +637,7 @@ SUBROUTINE CDT_Src_Calc(cdt_state_old, ddc_state_new, dmb_state_new, all_cdt_pro
 !-----------------------------------------------------------------------
 !  Locals:
   INTEGER :: iel,islip,jslip,ich,jch, iregion
-  REAL(KIND=8) :: M,Aint,A,Y_e,G_n0,tau_n0,rhoDot_n0,pn,qn,boltz,arg1
+  REAL(KIND=8) :: M,Aint,A,Y_e,G_n0,tau_n0,rhoDot_n0,pn,qn,arg1
   REAL(KIND=8), DIMENSION(:,:,:), allocatable :: s_mult, s_ann, s_nuc_hom
   REAL(KIND=8), DIMENSION(:,:), allocatable   :: tau, tau_eff, varrho_obs
   REAL(KIND=8), DIMENSION(Nel,1)        :: tmp
@@ -663,7 +663,7 @@ SUBROUTINE CDT_Src_Calc(cdt_state_old, ddc_state_new, dmb_state_new, all_cdt_pro
   varrho_tot = varrho_pos + varrho_neg
 
   !$OMP PARALLEL DO DEFAULT(SHARED), PRIVATE(iregion, M, Aint, A, Y_e, G_n0, tau_n0, rhoDot_n0, pn, qn, &
-  !$OMP                              boltz, Amat, iel, islip, jch, jslip, ich, arg1)
+  !$OMP                              Amat, iel, islip, jch, jslip, ich, arg1)
   do iregion=1,nregion
 
 !  Unpack CDT props
@@ -676,7 +676,6 @@ SUBROUTINE CDT_Src_Calc(cdt_state_old, ddc_state_new, dmb_state_new, all_cdt_pro
   rhoDot_n0 = all_cdt_props(iregion)%rhoDot_n0
   pn        = all_cdt_props(iregion)%pn
   qn        = all_cdt_props(iregion)%qn
-  boltz     = all_cdt_props(iregion)%boltz
 !  Amat = Aint*nmp.ones((Nslip,Nslip))
   if (Aint < 0.d0) then
     Amat = all_cdt_props(iregion)%Aforest !! use generalization of Aint if user provided a negative value

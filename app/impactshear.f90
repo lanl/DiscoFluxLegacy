@@ -10,84 +10,31 @@
 ! publicly and display publicly, and to permit others to do so.
 PROGRAM impactshear
   use stdlib_math, only: linspace
+  ! modules defined in Modules.f90:
   USE discoflux_GlobalParams
-  USE discoflux_DMB
-  USE discoflux_CDT
-  USE discoflux_DDC
-  use discoflux_utilities
-  use discoflux_DMB_routines
-  use discoflux_CDT_routines
-  use discoflux_DDC_routines
-  use discoflux_OUTPUTFILES
-  use discoflux_readfiles
+  USE discoflux_DMB, only: Type_DMB_PROPS, Type_DMB_STATE, Type_DMB_VECTOR_BC
+  USE discoflux_CDT, only: Type_CDT_PROPS, Type_CDT_STATE
+  USE discoflux_DDC, only: Type_DDC_PROPS, Type_DDC_STATE
+  ! module defined in Utilities.f90:
+  use discoflux_utilities, only: Fatal, Identity, readcmdline, operator(.otimes.)
+  ! module defined in DMB.f90:
+  use discoflux_DMB_routines, only: DMB_State_Init, DMB_Update_State, DMB_Init_EOS, DMB_Compute_EOS, DMB_Invert_Tensor43, &
+                                    DMB_get_slip_system, DMB_form_elasticity, DMB_Compute_Rotation
+  ! module defined in CDT.f90:
+  use discoflux_CDT_routines, only: CDT_State_Init, CDT_Combine_State, CDT_Update_State
+  ! module defined in DDC.f90:
+  use discoflux_DDC_routines, only: DDC_State_Init, DDC_Update
+  ! module defined in Output.f90:
+  use discoflux_OUTPUTFILES, only: Init_All_Field_Output_Files, Close_Field_Files, Write_State, write_history, &
+                                   Print_CDT_State, Print_DDC_State, Print_DMB_State
+  ! module defined in readinputfile.f90:
+  use discoflux_readfiles, only: inputdeck, ReadSizes, ReadInput
 !-----------------------------------------------------------------------
   IMPLICIT NONE
 !-----------------------------------------------------------------------
-  CHARACTER(10)               :: simulation_type
-  CHARACTER(6)                :: crystalstruct
-  REAL(KIND=8)                :: impact_force, impact_velocity, impact_acc_time
-  REAL(KIND=8)                :: impact_angle
-  REAL(KIND=8)                :: L0
-  REAL(KIND=8)                :: rhobar0
-  REAL(KIND=8)                :: temperature0, specific_heat
-  REAL(KIND=8)                :: C11, CT11, CP11
-  REAL(KIND=8)                :: C12, CT12, CP12
-  REAL(KIND=8)                :: C44, CT44, CP44
-  REAL(KIND=8)                :: bulk_c1
-  REAL(KIND=8)                :: bulk_c2
-  REAL(KIND=8)                :: c1
-  REAL(KIND=8)                :: mu
-  REAL(KIND=8)                :: rho0
-  REAL(KIND=8)                :: burger
-  REAL(KIND=8), DIMENSION(:), allocatable :: B0, wave_vel
-  REAL(KIND=8)                :: Lbar
-  REAL(KIND=8)                :: g0
-  REAL(KIND=8)                :: omega0
-  REAL(KIND=8)                :: boltz
-  REAL(KIND=8)                :: p
-  REAL(KIND=8)                :: q
-  REAL(KIND=8)                :: tau0
-  REAL(KIND=8)                :: cdt_K
-  REAL(KIND=8)                :: cdt_A
-  REAL(KIND=8)                :: cdt_Y_e
-  REAL(KIND=8)                :: cdt_Aint
+  type(inputdeck)                :: indat
   REAL(KIND=8), DIMENSION(:,:,:), allocatable :: Aforest !! generalization of `Aint`, used if input variable `Aint`<0
-  REAL(KIND=8)                :: cdt_rhoDot_n0
-  REAL(KIND=8)                :: cdt_G_n0
-  REAL(KIND=8)                :: cdt_tau_n0
-  REAL(KIND=8)                :: cdt_pn
-  REAL(KIND=8)                :: cdt_qn
-
-  logical               :: eos_flag
-  real(KIND=8)                :: eos_v_star
-  real(KIND=8)                :: eos_B_star
-  real(KIND=8)                :: eos_B1
-  real(KIND=8)                :: eos_rho0
-  real(KIND=8)                :: eos_v0
-  real(KIND=8)                :: eos_Td0
-  real(KIND=8)                :: eos_a
-  real(KIND=8)                :: eos_b
-  real(KIND=8)                :: eos_gamma
-  real(KIND=8)                :: eos_Gamma0
-  real(KIND=8)                :: eos_kappa
-  real(KIND=8)                :: eos_R_M
-
-  LOGICAL               :: no_flux
-  LOGICAL               :: internal_strain_flag, drag_Trho_flag
-  REAL(KIND=8), DIMENSION(:,:), allocatable :: euler_angle
-  REAL(KIND=8)                :: dt0
-  REAL(KIND=8)                :: t_stop
-  REAL(KIND=8)                :: dt_output
-  REAL(KIND=8)                :: t_vel
-  REAL(KIND=8)                :: gtol, tolerance=sqrt(rzero)
-  REAL(KIND=8)                :: Lrho
-  CHARACTER(32)         :: CDT_update
-  CHARACTER(32)         :: CDTscheme
-  CHARACTER(32)         :: CDTlimiter
-  CHARACTER(32)         :: CDTintegrator
-  CHARACTER(32)         :: CDTintFlux
-  character(32)         :: drag_flag
-  character(32)         :: backstress_model
+  REAL(KIND=8)                :: tolerance=sqrt(rzero)
   CHARACTER(64)         :: jobname
 !-----------------------------------------------------------------------
   REAL(KIND=8), DIMENSION(:,:), allocatable     :: slip_M, slip_S
@@ -107,7 +54,6 @@ PROGRAM impactshear
   REAL(KIND=8), DIMENSION(:,:), allocatable :: x_pos, x_vel, xddot
   REAL(KIND=8), DIMENSION(:), allocatable  :: cell_sizes
   REAL(KIND=8), DIMENSION(2,2)         :: matrix1
-!~   REAL(KIND=8), DIMENSION(:,:), allocatable :: consistent_mass ! never used below?
   INTEGER                        :: iel
   REAL(KIND=8)                         :: cs
   REAL(KIND=8)                         :: dX
@@ -123,36 +69,24 @@ PROGRAM impactshear
   TYPE(Type_DDC_STATE)           :: ddc_state_iter, ddc_state_prev
   !REAL(KIND=8), DIMENSION(Nel,Nslip,2) :: debug_decouple
   REAL(KIND=8), DIMENSION(:), allocatable :: flux_bc
-  INTEGER                        :: iinc, iout, ipOUT
+  INTEGER                        :: iinc, iout
   REAL(KIND=8)                         :: t_output
   LOGICAL                        :: stop_flag
   INTEGER                        :: i,ich,iregion
-  INTEGER                        :: kiter, MaxIter
+  INTEGER                        :: kiter
   LOGICAL                        :: konverged
   REAL(KIND=8), DIMENSION(2)           :: Eddc, Edmb, Ecdt
-  REAL(KIND=8)                         :: DDCtoler, DMBtoler, CDTtoler
   integer                        :: start_time, finish_time, countrate
 
   ! read input
   call readcmdline(jobname)
   
   call ReadSizes(jobname)
-  allocate(B0(Nchar), wave_vel(Nchar), euler_angle(Nregion,3))
-
-  call ReadInput(jobname, simulation_type, B0, C11, C12, C44, CDT_update, CDTintegrator, &
-  CDTscheme, CDTlimiter, CDTtoler, CDTintFlux, CP11, CP12, CP44, CT11, CT12, CT44, specific_heat, &
-  DDCtoler, DMBtoler, L0, Lbar, Lrho, MaxIter, Boltz, bulk_c1, bulk_c2, &
-  crystalstruct, burger, c1, cdt_A, cdt_Aint, cdt_G_n0, cdt_K, cdt_Y_e, &
-  cdt_pn, cdt_qn, cdt_rhoDot_n0, cdt_tau_n0, dt0, dt_output, euler_angle, g0, gtol, impact_force, &
-  impact_angle, impact_velocity, impact_acc_time, internal_strain_flag, ipOUT, mu, no_flux, omega0, p, &
-  eos_B1, eos_B_star, eos_Gamma0, eos_R_M, eos_Td0, eos_a, eos_b, eos_flag, eos_gamma, eos_kappa, eos_rho0, &
-  eos_v0, eos_v_star, q, rho0, rhobar0, t_stop, t_vel, tau0, temperature0, wave_vel, drag_flag, drag_Trho_flag, &
-  backstress_model)
+  call ReadInput(jobname, indat)
   
   call system_clock(start_time,countrate)
  
   !! allocate memory for arrays that are too large to fit in the stack:
-!~   allocate(consistent_mass(Nnode,Nnode))
   allocate(flux_bc(Nregion+1))
   allocate(Aforest(Nslip,Nslip,Nchar))
   allocate(slip_M(3,Nslip), slip_S(3,Nslip), rotM(3,3,Nslip,Nchar))
@@ -191,67 +125,64 @@ PROGRAM impactshear
   !$OMP PARALLEL DO
   do iregion = 1,nregion
 
-  call DMB_get_slip_system(crystalstruct, slip_M, slip_S, slip_V, line_T, rotM, Aforest)
+  call DMB_get_slip_system(indat%crystalstruct, slip_M, slip_S, slip_V, line_T, rotM, Aforest)
 
-!  Nslip = 12  !Defined in GlobalParams module
+  all_props_dmb(iregion)%rhobar0     = indat%rhobar0
+  all_props_dmb(iregion)%T_ref       = indat%temperature0
 
-  all_props_dmb(iregion)%rhobar0     = rhobar0
-  all_props_dmb(iregion)%T_ref       = temperature0
+  all_props_dmb(iregion)%C11         = indat%EC%C11
+  all_props_dmb(iregion)%C12         = indat%EC%C12
+  all_props_dmb(iregion)%C44         = indat%EC%C44
 
-  all_props_dmb(iregion)%C11         = C11
-  all_props_dmb(iregion)%C12         = C12
-  all_props_dmb(iregion)%C44         = C44
+  all_props_dmb(iregion)%bulk_c1     = indat%DMB%bulk_c1
+  all_props_dmb(iregion)%bulk_c2     = indat%DMB%bulk_c2
 
-  all_props_dmb(iregion)%bulk_c1     = bulk_c1
-  all_props_dmb(iregion)%bulk_c2     = bulk_c2
-
-  all_props_dmb(iregion)%c1          = c1
-  all_props_dmb(iregion)%mu          = mu
-  all_props_dmb(iregion)%burger      = burger
-  all_props_dmb(iregion)%B0          = B0
-  all_props_dmb(iregion)%Lbar        = Lbar
-  all_props_dmb(iregion)%g0          = g0
-  all_props_dmb(iregion)%omega0      = omega0
-  all_props_dmb(iregion)%wave_vel    = wave_vel
-  all_props_dmb(iregion)%drag_flag   = drag_flag
-  all_props_dmb(iregion)%drag_Trho_flag = drag_Trho_flag
-  all_props_dmb(iregion)%boltz       = boltz
-  all_props_dmb(iregion)%p           = p
-  all_props_dmb(iregion)%q           = q
-  all_props_dmb(iregion)%euler_angle = euler_angle(iregion,:)
-  all_props_dmb(iregion)%tau0        = tau0
+  all_props_dmb(iregion)%c1          = indat%DMB%c1
+  all_props_dmb(iregion)%mu          = indat%DP%mu
+  all_props_dmb(iregion)%burger      = indat%DP%burger
+  all_props_dmb(iregion)%B0          = indat%DP%B0
+  all_props_dmb(iregion)%Lbar        = indat%DP%Lbar
+  all_props_dmb(iregion)%g0          = indat%DMB%g0
+  all_props_dmb(iregion)%omega0      = indat%DMB%omega0
+  all_props_dmb(iregion)%wave_vel    = indat%DP%wave_vel
+  all_props_dmb(iregion)%drag_flag   = indat%DP%drag_flag
+  all_props_dmb(iregion)%drag_Trho_flag = indat%DP%drag_Trho_flag
+  all_props_dmb(iregion)%p           = indat%DMB%p
+  all_props_dmb(iregion)%q           = indat%DMB%q
+  all_props_dmb(iregion)%euler_angle = indat%euler_angle(iregion,:)
+  all_props_dmb(iregion)%tau0        = indat%DMB%tau0
 
   all_props_dmb(iregion)%slip_S      = slip_S
   all_props_dmb(iregion)%slip_M      = slip_M
   all_props_dmb(iregion)%slip_V      = slip_V
   all_props_dmb(iregion)%rotM        = rotM
-  all_props_dmb(iregion)%gtol        = gtol
+  all_props_dmb(iregion)%gtol        = indat%DMB%gtol
 
-  all_props_dmb(iregion)%internal_strain_flag = internal_strain_flag
+  all_props_dmb(iregion)%internal_strain_flag = indat%internal_strain_flag
 
-  all_props_dmb(iregion)%eos%eos_flag = eos_flag
-  all_props_dmb(iregion)%eos%v_star   = eos_v_star
-  all_props_dmb(iregion)%eos%B_star   = eos_B_star
-  all_props_dmb(iregion)%eos%B1       = eos_B1
-  all_props_dmb(iregion)%eos%rho0     = eos_rho0
-  all_props_dmb(iregion)%eos%v0       = eos_v0
-  all_props_dmb(iregion)%eos%Td0      = eos_Td0
-  all_props_dmb(iregion)%eos%a        = eos_a
-  all_props_dmb(iregion)%eos%b        = eos_b
-  all_props_dmb(iregion)%eos%gamma    = eos_gamma
-  all_props_dmb(iregion)%eos%Gamma0   = eos_Gamma0
-  all_props_dmb(iregion)%eos%kappa    = eos_kappa
-  all_props_dmb(iregion)%eos%R_M      = eos_R_M
+  all_props_dmb(iregion)%eos%eos_flag = indat%eos%eos_flag
+  all_props_dmb(iregion)%eos%v_star   = indat%eos%v_star
+  all_props_dmb(iregion)%eos%B_star   = indat%eos%B_star
+  all_props_dmb(iregion)%eos%B1       = indat%eos%B1
+  all_props_dmb(iregion)%eos%rho0     = indat%eos%rho0
+  all_props_dmb(iregion)%eos%v0       = indat%eos%v0
+  all_props_dmb(iregion)%eos%Td0      = indat%eos%Td0
+  all_props_dmb(iregion)%eos%a        = indat%eos%a
+  all_props_dmb(iregion)%eos%b        = indat%eos%b
+  all_props_dmb(iregion)%eos%gamma    = indat%eos%perc_gamma
+  all_props_dmb(iregion)%eos%Gamma0   = indat%eos%perc_Gamma0
+  all_props_dmb(iregion)%eos%kappa    = indat%eos%kappa
+  all_props_dmb(iregion)%eos%R_M      = indat%eos%R_M
   all_props_dmb(iregion)%tau_back_nokappa = 0.d0 !!initialize zaiser backstress cache to zero
 
   ! precompute stiffness tensor, rotation, and slip systems
-  call DMB_Compute_Rotation(euler_angle(iregion,:),all_props_dmb(iregion)%Qrot)
-  !! call DMB_Form_Elasticity((/C11,C12,C44/), all_props_dmb(iregion)%Qrot,all_props_dmb(iregion)%Cg)
+  call DMB_Compute_Rotation(indat%euler_angle(iregion,:),all_props_dmb(iregion)%Qrot)
+  !! call DMB_Form_Elasticity((/indat%EC%C11,indat%EC%C12,indat%EC%C44/), all_props_dmb(iregion)%Qrot,all_props_dmb(iregion)%Cg)
 
   all_props_dmb(iregion)%elastic_constants = 0.d0
-  all_props_dmb(iregion)%elastic_constants(1:3,1) = (/ C11, C12, C44/)
-  all_props_dmb(iregion)%elastic_constants(1:3,2) = (/CT11,CT12,CT44/)
-  all_props_dmb(iregion)%elastic_constants(1:3,3) = (/CP11,CP12,CP44/)
+  all_props_dmb(iregion)%elastic_constants(1:3,1) = (/indat%EC%C11,  indat%EC%C12, indat%EC%C44 /)
+  all_props_dmb(iregion)%elastic_constants(1:3,2) = (/indat%EC%CT11, indat%EC%CT12,indat%EC%CT44/)
+  all_props_dmb(iregion)%elastic_constants(1:3,3) = (/indat%EC%CP11, indat%EC%CP12,indat%EC%CP44/)
 
   call DMB_form_elasticity(all_props_dmb(iregion)%Cg, all_props_dmb(iregion)%Qrot,  &
                            all_props_dmb(iregion)%elastic_constants, 0.d0, 0.d0)
@@ -270,50 +201,49 @@ PROGRAM impactshear
 
   call DMB_Init_EOS(all_props_dmb(iregion)%eos%Dhat)
 
-  call DMB_Compute_EOS(all_props_dmb(iregion)%eos, 1d0, temperature0, &
+  call DMB_Compute_EOS(all_props_dmb(iregion)%eos, 1d0, indat%temperature0, &
                        PRESSURE, FREE_ENERGY, ENTROPY, THERMO_COEFFS)
 
   all_props_dmb(iregion)%eos%pressure0 = pressure(1)
   if ( abs(thermo_coeffs(1)) < 1.d-15 ) then
-     thermo_coeffs(1) = specific_heat ! use input value if incomplete EOS params were given
+     thermo_coeffs(1) = indat%EOS%specific_heat ! use input value if incomplete EOS params were given
   end if
   all_props_dmb(iregion)%specific_heat = thermo_coeffs(1)
   if (abs(debug_cycle)>0) then
-    print*,"specific heat from input file:",specific_heat,"... from EOS:",thermo_coeffs(1)
+    print*,"specific heat from input file:",indat%EOS%specific_heat,"... from EOS:",thermo_coeffs(1)
   end if
 
 
 
   ! 0.A.2 ---->  CDT Setup - set up CDT properties object
 
-  all_props_cdt(iregion)%update_method = CDT_update
-  all_props_cdt(iregion)%scheme        = CDTscheme
-  all_props_cdt(iregion)%limiter       = CDTlimiter
+  all_props_cdt(iregion)%update_method = indat%CDT%update
+  all_props_cdt(iregion)%scheme        = indat%CDT%scheme
+  all_props_cdt(iregion)%limiter       = indat%CDT%limiter
 
-  all_props_cdt(iregion)%burger    = burger
-  all_props_cdt(iregion)%K         = cdt_K
-  all_props_cdt(iregion)%A         = cdt_A
-  all_props_cdt(iregion)%Y_e       = cdt_Y_e
-  all_props_cdt(iregion)%Aint      = cdt_Aint
+  all_props_cdt(iregion)%burger    = indat%DP%burger
+  all_props_cdt(iregion)%K         = indat%cdt%K
+  all_props_cdt(iregion)%A         = indat%cdt%A
+  all_props_cdt(iregion)%Y_e       = indat%cdt%Y_e
+  all_props_cdt(iregion)%Aint      = indat%cdt%cdt_Aint
   all_props_cdt(iregion)%Aforest   = Aforest
-  all_props_cdt(iregion)%rhoDot_n0 = cdt_rhoDot_n0
-  all_props_cdt(iregion)%G_n0      = cdt_G_n0
-  all_props_cdt(iregion)%tau_n0    = cdt_tau_n0
-  all_props_cdt(iregion)%pn        = cdt_pn
-  all_props_cdt(iregion)%qn        = cdt_qn
-  all_props_cdt(iregion)%boltz     = boltz
+  all_props_cdt(iregion)%rhoDot_n0 = indat%cdt%rhoDot_n0
+  all_props_cdt(iregion)%G_n0      = indat%cdt%G_n0
+  all_props_cdt(iregion)%tau_n0    = indat%cdt%tau_n0
+  all_props_cdt(iregion)%pn        = indat%cdt%pn
+  all_props_cdt(iregion)%qn        = indat%cdt%qn
 
-  all_props_cdt(iregion)%no_flux   = no_flux
+  all_props_cdt(iregion)%no_flux   = indat%DP%no_flux
 
   ! 0.A.3 ---->  DDC props setup
-  all_props_ddc(iregion)%Lrho             = Lrho
+  all_props_ddc(iregion)%Lrho             = indat%DP%Lrho
   !! FIXME: why is this C44? Why not mu for edge? TODO: make this character dependent?
-  all_props_ddc(iregion)%mu               = C44 ! only used in gradient backstress (not in zaiser)
+  all_props_ddc(iregion)%mu               = indat%EC%C44 ! only used in gradient backstress (not in zaiser)
   !!
-  all_props_ddc(iregion)%burger           = burger
+  all_props_ddc(iregion)%burger           = indat%DP%burger
   all_props_ddc(iregion)%slip_S           = slip_S
-  all_props_ddc(iregion)%euler_angle      = euler_angle(iregion,:)
-  all_props_ddc(iregion)%backstress_model = backstress_model
+  all_props_ddc(iregion)%euler_angle      = indat%euler_angle(iregion,:)
+  all_props_ddc(iregion)%backstress_model = indat%DDC%backstress_model
 
   end do !! iregion
   !$OMP END PARALLEL DO
@@ -329,13 +259,13 @@ PROGRAM impactshear
   ! --------------------- #
 
   ! 0.B.1 ---->  DMB Setup - node coordinates, initial velocities
-  X_ref = linspace(0.d0, L0, Nnode)
+  X_ref = linspace(0.d0, indat%L0, Nnode)
   x_pos(:,:) = 0.d0
   x_pos(:,1) = X_ref(:)
   x_vel(:,:) = 0.d0
   xddot(:,:) = 0.d0
-  if (simulation_type=='shear') then
-    x_vel(:,2) = linspace(-0.5d0*impact_velocity, 0.5d0*impact_velocity, Nnode)
+  if (indat%simulation_type=='shear') then
+    x_vel(:,2) = linspace(-0.5d0*indat%impact_velocity, 0.5d0*indat%impact_velocity, Nnode)
   end if
 
   ! 0.B.2 ---->  DMB Setup - lumped system mass matrices
@@ -358,17 +288,17 @@ PROGRAM impactshear
     end do  !iel
   end do
   ! 0.B.3 ---->  DMB Setup - check wave speed, courant
-  cs = sqrt(C11 / rhobar0)
+  cs = sqrt(indat%EC%C11 / indat%rhobar0)
   dX = minval(cell_sizes)
   dt_max = 0.5d0*dX / cs
-  t_check = L0 / cs
-  if (dt0 > dt_max) then
-    print*,"WARNING: time steps are too large; dt0=",dt0,", recommend dt0<", dt_max
+  t_check = indat%L0 / cs
+  if (indat%dt0 > dt_max) then
+    print*,"WARNING: time steps are too large; dt0=",indat%dt0,", recommend dt0<", dt_max
   end if
   
   eye = Identity(3)
 
-  call DMB_State_Init((/0.d0,0.d0,0.d0 /), X_ref, x_pos, x_vel, xddot, eye, eye, temperature0, &
+  call DMB_State_Init((/0.d0,0.d0,0.d0 /), X_ref, x_pos, x_vel, xddot, eye, eye, indat%temperature0, &
        dmb_state_old)
 
   ! 0.B.3 ---->  DMB Setup - set up boundary conditions
@@ -381,34 +311,34 @@ PROGRAM impactshear
   bc_force%value            = 0.d0
   bc_xdot%value             = 0.d0
   
-  if (simulation_type=='shear') then
-    if (abs(impact_force)<1.d-99 .or. abs(impact_velocity)>0.d0) then
+  if (indat%simulation_type=='shear') then
+    if (abs(indat%impact_force)<1.d-99 .or. abs(indat%impact_velocity)>0.d0) then
       bc_xdot%bc_active(1:2)    = (/ .True., .True. /)
       bc_xdot%dof_active(1:2,1:3) = .True.
     else
       bc_force%bc_active(1:2)    = (/ .True., .True. /)
       bc_force%dof_active(1:2,1:3) = .True.
     end if
-    bc_xdot%value(1,2)        = -0.5d0 * impact_velocity
-    bc_xdot%value(2,2)        =  0.5d0 * impact_velocity
-    bc_force%value(1,2)        = -impact_force
-    bc_force%value(2,2)        =  impact_force
-  elseif (simulation_type=='impact') then
-    if (abs(impact_force)<1.d-99 .or. abs(impact_velocity)>0.d0) then
+    bc_xdot%value(1,2)        = -0.5d0 * indat%impact_velocity
+    bc_xdot%value(2,2)        =  0.5d0 * indat%impact_velocity
+    bc_force%value(1,2)        = -indat%impact_force
+    bc_force%value(2,2)        =  indat%impact_force
+  elseif (indat%simulation_type=='impact') then
+    if (abs(indat%impact_force)<1.d-99 .or. abs(indat%impact_velocity)>0.d0) then
       bc_xdot%bc_active(1:2)    = (/ .True., .False. /)
       bc_xdot%dof_active(1,1:2) = .True.
     else
       bc_force%bc_active(1:2)    = (/ .True., .False. /)
       bc_force%dof_active(1,1:2) = .True.
     end if
-    bc_xdot%value(1,1:2)      = 0.5d0 * impact_velocity *     &
-                            (/ cos(impact_angle*pi/180.d0), &
-                               sin(impact_angle*pi/180.d0)   /) ! prescribed velocity at impact surface
-    bc_force%value(1,1:2)     = impact_force *     &
-                            (/ cos(impact_angle*pi/180.d0), &
-                               sin(impact_angle*pi/180.d0)   /)
+    bc_xdot%value(1,1:2)      = 0.5d0 * indat%impact_velocity *     &
+                            (/ cos(indat%impact_angle*pi/180.d0), &
+                               sin(indat%impact_angle*pi/180.d0)   /) ! prescribed velocity at impact surface
+    bc_force%value(1,1:2)     = indat%impact_force *     &
+                            (/ cos(indat%impact_angle*pi/180.d0), &
+                               sin(indat%impact_angle*pi/180.d0)   /)
   else
-    call Fatal('Unknown simulation_type: '//simulation_type)
+    call Fatal('Unknown simulation_type: '//indat%simulation_type)
   end if
   
   ! --------------------- #
@@ -419,8 +349,8 @@ PROGRAM impactshear
   call CDT_State_Init(cell_sizes, cdt_state_old)
   ! distribute total dislacation density rho0 (input parameter) equally among all characters
   ! Nchar denotes number of characters for "pos", so divide by 2 to distribute further between pos and neg
-  cdt_state_old%varrho_field(:,:,:,:) = 0.5d0*rho0/(Nslip*Nchar)
-  cdt_state_old%varrho_node(:,:,:,:)  = 0.5d0*rho0/(Nslip*Nchar)
+  cdt_state_old%varrho_field(:,:,:,:) = 0.5d0*indat%DP%rho0/(Nslip*Nchar)
+  cdt_state_old%varrho_node(:,:,:,:)  = 0.5d0*indat%DP%rho0/(Nslip*Nchar)
 
   !debug_decouple(:,:,:) = 0.5d0*rho0/Nchar
 
@@ -428,9 +358,9 @@ PROGRAM impactshear
 
   flux_bc = rnul ! set default to "do nothing" conditions for all interfaces
 
-  if (CDTintFlux == 'zero') then
+  if (indat%CDT%intFlux == 'zero') then
     flux_bc = 0.d0
-  elseif (CDTintFlux == 'end') THEN
+  elseif (indat%CDT%intFlux == 'end') THEN
     flux_bc(1)         = 0.d0
     flux_bc(Nregion+1) = 0.d0
   end if
@@ -450,7 +380,7 @@ PROGRAM impactshear
   ! initialize counters
   iinc     = 0
   iout     = 0
-  t_output = dt_output
+  t_output = indat%dt_output
 
 !--------------------------------------------------------------------------------------------------------------------#
 !                                           Initialize Output Files                                                  #
@@ -474,13 +404,13 @@ PROGRAM impactshear
     iinc = iinc + 1
     ncycle = iinc
     ! compute time step size and adjust as necessary
-    if (dmb_state_old%time(1)+dt0 < 1.1d0*impact_acc_time) then
-      dt = 0.2d0*dt0 ! choose smaller time steps in the beginning
+    if (dmb_state_old%time(1)+indat%dt0 < 1.1d0*indat%impact_acc_time) then
+      dt = 0.2d0*indat%dt0 ! choose smaller time steps in the beginning
     else
-      dt = dt0
+      dt = indat%dt0
     end if
-    if ( (t_stop - dmb_state_old%time(1)) <  (1.001d0*dt) ) then
-      dt = t_stop - dmb_state_old%time(1)
+    if ( (indat%t_stop - dmb_state_old%time(1)) <  (1.001d0*dt) ) then
+      dt = indat%t_stop - dmb_state_old%time(1)
       stop_flag = .True.
     end if
 
@@ -492,39 +422,39 @@ PROGRAM impactshear
     cdt_state_iter = cdt_state_old
 
     ! iterate over sub-problems
-    do while ( (kiter<=MaxIter).and.(.not.konverged) )
+    do while ( (kiter<=indat%MaxIter).and.(.not.konverged) )
 
-      if (CDTintegrator=="FEuler") then
+      if (indat%CDT%integrator=="FEuler") then
 
         ! perform DDC update
         call DDC_Update(ddc_state_old, dmb_state_iter, cdt_state_iter, all_props_ddc, all_props_dmb, &
              ddc_state_iter)
 
         ! perform DMB update
-        if (dmb_state_old%time(1)+dt >= t_vel) then
+        if (dmb_state_old%time(1)+dt >= indat%t_vel) then
           bc_xdot%bc_active(:) = .False. ! remove velocity BC at t_vel to simulate release wave reflected off flyer
         end if
 
         call DMB_Update_State(dmb_state_old, dt, lumped_mass, bc_xdot, bc_force, all_props_dmb, cdt_state_iter, ddc_state_iter, &
-                             dmb_state_iter, impact_acc_time)
+                             dmb_state_iter, indat%impact_acc_time)
 
         ! perform CDT update
         call CDT_Update_State(cdt_state_old, ddc_state_iter, dmb_state_iter,all_props_cdt,dt,flux_bc, &
                               cdt_state_iter)
 
-      elseif (CDTintegrator=="RK2") then
+      elseif (indat%CDT%integrator=="RK2") then
 
         ! perform DDC update
         call DDC_Update(ddc_state_old, dmb_state_iter, cdt_state_iter, all_props_ddc, all_props_dmb, &
              ddc_state_iter)
 
         ! perform DMB update
-        if (dmb_state_old%time(1)+dt >= t_vel) then
+        if (dmb_state_old%time(1)+dt >= indat%t_vel) then
           bc_xdot%bc_active(:) = .False. ! remove velocity BC at t_vel to simulate release wave reflected off flyer
         end if
 
         call DMB_Update_State(dmb_state_old, dt, lumped_mass, bc_xdot, bc_force, all_props_dmb, cdt_state_iter, ddc_state_iter, &
-                             dmb_state_iter, impact_acc_time)
+                             dmb_state_iter, indat%impact_acc_time)
 
         ! perform CDT update
         call CDT_Update_State(cdt_state_old, ddc_state_iter, dmb_state_iter,all_props_cdt,dt,flux_bc, &
@@ -536,7 +466,7 @@ PROGRAM impactshear
 
       else
 
-        call Fatal('Unknown time integrator: '//CDTintegrator)
+        call Fatal('Unknown time integrator: '//indat%CDT%integrator)
 
       end if
 
@@ -563,7 +493,7 @@ PROGRAM impactshear
 
         if (Eddc(1)<tolerance) then
           konverged = .true.
-        elseif ( Eddc(2)/Eddc(1)<DDCtoler ) then
+        elseif ( Eddc(2)/Eddc(1)<indat%DDC%toler ) then
           konverged = .true.
         else
           konverged = .false.
@@ -576,7 +506,7 @@ PROGRAM impactshear
 
         if (Edmb(1)<tolerance) then
           konverged = .true.
-        elseif ( Edmb(2)/Edmb(1)<DMBtoler ) then
+        elseif ( Edmb(2)/Edmb(1)<indat%DMB%toler ) then
           konverged = .true.
         else
           konverged = .false.
@@ -589,7 +519,7 @@ PROGRAM impactshear
 
         if (Ecdt(1)<tolerance) then
           konverged = .true.
-        elseif ( Ecdt(2)/Ecdt(1)<CDTtoler ) then
+        elseif ( Ecdt(2)/Ecdt(1)<indat%CDT%toler ) then
           konverged = .true.
         else
           konverged = .false.
@@ -629,8 +559,8 @@ PROGRAM impactshear
 !--------------------------------------------------------------------------------------------------------------------#
 !                     Write Output as needed (replace with NLBeam --> paraView stuff)                                #
 !--------------------------------------------------------------------------------------------------------------------#
-    if ((t_output - dmb_state_iter%time(1) <= 0.5d0*dt0) .or. (stop_flag) ) then
-      t_output = t_output + dt_output
+    if ((t_output - dmb_state_iter%time(1) <= 0.5d0*indat%dt0) .or. (stop_flag) ) then
+      t_output = t_output + indat%dt_output
       iout     = iout + 1
 
       write(*,110) props_cdt%scheme(1:len_trim(props_cdt%scheme)),dmb_state_iter%time(1),iinc
@@ -639,7 +569,7 @@ PROGRAM impactshear
       call Write_State(iinc, dmb_state_iter, cdt_state_iter, ddc_state_iter)
     end if
 
-    call write_history(ipOut, dmb_state_iter) !, cdt_state_iter, ddc_state_iter)
+    call write_history(indat%ipOut, dmb_state_iter) !, cdt_state_iter, ddc_state_iter)
 
 !--------------------------------------------------------------------------------------------------------------------#
 !                     Advance 'old' states for next time step                                                        #

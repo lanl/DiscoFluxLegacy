@@ -1033,7 +1033,7 @@ SUBROUTINE Dislocation_Velocity(tau_eff, temp, rho,  props, detF, pressure, &
 !  Locals:
   REAL(KIND=8) :: small2, exp_lim, muP, muT, deltamu
   REAL(KIND=8), DIMENSION(3) :: CP, CT
-  REAL(KIND=8) :: c1, brgr, B0(Nchar), Lbar, g0, omega0, boltz, p, q, tau0
+  REAL(KIND=8) :: c1, brgr, B0(Nchar), Lbar, g0, omega0, p, q, tau0
   REAL(KIND=8) :: inner, deltaG, exp_arg, rhobar0
   REAL(KIND=8), DIMENSION(Nslip) :: tau_eff2, sign_tau
   REAL(KIND=8), DIMENSION(Nslip,Nchar) :: rho_eff, slip_r
@@ -1054,7 +1054,6 @@ SUBROUTINE Dislocation_Velocity(tau_eff, temp, rho,  props, detF, pressure, &
   Lbar        = props%Lbar    
   g0          = props%g0      
   omega0      = props%omega0
-  boltz       = props%boltz   
   p           = props%p       
   q           = props%q
   tau0        = props%tau0
