@@ -120,7 +120,7 @@ try:
         B0 = 1e6*min(inputdata.get('B0')) ## Pas, 24.0e-6 for edge dislocations in copper
         vcrit = min(inputdata.get('wave_vel'))/1e3 ## m/s, 1620 for edge dislocations in copper
     #print(f"{B0=}, {vcrit=}")
-except ImportError as exc:
+except ImportError:
     if plot_model_stress:
         print("ERROR: Cannot find PyDislocDyn, need this packge to generate requested plot 'plot_model_stress': \
               either set plot_model_stress=False or download 'https://github.com/dblaschke-LANL/PyDislocDyn' \
