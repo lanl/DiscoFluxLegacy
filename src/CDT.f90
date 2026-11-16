@@ -11,7 +11,7 @@ public :: CDT_Combine_State, CDT_State_Init, CDT_Update_State
 contains
 SUBROUTINE CDT_State_Init(cell_sizes, cdt_state)
   USE discoflux_GlobalParams
-  USE discoflux_CDT
+  USE discoflux_CDT, only: Type_CDT_STATE
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Inputs:
@@ -32,9 +32,9 @@ END SUBROUTINE CDT_State_Init
 SUBROUTINE CDT_Update_State(cdt_state_old, ddc_state_new, dmb_state_new,  &
            all_cdt_props, dt, flux_bc, cdt_state_new)
   USE discoflux_GlobalParams
-  USE discoflux_CDT
-  USE discoflux_DDC
-  USE discoflux_DMB
+  USE discoflux_CDT, only: Type_CDT_State, Type_CDT_PROPS
+  USE discoflux_DDC, only: Type_DDC_State
+  USE discoflux_DMB, only: Type_DMB_State
   use discoflux_utilities, only: Fatal
   IMPLICIT NONE
 !-----------------------------------------------------------------------
@@ -128,7 +128,6 @@ END SUBROUTINE CDT_Update_State
 SUBROUTINE FV_Update(concentration, velocity, flux_bc, src, Lc, dt, nsc, &
            limiter, c_new)
   USE discoflux_GlobalParams
-  USE discoflux_CDT
   use discoflux_utilities, only: Fatal
   IMPLICIT NONE
 !-----------------------------------------------------------------------
@@ -209,7 +208,6 @@ END SUBROUTINE FV_Update
 
 SUBROUTINE reconstruct(concentration,Lc,limiter, slopes)
   USE discoflux_GlobalParams
-  USE discoflux_CDT
   use discoflux_utilities, only: Fatal
   IMPLICIT NONE
 !-----------------------------------------------------------------------
@@ -375,7 +373,6 @@ SUBROUTINE FEM_Update(concentration, velocity, flux_bc, src, Lc, dt, nsc, &
            c_new)
   use stdlib_linalg_lapack, only: GTSV
   USE discoflux_GlobalParams
-  USE discoflux_CDT
   use discoflux_utilities, only: Fatal
   IMPLICIT NONE
 !-----------------------------------------------------------------------
@@ -594,7 +591,7 @@ END SUBROUTINE SUPG_Arrays
 
 SUBROUTINE CDT_Combine_State(state_A, state_B, mult_A, mult_B, state_new)
   USE discoflux_GlobalParams
-  USE discoflux_CDT
+  USE discoflux_CDT, only: Type_CDT_STATE
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Inputs:
@@ -620,9 +617,9 @@ END SUBROUTINE CDT_Combine_State
 SUBROUTINE CDT_Src_Calc(cdt_state_old, ddc_state_new, dmb_state_new, all_cdt_props, &
            varrho_src, velocity)
   USE discoflux_GlobalParams
-  USE discoflux_CDT
-  USE discoflux_DDC
-  USE discoflux_DMB
+  USE discoflux_CDT, only: Type_CDT_STATE, Type_CDT_PROPS
+  USE discoflux_DDC, only: Type_DDC_STATE
+  USE discoflux_DMB, only: Type_DMB_STATE
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Inputs:

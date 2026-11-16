@@ -49,7 +49,7 @@ SUBROUTINE DMB_Compute_EOS(eos_props, detF, temperature, &
            PRESSURE, FREE_ENERGY, ENTROPY, THERMO_COEFFS)
 !-----------------------------------------------------------------------
   use discoflux_GlobalParams
-  USE discoflux_DMB
+  USE discoflux_DMB, only: Type_DMB_EOS
   use discoflux_utilities, only: Interp1D
   IMPLICIT NONE
 !-----------------------------------------------------------------------
@@ -212,7 +212,7 @@ END SUBROUTINE DMB_Compute_EOS
 
 SUBROUTINE DMB_State(times, state)
   USE discoflux_GlobalParams
-  USE discoflux_DMB
+  USE discoflux_DMB, only: Type_DMB_STATE
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Inputs:
@@ -260,7 +260,7 @@ END SUBROUTINE DMB_State
 SUBROUTINE DMB_State_Init(times, X_ref, x, xdot, xddot, Fp, Fe, T, &
            DMB_State)
   USE discoflux_GlobalParams
-  USE discoflux_DMB
+  USE discoflux_DMB, only: Type_DMB_STATE
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Inputs:
@@ -871,7 +871,6 @@ END SUBROUTINE DMB_get_slip_system
 SUBROUTINE xtal_Update_Stress(F_new, Fp_old, F_i, Cg, slip_Sg, slip_Mg, dgamma, &
            cauchy_new, Fe_new, Fp_new)
   USE discoflux_GlobalParams
-  USE discoflux_DMB
   use discoflux_utilities, only: Identity, DetInv3x3, operator(.det.), expmat
   IMPLICIT NONE
 !-----------------------------------------------------------------------
@@ -958,7 +957,7 @@ SUBROUTINE Compute_Velocities(sigma, tau_b, temp, Fe, slip_Sg, slip_Mg, rho,  pr
            detF, pressure, vel, tau)
   
   USE discoflux_GlobalParams
-  USE discoflux_DMB
+  USE discoflux_DMB, only: Type_DMB_PROPS
   use discoflux_utilities, only: DetInv3x3
   IMPLICIT NONE
 !-----------------------------------------------------------------------
@@ -1017,7 +1016,7 @@ SUBROUTINE Dislocation_Velocity(tau_eff, temp, rho,  props, detF, pressure, &
            vel)
 
   USE discoflux_GlobalParams
-  USE discoflux_DMB
+  USE discoflux_DMB, only: Type_DMB_PROPS
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Inputs:
@@ -1166,7 +1165,7 @@ SUBROUTINE RK_Rates(dt, temp, F_old, F_new, Fe_old, Fp_old, cauchy_old, J_new, p
            gamma_dot, error)
   
   USE discoflux_GlobalParams
-  USE discoflux_DMB
+  USE discoflux_DMB, only: Type_DMB_FIELD_VARIABLES, Type_DMB_PROPS
   use discoflux_utilities, only: Identity
   IMPLICIT NONE
 !-----------------------------------------------------------------------
@@ -1329,7 +1328,7 @@ SUBROUTINE RK_SubIncrement(dt, T_old,  F_old, F_new, J_new, pressure, Fe_old, &
                cauchy, Fe_new, Fp_new, dgamma, Nsub, icutback)
   
   USE discoflux_GlobalParams
-  USE discoflux_DMB
+  USE discoflux_DMB, only: Type_DMB_FIELD_VARIABLES, Type_DMB_PROPS
   use discoflux_utilities, only: Identity
   IMPLICIT NONE
 !-----------------------------------------------------------------------
@@ -1512,7 +1511,7 @@ END SUBROUTINE RK_SubIncrement
 !>Computes the dislocation displacement gradient field according to the integral method
 SUBROUTINE stroh_dislocation(props,vel,resolution,uij,Sb,Bb,Cmat)
   USE discoflux_GlobalParams
-  USE discoflux_DMB
+  USE discoflux_DMB, only: Type_DMB_PROPS
   use discoflux_utilities, only: Identity, elbrak, Trapz, DetInv3x3
   use stdlib_math, only: linspace
   IMPLICIT NONE
@@ -1645,8 +1644,8 @@ SUBROUTINE Constitutive_DMB( &
            F_new, F_old, T_old, cauchy_old, Fp_old, Fe_old, field_variables, dt, props, elem_len, &
            cauchy, vel, vel_x, vel_y, vel_z, T_new, Fp_new, Fe_new, tau, dgamma, Nsub, i_cutback)
   USE discoflux_GlobalParams
-  USE discoflux_DMB
-  use discoflux_EOS
+  USE discoflux_DMB, only: Type_DMB_FIELD_VARIABLES, Type_DMB_PROPS
+  use discoflux_EOS, only: EOS_Shock_Heat
   use discoflux_utilities, only: DetInv3x3, operator(.det.)
   IMPLICIT NONE
 !-----------------------------------------------------------------------
@@ -1902,9 +1901,9 @@ SUBROUTINE DMB_Update_State(state_old, dt, mass_array, xdot_bc, force_bc, &
            all_props_dmb, cdt_state, ddc_state,                           &
            state_new, xdot_acc_bc)
   USE discoflux_GlobalParams
-  USE discoflux_DMB
-  USE discoflux_CDT
-  USE discoflux_DDC
+  USE discoflux_DMB, only: Type_DMB_STATE, Type_DMB_VECTOR_BC, Type_DMB_PROPS, Type_DMB_FIELD_VARIABLES
+  USE discoflux_CDT, only: Type_CDT_STATE
+  USE discoflux_DDC, only: Type_DDC_STATE
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Inputs:
