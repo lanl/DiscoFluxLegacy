@@ -31,6 +31,22 @@ if compiler is None:
 else:
     basecommand = [fpm,"run","--compiler",compiler,"--"]
 
+def runcommand(command,logfname):
+    '''Run "command" as a subprocess and saving its stdout to a file "logfname"'''
+    out = -1
+    if command[0] is None:
+      print("ERROR: cannot find Fortran Package Manager (fpm)")
+      return out
+    with open(logfname, 'w', encoding="utf8") as logfile:
+        with subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True) as subproc:
+            logfile.writelines(subproc.stdout)
+            subproc.wait()
+            out = subproc.returncode
+    
+    with open(logfname, 'r', encoding="utf8") as logfile:
+        print(logfile.read(), end="")
+    return out
+
 def runscript(scriptname,args,logfname):
     '''Run script "scriptname" as a subprocess passing a list of command line arguments "args" and saving its stdout to a file "logfname"'''
     out = -1
@@ -60,12 +76,7 @@ def test_impactCu(newbaseline=False):
                 "dis_acc.1":1.623897325981e17, "dmb_vel":4208128.086478, "dmb_acc":395569933011000.0, 
                 "dmb_pos":165.6705104228}
     command.append(test_path / fname)
-    with open("test_impactCu.log", 'w', encoding="utf8") as logfile, \
-      subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True) as subproc:
-        for line in subproc.stdout:
-            sys.stdout.write(line)
-            logfile.write(line)
-        subproc.wait()
+    assert runcommand(command,'test_impactCu.log')==0, "running the fortran executable failed"
 
     for k,v in baseline.items():
         if k in ['dmb_vel', 'dmb_acc', 'dmb_pos']:
