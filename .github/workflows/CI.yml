@@ -26,7 +26,7 @@ jobs:
           - {compiler: lfortran, version: '0.68.0'}
           - {compiler: flang, version: '22'}
           - {compiler: flang, version: 'latest'}
-          #- {compiler: aocc, version: 'latest'}
+          - {compiler: aocc, version: 'latest'}
         exclude:
           - os: macos-latest
             toolchain: {compiler: gfortran, version: '11'}
@@ -38,8 +38,8 @@ jobs:
             toolchain: {compiler: ifx}
           - os: windows-2025
             toolchain: {compiler: lfortran}
-          - os: windows-2025
-            toolchain: {compiler: ifx}
+          #- os: windows-2025
+          #  toolchain: {compiler: ifx}
           - os: windows-2025
             toolchain: {compiler: aocc}
         include:
@@ -66,6 +66,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install ${{ matrix.module-versions }}
       - name: Run tests
+        shell: bash
         env:
           TOOLCHAIN_COMPILER: ${{ matrix.toolchain.compiler }}
         run: |
