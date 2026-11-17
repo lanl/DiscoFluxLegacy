@@ -14,39 +14,37 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest, windows-2025, macos-latest]
         python-version: ["3.15"]
         toolchain:
-          - {compiler: gcc, version: '10'}
-          - {compiler: gcc, version: '12'}
-          - {compiler: gcc, version: 'latest'}
-          - {compiler: intel, version: '2024.1'}
-          - {compiler: intel, version: '2025.3'}
-          - {compiler: intel, version: 'latest'}
-          #~ - {compiler: nvidia-hpc, version: 'latest'}
+          - {compiler: gfortran, version: '11'}
+          - {compiler: gfortran, version: '12'}
+          - {compiler: gfortran, version: 'latest'}
+          - {compiler: ifx, version: '2024.1'}
+          - {compiler: ifx, version: '2025.3'}
+          - {compiler: ifx, version: 'latest'}
+          - {compiler: nvfortran, version: 'latest'}
           - {compiler: lfortran, version: '0.68.0'}
           - {compiler: flang, version: '22'}
           - {compiler: flang, version: '23'}
-          #~ - {compiler: aocc, version: 'latest'}
+          - {compiler: aocc, version: 'latest'}
         exclude:
-          #~ - os: macos-latest
-            #~ toolchain: {compiler: nvidia-hpc}
-          #~ - os: macos-latest
-            #~ toolchain: {compiler: aocc}
           - os: macos-latest
-            toolchain: {compiler: intel}
+            toolchain: {compiler: nvfortran}
           - os: macos-latest
-            toolchain: {compiler: gcc, version: '10'}
-          - os: windows-latest
-            toolchain: {compiler: intel, version: '2024.1'}
-          - os: windows-latest
-            toolchain: {compiler: gcc, version: '10'}
+            toolchain: {compiler: aocc}
+          - os: macos-latest
+            toolchain: {compiler: ifx}
+          - os: windows-2025
+            toolchain: {compiler: nvfortran}
+          - os: windows-2025
+            toolchain: {compiler: aocc}
         include:
           - python-version: '3.15'
             module-versions: "numpy scipy matplotlib pandas pytest"
     steps:
       - uses: actions/checkout@v7
-      - uses: fortran-lang/setup-fortran@v2.0.0-beta.15
+      - uses: fortran-lang/setup-fortran@v2.0.0-beta.17
         id: setup-fortran
         with:
           compiler: ${{ matrix.toolchain.compiler }}
