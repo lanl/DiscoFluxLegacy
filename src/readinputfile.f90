@@ -93,7 +93,7 @@ end type DMB_data
 !>data structure to store the input deck information
 type, public :: inputdeck
   logical :: echoinput = .True.
-  character(64) :: inputfilename
+  character(:), allocatable :: inputfilename
   character(10) :: simulation_type = 'impact'  !! choose the driver (currently 'impact' or 'shear')
   character(6) :: crystalstruct = 'fcc' !! choose the crystal structure (currently implemented: 'fcc' and 'bcc')
   integer :: Nel = 1000         !! number of elements to simulate in this 1D simulation
@@ -123,31 +123,33 @@ end type inputdeck
 private
 public :: ReadSizes, ReadInput
 contains
+
 SUBROUTINE ReadSizes(jobname)
 implicit none
 
-CHARACTER(64), INTENT(IN) :: jobname
+CHARACTER(*), INTENT(IN) :: jobname
 !------------ local variables:
 integer :: ios
 character(6) :: crystalstruct
 character(32) :: key
-character(64) :: inputfilename
+character(:), allocatable :: inputfilename
 character(256) :: line, values
 crystalstruct = 'fcc' ! default value, only used in this function to determine Nslip if not set explicitly
 
 print*,"program version: ",prog_version
 inputfilename = "input_parameters."//trim(jobname)//".dat"
-print*, "reading ", inputfilename
 
 open(unit=42, file=inputfilename, action="read", iostat=ios, status='old')
 if (ios/=0) then
   close(unit=42)
-  print*, "failed, now reading ", jobname
   open(unit=42, file=jobname, action="read", iostat=ios, status='old')
   if (ios/=0) then
     close(unit=42)
-    call Fatal("Error: cannot open input file, tried "//trim(inputfilename)//" and "//jobname)
+    call Fatal("Error: cannot open input file, tried "//trim(inputfilename)//" and "//trim(jobname))
   end if
+  print*, "reading ", jobname
+else
+  print*, "reading ", inputfilename
 end if
 do
   read(42,'(a)',iostat=ios) line
@@ -183,7 +185,7 @@ use dislocdyn_dislocations, only: disloc, phonondrag
 !$   Use omp_lib
 implicit none
 
-CHARACTER(64), INTENT(IN) :: jobname
+CHARACTER(*), INTENT(IN) :: jobname
 !------------ local variables:
 type(disloc) :: disl
 integer :: ios, j, j_eul
@@ -208,11 +210,10 @@ indat%inputfilename = "input_parameters."//trim(jobname)//".dat"
 open(unit=42, file=indat%inputfilename, action="read", iostat=ios, status='old')
 if (ios/=0) then
   close(unit=42)
-!~   print*, "failed, now reading ", jobname
   open(unit=42, file=jobname, action="read", iostat=ios, status='old')
   if (ios/=0) then
     close(unit=42)
-    call Fatal("Error: cannot open input file, tried "//trim(indat%inputfilename)//" and "//jobname)
+    call Fatal("Error: cannot open input file, tried "//trim(indat%inputfilename)//" and "//trim(jobname))
   end if
 end if
 if ( (Nchar>999) .or. (Nchar<1) ) then

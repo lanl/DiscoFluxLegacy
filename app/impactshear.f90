@@ -35,7 +35,7 @@ PROGRAM impactshear
   type(inputdeck)                :: indat
   REAL(KIND=8), DIMENSION(:,:,:), allocatable :: Aforest !! generalization of `Aint`, used if input variable `Aint`<0
   REAL(KIND=8)                :: tolerance=sqrt(rzero)
-  CHARACTER(64)         :: jobname
+  CHARACTER(128)         :: jobname
 !-----------------------------------------------------------------------
   REAL(KIND=8), DIMENSION(:,:), allocatable     :: slip_M, slip_S
   REAL(KIND=8), DIMENSION(:,:,:), allocatable     :: slip_V, line_T
@@ -81,8 +81,8 @@ PROGRAM impactshear
   ! read input
   call readcmdline(jobname)
   
-  call ReadSizes(jobname)
-  call ReadInput(jobname, indat)
+  call ReadSizes(trim(jobname))
+  call ReadInput(trim(jobname), indat)
   
   call system_clock(start_time,countrate)
  
@@ -386,10 +386,10 @@ PROGRAM impactshear
 !                                           Initialize Output Files                                                  #
 !--------------------------------------------------------------------------------------------------------------------#
 
-  call Init_All_Field_Output_Files(jobname)
+  call Init_All_Field_Output_Files(trim(jobname))
   call Write_State(iinc, dmb_state_old, cdt_state_old, ddc_state_old)
   
-!~   call Init_Field_File(jobname, 99    , "start", "0"    )
+!~   call Init_Field_File(trim(jobname), 99    , "start", "0"    )
 !~   write(99  ,*) "time"
 !~   close(unit=99)
 
