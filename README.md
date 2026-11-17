@@ -35,7 +35,7 @@ Darby J. Luscher, Jason R. Mayeur, Hashem Mourad, Abigail Hunter, Mark A. Kenamo
 * [Ford](https://forddocs.readthedocs.io/en/stable/)>=7 to build the code documentation
 * the Fortran code has been tested manually with the following compilers:
     - gfortran 10 &mdash; 16 
-    - flang 22 &mdash; 23 (linux)
+    - flang 22 &mdash; 23
     - lfortran 0.68 (linux and macos); known issue: openmp not working
     - ifx intel oneapi 2024.1 &mdash; 2026.2 (linux)
 
