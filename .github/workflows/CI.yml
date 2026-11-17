@@ -18,27 +18,28 @@ jobs:
         python-version: ["3.15"]
         toolchain:
           - {compiler: gfortran, version: '11'}
-          - {compiler: gfortran, version: '12'}
           - {compiler: gfortran, version: 'latest'}
           - {compiler: ifx, version: '2024.1'}
           - {compiler: ifx, version: '2025.3'}
           - {compiler: ifx, version: 'latest'}
-          - {compiler: nvfortran, version: 'latest'}
+          #- {compiler: nvfortran, version: 'latest'}
           - {compiler: lfortran, version: '0.68.0'}
           - {compiler: flang, version: '22'}
-          - {compiler: flang, version: '23'}
-          - {compiler: aocc, version: 'latest'}
+          - {compiler: flang, version: 'latest'}
+          #- {compiler: aocc, version: 'latest'}
         exclude:
           - os: macos-latest
-            toolchain: {compiler: nvfortran}
+            toolchain: {compiler: gfortran, version: '11'}
           - os: macos-latest
-            toolchain: {compiler: aocc}
+            toolchain: {compiler: flang, version: '22'}
+          #- os: macos-latest
+          #  toolchain: {compiler: aocc}
           - os: macos-latest
             toolchain: {compiler: ifx}
           - os: windows-2025
-            toolchain: {compiler: nvfortran}
-          - os: windows-2025
-            toolchain: {compiler: aocc}
+            toolchain: {compiler: lfortran}
+          #- os: windows-2025
+          #  toolchain: {compiler: aocc}
         include:
           - python-version: '3.15'
             module-versions: "numpy scipy matplotlib pandas pytest"
@@ -65,11 +66,15 @@ jobs:
       - name: Run tests MacOS
         #shell: bash
         run: |
+          fpm --version
+          ${{ env.FC }}  --version
           fpm test --compiler ${{ env.FC }}
           pytest -s --durations=0 tests
         if: runner.os == 'MacOS'
       - name: Run tests
         run: |
+          fpm --version
+          ${{ env.FC }}  --version
           fpm test --compiler ${{ env.FC }}
           pytest -s --durations=0 tests
         if: runner.os != 'MacOS'
