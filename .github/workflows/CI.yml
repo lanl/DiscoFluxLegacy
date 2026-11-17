@@ -18,7 +18,6 @@ jobs:
         python-version: ["3.15"]
         toolchain:
           - {compiler: gfortran, version: '11'}
-          - {compiler: gfortran, version: '12'}
           - {compiler: gfortran, version: 'latest'}
           - {compiler: ifx, version: '2024.1'}
           - {compiler: ifx, version: 'latest'}
@@ -28,10 +27,8 @@ jobs:
           - {compiler: flang, version: 'latest'}
           #- {compiler: aocc, version: 'latest'}
         exclude:
-          - os: ubuntu-latest
-            toolchain: {compiler: gfortran}
           - os: ubuntu-24.04
-            toolchain: {compiler: gfortran, version: '12'}
+            toolchain: {compiler: gfortran, version: 'latest'}
           - os: ubuntu-24.04
             toolchain: {compiler: flang}
           - os: ubuntu-24.04
@@ -40,6 +37,8 @@ jobs:
             toolchain: {compiler: ifx, version: 'latest'}
           - os: ubuntu-latest
             toolchain: {compiler: ifx, version: '2024.1'}
+          - os: ubuntu-latest
+            toolchain: {compiler: gfortran, version: '11'}
           - os: macos-latest
             toolchain: {compiler: gfortran, version: '11'}
           - os: macos-latest
@@ -50,8 +49,6 @@ jobs:
             toolchain: {compiler: lfortran}
           - os: windows-2025
             toolchain: {compiler: ifx}
-          - os: windows-2025
-            toolchain: {compiler: gfortran, version: '12'}
         include:
           - python-version: '3.15'
             module-versions: "numpy scipy matplotlib pandas pytest"
