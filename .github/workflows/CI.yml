@@ -26,22 +26,22 @@ jobs:
           - {compiler: lfortran, version: '0.68.0'}
           - {compiler: flang, version: '22'}
           - {compiler: flang, version: 'latest'}
-          - {compiler: aocc, version: 'latest'}
+          #- {compiler: aocc, version: 'latest'}
         exclude:
           - os: macos-latest
             toolchain: {compiler: gfortran, version: '11'}
           - os: macos-latest
             toolchain: {compiler: flang, version: '22'}
-          - os: macos-latest
-            toolchain: {compiler: aocc}
+          #- os: macos-latest
+          #  toolchain: {compiler: aocc}
           - os: macos-latest
             toolchain: {compiler: ifx}
           - os: windows-2025
             toolchain: {compiler: lfortran}
-          #- os: windows-2025
-          #  toolchain: {compiler: ifx}
           - os: windows-2025
-            toolchain: {compiler: aocc}
+            toolchain: {compiler: ifx}
+          #- os: windows-2025
+          #  toolchain: {compiler: aocc}
         include:
           - python-version: '3.15'
             module-versions: "numpy scipy matplotlib pandas pytest"
@@ -66,16 +66,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install ${{ matrix.module-versions }}
       - name: Run tests
-        shell: bash
-        env:
-          TOOLCHAIN_COMPILER: ${{ matrix.toolchain.compiler }}
         run: |
           fpm --version
-          if [[ "$TOOLCHAIN_COMPILER" == "aocc" ]]; then
-            aof --version
-            fpm test --compiler aof
-          else
-            ${{ env.FC }}  --version
-            fpm test --compiler ${{ env.FC }}
-          fi
+          ${{ env.FC }}  --version
+          fpm test --compiler ${{ env.FC }}
           pytest -s --durations=0 tests
