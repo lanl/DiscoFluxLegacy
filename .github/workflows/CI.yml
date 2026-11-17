@@ -20,7 +20,7 @@ jobs:
           - {compiler: gfortran, version: '11'}
           - {compiler: gfortran, version: 'latest'}
           - {compiler: ifx, version: '2024.1'}
-          - {compiler: ifx, version: '2025.3'}
+          #- {compiler: ifx, version: '2025.3'}
           - {compiler: ifx, version: 'latest'}
           #- {compiler: nvfortran, version: 'latest'}
           - {compiler: lfortran, version: '0.68.0'}
@@ -32,14 +32,16 @@ jobs:
             toolchain: {compiler: gfortran, version: '11'}
           - os: macos-latest
             toolchain: {compiler: flang, version: '22'}
-          #- os: macos-latest
-          #  toolchain: {compiler: aocc}
+          - os: macos-latest
+            toolchain: {compiler: aocc}
           - os: macos-latest
             toolchain: {compiler: ifx}
           - os: windows-2025
             toolchain: {compiler: lfortran}
-          #- os: windows-2025
-          #  toolchain: {compiler: aocc}
+          - os: windows-2025
+            toolchain: {compiler: ifx}
+          - os: windows-2025
+            toolchain: {compiler: aocc}
         include:
           - python-version: '3.15'
             module-versions: "numpy scipy matplotlib pandas pytest"
@@ -63,18 +65,16 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install ${{ matrix.module-versions }}
-      - name: Run tests MacOS
-        #shell: bash
-        run: |
-          fpm --version
-          ${{ env.FC }}  --version
-          fpm test --compiler ${{ env.FC }}
-          pytest -s --durations=0 tests
-        if: runner.os == 'MacOS'
       - name: Run tests
+        env:
+          TOOLCHAIN_COMPILER: ${{ matrix.toolchain.compiler }}
         run: |
           fpm --version
-          ${{ env.FC }}  --version
-          fpm test --compiler ${{ env.FC }}
+          if [[ "$TOOLCHAIN_COMPILER" == "aocc" ]]; then
+            aof --version
+            fpm test --compiler aof
+          else
+            ${{ env.FC }}  --version
+            fpm test --compiler ${{ env.FC }}
+          fi
           pytest -s --durations=0 tests
-        if: runner.os != 'MacOS'
