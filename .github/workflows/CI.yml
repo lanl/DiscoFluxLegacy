@@ -14,40 +14,51 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-24.04, ubuntu-latest, windows-2025, macos-latest]
         python-version: ["3.15"]
         toolchain:
-          - {compiler: gcc, version: '10'}
-          - {compiler: gcc, version: '11'}
-          - {compiler: gcc, version: 'latest'}
-          - {compiler: intel, version: '2024.1'}
-          - {compiler: intel, version: 'latest'}
-          #~ - {compiler: nvidia-hpc, version: 'latest'}
+          - {compiler: gfortran, version: '11'}
+          - {compiler: gfortran, version: 'latest'}
+          - {compiler: ifx, version: '2024.1'}
+          - {compiler: ifx, version: 'latest'}
+          #- {compiler: nvfortran, version: 'latest'}
           - {compiler: lfortran, version: '0.68.0'}
-          #~ - {compiler: aocc, version: 'latest'}
+          - {compiler: flang, version: '22'}
+          - {compiler: flang, version: 'latest'}
+          #- {compiler: aocc, version: 'latest'}
         exclude:
-          - os: ubuntu-latest
-            toolchain: {compiler: gcc, version: '11'}
-          #~ - os: macos-latest
-            #~ toolchain: {compiler: nvidia-hpc}
-          #~ - os: macos-latest
-            #~ toolchain: {compiler: aocc}
-          #~ - os: macos-latest
-            #~ toolchain: {compiler: intel}
-          #~ - os: macos-latest
-            #~ toolchain: {compiler: gcc, version: '10'}
-          - os: windows-latest
-            toolchain: {compiler: intel}
-          - os: windows-latest
-            toolchain: {compiler: gcc, version: '10'}
-          - os: windows-latest
+          - os: ubuntu-24.04
+            toolchain: {compiler: gfortran, version: 'latest'}
+          - os: ubuntu-24.04
+            toolchain: {compiler: flang}
+          - os: ubuntu-24.04
             toolchain: {compiler: lfortran}
+          - os: ubuntu-24.04
+            toolchain: {compiler: ifx, version: 'latest'}
+          - os: ubuntu-latest
+            toolchain: {compiler: ifx, version: '2024.1'}
+          - os: ubuntu-latest
+            toolchain: {compiler: gfortran, version: '11'}
+          - os: macos-latest
+            toolchain: {compiler: gfortran, version: '11'}
+          - os: macos-latest
+            toolchain: {compiler: flang, version: '22'}
+          #- os: macos-latest
+          #  toolchain: {compiler: aocc}
+          - os: macos-latest
+            toolchain: {compiler: ifx}
+          - os: windows-2025
+            toolchain: {compiler: lfortran}
+          - os: windows-2025
+            toolchain: {compiler: ifx}
+          #- os: windows-2025
+          #  toolchain: {compiler: aocc}
         include:
           - python-version: '3.15'
             module-versions: "numpy scipy matplotlib pandas pytest"
     steps:
       - uses: actions/checkout@v7
-      - uses: fortran-lang/setup-fortran@v1
+      - uses: fortran-lang/setup-fortran@v2.0.0-beta.17
         id: setup-fortran
         with:
           compiler: ${{ matrix.toolchain.compiler }}
@@ -57,18 +68,17 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Setup Fortran Package Manager
-        uses: fortran-lang/setup-fpm@v10
+        uses: fortran-lang/setup-fpm@v11
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           fpm-version: 'current'
-      #~ - name: Install Reference BLAS
-        #~ run: sudo apt-get update && sudo apt-get install -y libblas-dev liblapack-dev
-        #~ if: runner.os == 'Linux'
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install ${{ matrix.module-versions }}
       - name: Run tests
         run: |
+          fpm --version
+          ${{ env.FC }}  --version
           fpm test --compiler ${{ env.FC }}
           pytest -s --durations=0 tests
