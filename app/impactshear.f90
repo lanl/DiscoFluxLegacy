@@ -9,16 +9,26 @@
 ! irrevocable worldwide license in this material to reproduce, prepare. derivative works, distribute copies to the public, perform
 ! publicly and display publicly, and to permit others to do so.
 PROGRAM impactshear
+  use stdlib_math, only: linspace
+  ! modules defined in Modules.f90:
   USE discoflux_GlobalParams
-  USE discoflux_DMB
-  USE discoflux_CDT
-  USE discoflux_DDC
-  use discoflux_utilities
-  use discoflux_DMB_routines
-  use discoflux_CDT_routines
-  use discoflux_DDC_routines
-  use discoflux_OUTPUTFILES
-  use discoflux_readfiles
+  USE discoflux_DMB, only: Type_DMB_PROPS, Type_DMB_STATE, Type_DMB_VECTOR_BC
+  USE discoflux_CDT, only: Type_CDT_PROPS, Type_CDT_STATE
+  USE discoflux_DDC, only: Type_DDC_PROPS, Type_DDC_STATE
+  ! module defined in Utilities.f90:
+  use discoflux_utilities, only: Fatal, Identity, readcmdline, operator(.otimes.)
+  ! module defined in DMB.f90:
+  use discoflux_DMB_routines, only: DMB_State_Init, DMB_Update_State, DMB_Init_EOS, DMB_Compute_EOS, DMB_Invert_Tensor43, &
+                                    DMB_get_slip_system, DMB_form_elasticity, DMB_Compute_Rotation
+  ! module defined in CDT.f90:
+  use discoflux_CDT_routines, only: CDT_State_Init, CDT_Combine_State, CDT_Update_State
+  ! module defined in DDC.f90:
+  use discoflux_DDC_routines, only: DDC_State_Init, DDC_Update
+  ! module defined in Output.f90:
+  use discoflux_OUTPUTFILES, only: Init_All_Field_Output_Files, Close_Field_Files, Write_State, write_history, &
+                                   Print_CDT_State, Print_DDC_State, Print_DMB_State
+  ! module defined in readinputfile.f90:
+  use discoflux_readfiles, only: ReadSizes, ReadInput
 !-----------------------------------------------------------------------
   IMPLICIT NONE
 !-----------------------------------------------------------------------
@@ -42,7 +52,6 @@ PROGRAM impactshear
   REAL(KIND=8)                :: Lbar
   REAL(KIND=8)                :: g0
   REAL(KIND=8)                :: omega0
-  REAL(KIND=8)                :: boltz
   REAL(KIND=8)                :: p
   REAL(KIND=8)                :: q
   REAL(KIND=8)                :: tau0
@@ -87,7 +96,7 @@ PROGRAM impactshear
   CHARACTER(32)         :: CDTintFlux
   character(32)         :: drag_flag
   character(32)         :: backstress_model
-  CHARACTER(64)         :: jobname
+  CHARACTER(:), allocatable :: jobname
 !-----------------------------------------------------------------------
   REAL(KIND=8), DIMENSION(:,:), allocatable     :: slip_M, slip_S
   REAL(KIND=8), DIMENSION(:,:,:), allocatable     :: slip_V, line_T
@@ -106,7 +115,6 @@ PROGRAM impactshear
   REAL(KIND=8), DIMENSION(:,:), allocatable :: x_pos, x_vel, xddot
   REAL(KIND=8), DIMENSION(:), allocatable  :: cell_sizes
   REAL(KIND=8), DIMENSION(2,2)         :: matrix1
-!~   REAL(KIND=8), DIMENSION(:,:), allocatable :: consistent_mass ! never used below?
   INTEGER                        :: iel
   REAL(KIND=8)                         :: cs
   REAL(KIND=8)                         :: dX
@@ -140,7 +148,7 @@ PROGRAM impactshear
 
   call ReadInput(jobname, simulation_type, B0, C11, C12, C44, CDT_update, CDTintegrator, &
   CDTscheme, CDTlimiter, CDTtoler, CDTintFlux, CP11, CP12, CP44, CT11, CT12, CT44, specific_heat, &
-  DDCtoler, DMBtoler, L0, Lbar, Lrho, MaxIter, Boltz, bulk_c1, bulk_c2, &
+  DDCtoler, DMBtoler, L0, Lbar, Lrho, MaxIter, bulk_c1, bulk_c2, &
   crystalstruct, burger, c1, cdt_A, cdt_Aint, cdt_G_n0, cdt_K, cdt_Y_e, &
   cdt_pn, cdt_qn, cdt_rhoDot_n0, cdt_tau_n0, dt0, dt_output, euler_angle, g0, gtol, impact_force, &
   impact_angle, impact_velocity, impact_acc_time, internal_strain_flag, ipOUT, mu, no_flux, omega0, p, &
@@ -151,7 +159,6 @@ PROGRAM impactshear
   call system_clock(start_time,countrate)
  
   !! allocate memory for arrays that are too large to fit in the stack:
-!~   allocate(consistent_mass(Nnode,Nnode))
   allocate(flux_bc(Nregion+1))
   allocate(Aforest(Nslip,Nslip,Nchar))
   allocate(slip_M(3,Nslip), slip_S(3,Nslip), rotM(3,3,Nslip,Nchar))
@@ -214,7 +221,6 @@ PROGRAM impactshear
   all_props_dmb(iregion)%wave_vel    = wave_vel
   all_props_dmb(iregion)%drag_flag   = drag_flag
   all_props_dmb(iregion)%drag_Trho_flag = drag_Trho_flag
-  all_props_dmb(iregion)%boltz       = boltz
   all_props_dmb(iregion)%p           = p
   all_props_dmb(iregion)%q           = q
   all_props_dmb(iregion)%euler_angle = euler_angle(iregion,:)
@@ -300,7 +306,6 @@ PROGRAM impactshear
   all_props_cdt(iregion)%tau_n0    = cdt_tau_n0
   all_props_cdt(iregion)%pn        = cdt_pn
   all_props_cdt(iregion)%qn        = cdt_qn
-  all_props_cdt(iregion)%boltz     = boltz
 
   all_props_cdt(iregion)%no_flux   = no_flux
 
@@ -328,13 +333,13 @@ PROGRAM impactshear
   ! --------------------- #
 
   ! 0.B.1 ---->  DMB Setup - node coordinates, initial velocities
-  call LinSpace(0.d0, L0, Nnode, X_ref)
+  X_ref = linspace(0.d0, L0, Nnode)
   x_pos(:,:) = 0.d0
   x_pos(:,1) = X_ref(:)
   x_vel(:,:) = 0.d0
   xddot(:,:) = 0.d0
   if (simulation_type=='shear') then
-    call LinSpace(-0.5d0*impact_velocity, 0.5d0*impact_velocity, Nnode, x_vel(:,2))
+    x_vel(:,2) = linspace(-0.5d0*impact_velocity, 0.5d0*impact_velocity, Nnode)
   end if
 
   ! 0.B.2 ---->  DMB Setup - lumped system mass matrices

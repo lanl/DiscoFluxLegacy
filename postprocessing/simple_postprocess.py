@@ -100,11 +100,13 @@ try:
         "pgf.rcfonts": True,
     })
     have_poly = True
-except ImportError as exc:
+except ImportError:
     if plot_model_stress:
-        raise ImportError("ERROR: Cannot find PyDislocDyn, need this packge to generate requested plot 'plot_model_stress': \
+        print("ERROR: Cannot find PyDislocDyn, need this packge to generate requested plot 'plot_model_stress': \
               either set plot_model_stress=False or download 'https://github.com/dblaschke-LANL/PyDislocDyn' \
-              and copy its contents to the same folder as this script.\n") from exc
+              and copy its contents to the same folder as this script.\n\
+              Setting plot_model_stress=False for now.")
+    plot_model_stress = False
     have_poly = False
 
 rho_pos = {}

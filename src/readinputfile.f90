@@ -8,33 +8,37 @@
 module discoflux_readfiles
 USE discoflux_GlobalParams
 use discoflux_utilities, only: Fatal
-public
+
+private
+public :: ReadSizes, ReadInput
 contains
+
 SUBROUTINE ReadSizes(jobname)
 implicit none
 
-CHARACTER(64), INTENT(IN) :: jobname
+CHARACTER(*), INTENT(IN) :: jobname
 !------------ local variables:
 integer :: ios
 character(6) :: crystalstruct
 character(32) :: key
-character(64) :: inputfilename
+character(:), allocatable :: inputfilename
 character(256) :: line, values
 crystalstruct = 'fcc' ! default value, only used in this function to determine Nslip if not set explicitly
 
 print*,"program version: ",prog_version
 inputfilename = "input_parameters."//trim(jobname)//".dat"
-print*, "reading ", inputfilename
 
 open(unit=42, file=inputfilename, action="read", iostat=ios, status='old')
 if (ios/=0) then
   close(unit=42)
-  print*, "failed, now reading ", jobname
   open(unit=42, file=jobname, action="read", iostat=ios, status='old')
   if (ios/=0) then
     close(unit=42)
-    call Fatal("Error: cannot open input file, tried "//trim(inputfilename)//" and "//jobname)
+    call Fatal("Error: cannot open input file, tried "//trim(inputfilename)//" and "//trim(jobname))
   end if
+  print*, "reading ", jobname
+else
+  print*, "reading ", inputfilename
 end if
 do
   read(42,'(a)',iostat=ios) line
@@ -65,7 +69,7 @@ END SUBROUTINE ReadSizes
 
 SUBROUTINE ReadInput(jobname, simulation_type, B0, C11, C12, C44, CDT_update, CDTintegrator, &
   CDTscheme, CDTlimiter, CDTtoler, CDTintFlux, CP11, CP12, CP44, CT11, CT12, CT44, specific_heat, &
-  DDCtoler, DMBtoler, L0, Lbar, Lrho, MaxIter, Boltz, bulk_c1, bulk_c2, &
+  DDCtoler, DMBtoler, L0, Lbar, Lrho, MaxIter, bulk_c1, bulk_c2, &
   crystalstruct, burger, c1, cdt_A, cdt_Aint, cdt_G_n0, cdt_K, cdt_Y_e, &
   cdt_pn, cdt_qn, cdt_rhoDot_n0, cdt_tau_n0, dt0, dt_output, euler_angle, g0, gtol, impact_force, &
   impact_angle, impact_velocity, impact_acc_time, internal_strain_flag, ipOut, mu, no_flux, omega0, p, &
@@ -77,11 +81,11 @@ SUBROUTINE ReadInput(jobname, simulation_type, B0, C11, C12, C44, CDT_update, CD
 !$   Use omp_lib
 implicit none
 
-CHARACTER(64), INTENT(IN) :: jobname
+CHARACTER(*), INTENT(IN) :: jobname
 !------------ local variables:
 integer :: ios, j, ich, j_eul
 character(32) :: key
-character(64) :: inputfilename
+character(:), allocatable :: inputfilename
 REAL(KIND=8) :: value1, Zener
 character(256) :: line, values
 LOGICAL :: echoinput
@@ -90,7 +94,7 @@ REAL(KIND=8), INTENT(OUT) :: B0(Nchar), C11, C12, C44, CDTtoler, CP11, CP12, CP4
 character(32), INTENT(OUT) :: CDT_update, CDTintegrator, CDTscheme, CDTlimiter, CDTintFlux, drag_flag, backstress_model
 CHARACTER(6), INTENT(OUT) :: crystalstruct
 CHARACTER(10), INTENT(OUT) :: simulation_type
-REAL(KIND=8), INTENT(OUT) :: DDCtoler, DMBtoler, L0, Lbar, Lrho, Boltz, bulk_c1, bulk_c2
+REAL(KIND=8), INTENT(OUT) :: DDCtoler, DMBtoler, L0, Lbar, Lrho, bulk_c1, bulk_c2
 INTEGER, INTENT(OUT) :: MaxIter, ipOut
 REAL(KIND=8), INTENT(OUT) :: burger, c1, cdt_A, cdt_Aint, cdt_G_n0, cdt_K, cdt_Y_e
 REAL(KIND=8), INTENT(OUT) :: cdt_pn, cdt_qn, cdt_rhoDot_n0, cdt_tau_n0, dt0, dt_output, g0, gtol

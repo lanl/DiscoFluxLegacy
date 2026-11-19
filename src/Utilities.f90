@@ -105,33 +105,6 @@ END SUBROUTINE FindInterval
 !<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><
 !-----------------------------------------------------------------------
 
-!>  Generate a linearly-spaced vector from [x1,x2]
-pure SUBROUTINE LinSpace(x1,x2,n,xout)
-
-  IMPLICIT NONE
-  REAL(KIND=8), intent(in) :: x1, x2
-  INTEGER, intent(in) :: n
-  REAL(KIND=8), DIMENSION(N), intent(out) :: xout
-  
-  REAL(KIND=8) ::dx
-  INTEGER :: i
-  
-  dx = (x2 - x1) / (n-1)
-
-  xout(1) = x1
-
-  do i=2,n
-    xout(i) = x1 + dx*(i-1)
-  end do  !i
-
-  xout(n) = x2
-
-END SUBROUTINE LinSpace
-
-!-----------------------------------------------------------------------
-!<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><
-!-----------------------------------------------------------------------
-
 !>  Integrate F(X) along X using trapezoidal rule
 !>  Return Integral
 pure SUBROUTINE Trapz(n, F, X, Integral)
@@ -337,7 +310,7 @@ END SUBROUTINE ElBrak
 !<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><
 !-----------------------------------------------------------------------
 !>  Invert a NxN tensor.
-SUBROUTINE Invert_Tensor(A,n,Ainv)
+pure SUBROUTINE Invert_Tensor(A,n,Ainv)
 !-----------------------------------------------------------------------
   use stdlib_linalg_lapack, only: getrf, getri
   IMPLICIT NONE
@@ -361,18 +334,18 @@ SUBROUTINE Invert_Tensor(A,n,Ainv)
   call GETRF(n,n,Ainv,n,ipiv,info)
 
   if(info/=0) then
-    write(*,*) 'Invert_Tensor(): Lapack DGETRF() failed.'
-    print*,A
-    print*,"Ainv"
-    print*,Ainv
-    call Fatal('Bad matrix.')
+!~     write(*,*) 'Invert_Tensor(): Lapack DGETRF() failed.'
+!~     print*,A
+!~     print*,"Ainv"
+!~     print*,Ainv
+    error stop 'Invert_Tensor(): Lapack GETRF() failed.'//new_line('a')//'Bad matrix.'
   end if
 
   call GETRI(n,Ainv,n,ipiv,work,nn,info)
 
   if(info/=0) then
-    write(*,*) 'Invert_Tensor(): Lapack DGETRI() failed.'
-    call Fatal('Bad matrix.')
+!~     write(*,*) 'Invert_Tensor(): Lapack DGETRI() failed.'
+    error stop 'Invert_Tensor(): Lapack GETRI() failed.'//new_line('a')//'Bad matrix.'
   end if
 
 END SUBROUTINE Invert_Tensor
@@ -396,10 +369,8 @@ function ExpMat(A,order) result(expA)
   REAL(KIND=8), DIMENSION(3,3) :: expA
 !-----------------------------------------------------------------------
 !  Locals:
-  INTEGER :: nonzero,k,ideg!,j,l1,l2,ipiv(3),m,ldh,lwsp,iexph,ns,iflag
-!~   REAL(KIND=8), DIMENSION(43) :: wsp
+  INTEGER :: nonzero,k,ideg
   REAL(KIND=8) :: rzero
-!~   m=3; ldh=3; lwsp=43
   rzero = sqrt(tiny(0.d0))
   ideg = 6
   if (present(order)) ideg=order
@@ -415,16 +386,6 @@ function ExpMat(A,order) result(expA)
     end do
   else
     expA = ExpM(A,order=ideg)
-! expokit version (can be used instead of stdlib expm):
-!~     call DGPADM(ideg,m,1.d0,A,ldh,wsp,lwsp,ipiv,iexph,ns,iflag)
-    
-!~     l1 = iexph - 1
-!~     do k=1,3
-!~       l2 = l1 + 3*(k-1)
-!~       do j=1,3
-!~         expA(j,k) = wsp(l2 + j)
-!~       end do  !j
-!~     end do  !k
   end if
 
 end function ExpMat
@@ -526,12 +487,17 @@ SUBROUTINE readcmdline(jobname)
 !$   Use omp_lib
   IMPLICIT NONE
   ! Output
-  CHARACTER(64), INTENT(OUT) :: jobname
+  CHARACTER(:), INTENT(OUT), allocatable :: jobname
   ! Locals
   character(:), allocatable :: stdlibversion
-  CHARACTER(64) :: cmdlinearg, exe_name
+  CHARACTER(:), allocatable :: cmdlinearg, exe_name
+  integer :: lenarg
   !----------------------------------------
+  call get_command_argument(1, length=lenarg)
+  allocate(character(lenarg) :: cmdlinearg)
   call get_command_argument(1, cmdlinearg)
+  call get_command_argument(0, length=lenarg)
+  allocate(character(lenarg) :: exe_name)
   call get_command_argument(0, exe_name)
   if (len_trim(cmdlinearg) > 0) then
     jobname = cmdlinearg
