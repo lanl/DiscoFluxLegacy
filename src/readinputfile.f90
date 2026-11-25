@@ -1,5 +1,5 @@
 ! © 2026. Triad National Security, LLC. All rights reserved.
-! This program was produced under U.S. Government contract 89233218CNA000001 for Los Alamos National Laboratory (LANL), 
+! This program was produced under U.S. Government contract 89233218CNA000001 for Los Alamos National Laboratory (LANL),
 ! which is operated by Triad National Security, LLC for the U.S. Department of Energy/National Nuclear Security Administration.
 ! All rights in the program are reserved by Triad National Security, LLC, and the U.S. Department of Energy/National Nuclear
 ! Security Administration. The Government is granted for itself and others acting on its behalf a nonexclusive, paid-up,
@@ -169,7 +169,7 @@ close(unit=42)
 Nnode = Nel+1
 if(crystalstruct == "fcc") then
   Nslip = 12
-elseif(crystalstruct == "bcc") then
+else if(crystalstruct == "bcc") then
   Nslip = 48
 else
   call Fatal('Bad structure type: crystal symmetry '//crystalstruct//' unkown/not implemented')
@@ -251,7 +251,7 @@ do
   if (key=='CT12') read(values,*)indat%EC%CT12
   if (key=='CT44') read(values,*)indat%EC%CT44
   if (key=='specific_heat') read(values,*)indat%EOS%specific_heat
-  
+
   if (key=='DDCtoler') read(values,*)indat%DDC%toler
   if (key=='DMBtoler') read(values,*)indat%DMB%toler
   if (key=='L0') read(values,*)indat%L0
@@ -271,7 +271,7 @@ do
   if (key=='cdt_tau_n0') read(values,*)indat%cdt%tau_n0
   if (key=='dt0') read(values,*)indat%dt0
   if (key=='dt_output') read(values,*)indat%dt_output
-  
+
   if (key=='g0') read(values,*)indat%DMB%g0
   if (key=='gtol') read(values,*)indat%DMB%gtol
   if (key=='impact_angle') read(values,*)indat%impact_angle
@@ -296,7 +296,7 @@ do
   if (key=='props_dmb_perc_eos_perc_rho0'.or.key=='eos_rho0') read(values,*)indat%eos%rho0
   if (key=='props_dmb_perc_eos_perc_v0'.or.key=='eos_v0') read(values,*)indat%eos%v0 ! computed from eos_perc_rho0 below
   if (key=='props_dmb_perc_eos_perc_v_star'.or.key=='eos_v_star') read(values,*)indat%eos%v_star
-  
+
   if (key=='q') read(values,*)indat%DMB%q
   if (key=='rho0') read(values,*)indat%DP%rho0
   if (key=='rhobar0') read(values,*)indat%rhobar0
@@ -320,11 +320,11 @@ do
     read(values,*)debug_cycle
     print*,"setting debug_cycle=",debug_cycle
   end if
-  
+
   if (key=='MaxIter') then
     read(values,*)value1
     indat%MaxIter = int(value1)
-  elseif (key=='ipOut') then
+  else if (key=='ipOut') then
     read(values,*)value1
     indat%ipOut = int(value1)
   end if
@@ -354,7 +354,7 @@ if (abs(indat%DP%wave_vel(1)) < 1.d-15) then
       lat_a = indat%DP%burger*sqrt(2.d0)*1.d-3
       Millerb=[0.5d0,0.5d0,0.d0]
       Millern0=[-1.d0,1.d0,-1.d0]
-    elseif (indat%crystalstruct=='bcc') then
+    else if (indat%crystalstruct=='bcc') then
       lat_a = indat%DP%burger*sqrt(3.d0)*0.5d-3
       Millerb=[0.5d0,-0.5d0,0.5d0]
       Millern0=[1.d0,1.d0,0.d0]
@@ -393,7 +393,7 @@ end if
 
 if ((indat%crystalstruct == "fcc") .and. (Nslip>12)) then
   call Fatal('Nslip must be <= 12 for fcc')
-elseif ((indat%crystalstruct == "bcc") .and. (Nslip>48)) then
+else if ((indat%crystalstruct == "bcc") .and. (Nslip>48)) then
   call Fatal('Nslip must be <= 48 for fcc')
 end if
 

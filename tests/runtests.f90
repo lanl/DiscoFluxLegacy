@@ -1,5 +1,5 @@
 ! © 2026. Triad National Security, LLC. All rights reserved.
-! This program was produced under U.S. Government contract 89233218CNA000001 for Los Alamos National Laboratory (LANL), 
+! This program was produced under U.S. Government contract 89233218CNA000001 for Los Alamos National Laboratory (LANL),
 ! which is operated by Triad National Security, LLC for the U.S. Department of Energy/National Nuclear Security Administration.
 ! All rights in the program are reserved by Triad National Security, LLC, and the U.S. Department of Energy/National Nuclear
 ! Security Administration. The Government is granted for itself and others acting on its behalf a nonexclusive, paid-up,
@@ -10,20 +10,21 @@ implicit none
 character(*), parameter :: esc = achar(27), red = '[31m', green = '[32m', reset = '[0m'
 character(*), parameter :: passed = char(9)//esc//green//"PASSED"//esc//reset
 character(*), parameter :: failed = char(9)//esc//red//"FAILED"//esc//reset
+public
 contains
 SUBROUTINE testequal(A,B,N,M,string,tolerance,count_pass,count_fail)
 !  Check if two NxM matrices are equal (with some tolerance), and print 'test <string> PASSED/FAILED'
   IMPLICIT NONE
-  
+
   INTEGER, INTENT(IN)  :: N, M
   REAL(KIND=8), INTENT(IN)  :: tolerance
   REAL(KIND=8), DIMENSION(N,M), INTENT(IN)  :: A, B
   character(*), INTENT(IN) :: string
-  INTEGER :: count_pass,count_fail
+  INTEGER, intent(inout) :: count_pass,count_fail
   logical :: equal
-  
+
   equal = all(abs(A-B) <= tolerance)
-  
+
   if (equal) then
     count_pass = count_pass+1
     print*,"test " // string//": "//passed
@@ -31,23 +32,23 @@ SUBROUTINE testequal(A,B,N,M,string,tolerance,count_pass,count_fail)
     count_fail = count_fail+1
     print*,"test " // string//": "//failed
   end if
-  
+
   RETURN
 END SUBROUTINE testequal
 
 SUBROUTINE testequalarray(A,B,N,string,tolerance,count_pass,count_fail)
 !  Check if two arrays are equal (with some tolerance), and print 'test <string> PASSED/FAILED'
   IMPLICIT NONE
-  
+
   INTEGER, INTENT(IN)  :: N
   REAL(KIND=8), INTENT(IN)  :: tolerance
   REAL(KIND=8), DIMENSION(N), INTENT(IN)  :: A, B
   character(*), INTENT(IN) :: string
-  INTEGER :: count_pass,count_fail
+  INTEGER, intent(inout) :: count_pass,count_fail
   logical :: equal
-  
+
   equal = all(abs(A-B) <= tolerance)
-  
+
   if (equal) then
     count_pass = count_pass+1
     print*,"test " // string//": "//passed
@@ -55,17 +56,17 @@ SUBROUTINE testequalarray(A,B,N,string,tolerance,count_pass,count_fail)
     count_fail = count_fail+1
     print*,"test " // string//": "//failed
   end if
-  
+
   RETURN
 END SUBROUTINE testequalarray
 
 SUBROUTINE testzero(A,string,tolerance,count_pass,count_fail)
 ! check if A=0 (with some tolerance), and print 'test <string> PASSED/FAILED'
   IMPLICIT NONE
-  
+
   REAL(KIND=8), INTENT(IN)  :: tolerance, A
   character(*), INTENT(IN) :: string
-  INTEGER :: count_pass,count_fail
+  INTEGER, intent(inout) :: count_pass,count_fail
   call testequalarray([A],[0.d0],1,string,tolerance,count_pass,count_fail)
   RETURN
 END SUBROUTINE testzero
@@ -91,7 +92,7 @@ PROGRAM discoflux_RunTests
   use discoflux_checks
 
   IMPLICIT NONE
-  
+
   character(:), allocatable :: stdlibversion
   INTEGER, PARAMETER :: resolution=361 ! resolve polar angle phi to 1 degree (tradeoff accuracy for speed)
   REAL(KIND=8) :: num, nu_poisson, rho0, Fwant, tmpintegral
@@ -115,7 +116,7 @@ PROGRAM discoflux_RunTests
   TYPE(Type_DMB_STATE)           :: dmb_state
   TYPE(Type_CDT_PROPS)           :: props_cdt
   TYPE(Type_DDC_PROPS)           :: ddc_props
-  
+
   count_fail=0; count_pass=0
   call system_clock(start_time,countrate)
   ! allocate memory
@@ -126,12 +127,12 @@ PROGRAM discoflux_RunTests
   allocate(tau_back1(Nel,Nslip,Nchar), tau_back2(Nel,Nslip,Nchar), rho_total(Nel,Nslip,Nchar))
   allocate(Sb(3,Nslip,Nchar), Bb(3,Nslip,Nchar), tau_back_nokappa(3,Nslip,Nchar))
   allocate(vel(Nslip,Nchar), tline(Nslip,3), zeros2(resolution,Nslip))
-  
+
   call props_dmb%allocatememory()
   call dmb_state%allocatememory()
   call props_cdt%allocatememory()
   call ddc_props%allocatememory()
-  
+
   zeros = 0.d0
   zeros2 = 0.d0
   zeros_nslip = 0.d0
@@ -152,10 +153,10 @@ PROGRAM discoflux_RunTests
   print*,"# of slip systems, Nslip = ",Nslip
   print*,"# of dislocation character angles, Nchar = ",Nchar
   print*,"------------------------------------------------------------"
-  
+
   call generate_regions() ! initialize region_mask
   call testzero(dble(sum(region_mask(1,:)+region_mask(Nregion,:))-(2*(1+Nel))),"region_mask",0.d0,count_pass,count_fail)
-  
+
   ! TestVoigt, initialize A6 with random numbers, then symmetrize before running the test
   CALL RANDOM_NUMBER(A6)
   do i=1,6
@@ -166,12 +167,12 @@ PROGRAM discoflux_RunTests
   A3 = .unvoigt.A6
   B6 = .voigt.A3
   call testequal(A6,B6,6,6,"Voigt",1.d-15,count_pass,count_fail)
-  
+
   ! test Det3x3
   eye = Identity(3)
   num = .det. eye
   call testzero(num-1.d0,"Det3x3",0.d0,count_pass,count_fail)
-  
+
   ! test DetInv3x3
   CALL RANDOM_NUMBER(A)
   call DetInv3x3(A,num,B)
@@ -182,14 +183,14 @@ PROGRAM discoflux_RunTests
     count_fail = count_fail+1
     print*,"test DetInv3x3: "//FAILED
   end if
-  
+
   ! test DMB_Invert_Tensor26
   call DMB_Invert_Tensor26(A6,B6)
   eye6 = Identity(6)
   B6 = MATMUL(A6,B6)
   call testequal(eye6,B6,6,6,"DMB_Invert_Tensor26",1.d-12,count_pass,count_fail)
-  
-  
+
+
   ! test DMB_Invert_Tensor43
   A3 = .unvoigt.A6
   call DMB_Invert_Tensor43(A3,B3)
@@ -200,12 +201,12 @@ PROGRAM discoflux_RunTests
   end do
   B6 = MATMUL(A6,MATMUL(mat2,MATMUL(B6,mat2)))
   call testequal(eye6,B6,6,6,"DMB_Invert_Tensor43",1.d-12,count_pass,count_fail)
-  
+
   ! test linspace
   array1 = LinSpace(0.2d0,1.d0,5)
   array2 = [0.2d0,0.4d0,0.6d0,0.8d0,1.d0]
   call testequalarray(array1,array2,5,"LinSpace",1.d-15,count_pass,count_fail)
-  
+
   ! test CumTrapz / Trapz
   x = linspace(1.d-15, 100.d0, 10000)
   func(:) = sin(pi*x(:)/25.d0) + x(:)**3 / (exp(x(:))-1.d0)
@@ -213,12 +214,12 @@ PROGRAM discoflux_RunTests
   call testzero(pi**4/15.d0 - integral(9999),"CumTrapz",1.d-6,count_pass,count_fail)
   call Trapz(10000,func,x,tmpintegral)
   call testzero(tmpintegral - integral(9999),"Trapz",1.d-13,count_pass,count_fail)
-  
+
   ! test Invert_Tensor
   CALL RANDOM_NUMBER(A)
   call Invert_Tensor(A,3,B)
   call testequal(eye,matmul(A,B),3,3,"Invert_Tensor",1.d-12,count_pass,count_fail)
-  
+
   ! test ExpM
   A=0.d0
   A = ExpMat(A)
@@ -228,19 +229,19 @@ PROGRAM discoflux_RunTests
   B = ExpMat(1.d-6*A)
   A = ExpMat(-1.d-6*A)
   call testequal(A+B,2*eye,3,3,"ExpM, small argument",1.d-10,count_pass,count_fail)
-  
+
   ! test rotation matrix with euler angles
   call DMB_Compute_Rotation(euler,Q)
   call testequal(Q,eye,3,3,"DMB_Compute_Rotation, eulers=0",1.d-15,count_pass,count_fail)
   call DMB_Compute_Rotation([pi/4.d0,0.d0,0.d0],Q)
-  
+
   ! test interpolation and find interval:
 !   print*,array1
 !   print*,sin(array1)
   call FindInterval(array1, 5, 0.53d0, i)
   call Interp1D(0.3d0, 5, array1, sin(array1), Fwant)
   call testzero(0.5d0*(sin(array1(1))+sin(array1(2)))-Fwant + 2 - i,"Interp1D, FindInterval",1.d-15,count_pass,count_fail)
-  
+
   !*********************************************************************
   ! now run some more advanced tests
   !*********************************************************************
@@ -269,9 +270,9 @@ PROGRAM discoflux_RunTests
   tline(i,:) = tline(i,:) - (unit_y+unit_z)
   end do
   call testequal(tline,zeros_threenslip,Nslip,3,"RotAlign, edge", 1.d-14,count_pass,count_fail)
-  
+
   ! test Cu
-  props_dmb%C11     = 168300.0d0    
+  props_dmb%C11     = 168300.0d0
   props_dmb%C12     = 121200.0d0
   props_dmb%C44     = 75700.0d0
   props_dmb%elastic_constants = 0.d0
@@ -283,7 +284,7 @@ PROGRAM discoflux_RunTests
   props_dmb%wave_vel(1) = 2039915.1008740345d0
   props_dmb%wave_vel(Nchar) = 1605654.0723331412d0
   vel = 1500.d3
-    
+
   call stroh_dislocation(props_dmb,vel,resolution,uij,Sb, Bb,elC)
   if (abs(sum(Sb(:,9,1))) < 1.d-15 .or. Nchar==1) then
     call testzero(Sb(1,9,Nchar)+Sb(2,9,Nchar),"Sb",1.d-15,count_pass,count_fail)
@@ -298,7 +299,7 @@ PROGRAM discoflux_RunTests
     call testequalarray(uij(1,1,:,:,1)+uij(2,2,:,:,1)+uij(3,3,:,:,1),zeros2,resolution,"trace uij_screw",&
                         1.d-15,count_pass,count_fail)
   end if
-  
+
   vel = 0.d0
   call stroh_dislocation(props_dmb,vel,resolution,uij,Sb, Bb,elC)
 !   print*,Sb(:,9,1)
@@ -319,7 +320,7 @@ PROGRAM discoflux_RunTests
   A6 = .voigt.Cg
 !   print*,A6
   call testzero(sum(A6(:3,:3))-3*props_dmb%C11-6*props_dmb%C12,"form_elasticity",1.d-6,count_pass,count_fail)
-  
+
   !test isotropic limit
   nu_poisson = 1.d0/3.d0
 !   nu_poisson = 0.35d0
@@ -329,9 +330,9 @@ PROGRAM discoflux_RunTests
   props_dmb%rhobar0 = 1.d0
   props_dmb%wave_vel = 1.d0
   vel = 0.d0
-  
+
   call stroh_dislocation(props_dmb,vel,resolution,uij,Sb, Bb,elC)
-  
+
 !   print*,Sb(:,9,1)
 !   print*,Sb(:,9,Nchar)
 !   print*,Bb(:,9,1)/props_dmb%C44
@@ -364,8 +365,8 @@ PROGRAM discoflux_RunTests
   call Trapz(resolution, strainenergydensity, phi, tmpintegral)
   call testzero(tmpintegral-props_dmb%C44/(4.d0*pi*(1-nu_poisson)),&
                       "isotropic strainenergy",1.d-15,count_pass,count_fail)
-  
-                      
+
+
 !<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><
   ! test new backstress
   ddc_props%slip_S = props_dmb%slip_S
@@ -420,12 +421,12 @@ PROGRAM discoflux_RunTests
     call testzero(tau_back1(124,9,Nchar)*0.5d0*0.75d0 - tau_back2(124,9,Nchar)*rho_total(124,9,Nchar)/rho0, &
       "compare gradient and zaiser back stress",1.d-15,count_pass,count_fail)
   end if
-  
+
   ! test bcc:
   call DMB_get_slip_system('bcc', props_dmb%slip_M, props_dmb%slip_S, props_dmb%slip_V, props_dmb%line_T, props_dmb%rotM, &
                             props_cdt%Aforest)
   ! test Fe
-  props_dmb%C11     = 226000.0d0    
+  props_dmb%C11     = 226000.0d0
   props_dmb%C12     = 140000.0d0
   props_dmb%C44     = 116000.0d0
   props_dmb%elastic_constants = 0.d0
@@ -438,7 +439,7 @@ PROGRAM discoflux_RunTests
   props_dmb%wave_vel(Nchar) = 0.d0
   vel = 0.d0
   call stroh_dislocation(props_dmb,vel,resolution,uij,Sb, Bb,elC)
-  
+
   call testequalarray(Sb(:,9,Nchar),[-3.24487029d-02,-3.24487029d-02, 0.d0],3, &
                       "Sb (bcc Fe): validate against python implementation",1.d-8,count_pass,count_fail)
   if (Nchar > 1) then
@@ -447,8 +448,8 @@ PROGRAM discoflux_RunTests
   end if
   call testequalarray(Bb(:,9,Nchar)/props_dmb%C44,[0.08475254d0, -0.08475254d0,  0.10570937d0],3, &
                       "Bb (bcc Fe) edge: validate against python impl.",1.d-8,count_pass,count_fail)
-  
-  
+
+
   call system_clock(finish_time)
 !<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><
   print*,"------------------------------------------------------------"

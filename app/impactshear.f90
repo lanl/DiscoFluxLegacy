@@ -2,7 +2,7 @@
 !>  Driver for 1D uniaxial deformation as well as shear deformation
 !>-----------------------------------------------------------------------
 ! © 2026. Triad National Security, LLC. All rights reserved.
-! This program was produced under U.S. Government contract 89233218CNA000001 for Los Alamos National Laboratory (LANL), 
+! This program was produced under U.S. Government contract 89233218CNA000001 for Los Alamos National Laboratory (LANL),
 ! which is operated by Triad National Security, LLC for the U.S. Department of Energy/National Nuclear Security Administration.
 ! All rights in the program are reserved by Triad National Security, LLC, and the U.S. Department of Energy/National Nuclear
 ! Security Administration. The Government is granted for itself and others acting on its behalf a nonexclusive, paid-up,
@@ -80,12 +80,12 @@ PROGRAM impactshear
 
   ! read input
   call readcmdline(jobname)
-  
+
   call ReadSizes(jobname)
   call ReadInput(jobname, indat)
-  
+
   call system_clock(start_time,countrate)
- 
+
   !! allocate memory for arrays that are too large to fit in the stack:
   allocate(flux_bc(Nregion+1))
   allocate(Aforest(Nslip,Nslip,Nchar))
@@ -93,7 +93,7 @@ PROGRAM impactshear
   allocate(slip_V(3,Nslip,Nchar), line_T(3,Nslip,Nchar))
   allocate(X_ref(Nnode), lumped_mass(Nnode), cell_sizes(Nel))
   allocate(x_pos(Nnode,3), x_vel(Nnode,3), xddot(Nnode,3))
-  
+
   call props_cdt%allocatememory()
   allocate(all_props_dmb(Nregion), all_props_cdt(Nregion), all_props_ddc(Nregion))
   do i=1,Nregion
@@ -295,14 +295,14 @@ PROGRAM impactshear
   if (indat%dt0 > dt_max) then
     print*,"WARNING: time steps are too large; dt0=",indat%dt0,", recommend dt0<", dt_max
   end if
-  
+
   eye = Identity(3)
 
   call DMB_State_Init((/0.d0,0.d0,0.d0 /), X_ref, x_pos, x_vel, xddot, eye, eye, indat%temperature0, &
        dmb_state_old)
 
   ! 0.B.3 ---->  DMB Setup - set up boundary conditions
-  
+
   !initialize the values not set below
   bc_force%bc_active(1:2)   = .False.
   bc_force%dof_active       = .False.
@@ -310,7 +310,7 @@ PROGRAM impactshear
   bc_xdot%dof_active(:,:)   = .False.
   bc_force%value            = 0.d0
   bc_xdot%value             = 0.d0
-  
+
   if (indat%simulation_type=='shear') then
     if (abs(indat%impact_force)<1.d-99 .or. abs(indat%impact_velocity)>0.d0) then
       bc_xdot%bc_active(1:2)    = (/ .True., .True. /)
@@ -323,7 +323,7 @@ PROGRAM impactshear
     bc_xdot%value(2,2)        =  0.5d0 * indat%impact_velocity
     bc_force%value(1,2)        = -indat%impact_force
     bc_force%value(2,2)        =  indat%impact_force
-  elseif (indat%simulation_type=='impact') then
+  else if (indat%simulation_type=='impact') then
     if (abs(indat%impact_force)<1.d-99 .or. abs(indat%impact_velocity)>0.d0) then
       bc_xdot%bc_active(1:2)    = (/ .True., .False. /)
       bc_xdot%dof_active(1,1:2) = .True.
@@ -340,7 +340,7 @@ PROGRAM impactshear
   else
     call Fatal('Unknown simulation_type: '//indat%simulation_type)
   end if
-  
+
   ! --------------------- #
   ! 0.C CDT Solution Data # <------------------------------------------------------------------------
   ! --------------------- #
@@ -360,7 +360,7 @@ PROGRAM impactshear
 
   if (indat%CDT%intFlux == 'zero') then
     flux_bc = 0.d0
-  elseif (indat%CDT%intFlux == 'end') THEN
+  else if (indat%CDT%intFlux == 'end') THEN
     flux_bc(1)         = 0.d0
     flux_bc(Nregion+1) = 0.d0
   end if
@@ -388,7 +388,7 @@ PROGRAM impactshear
 
   call Init_All_Field_Output_Files(jobname)
   call Write_State(iinc, dmb_state_old, cdt_state_old, ddc_state_old)
-  
+
 !~   call Init_Field_File(jobname, 99    , "start", "0"    )
 !~   write(99  ,*) "time"
 !~   close(unit=99)
@@ -442,7 +442,7 @@ PROGRAM impactshear
         call CDT_Update_State(cdt_state_old, ddc_state_iter, dmb_state_iter,all_props_cdt,dt,flux_bc, &
                               cdt_state_iter)
 
-      elseif (indat%CDT%integrator=="RK2") then
+      else if (indat%CDT%integrator=="RK2") then
 
         ! perform DDC update
         call DDC_Update(ddc_state_old, dmb_state_iter, cdt_state_iter, all_props_ddc, all_props_dmb, &
@@ -493,7 +493,7 @@ PROGRAM impactshear
 
         if (Eddc(1)<tolerance) then
           konverged = .true.
-        elseif ( Eddc(2)/Eddc(1)<indat%DDC%toler ) then
+        else if ( Eddc(2)/Eddc(1)<indat%DDC%toler ) then
           konverged = .true.
         else
           konverged = .false.
@@ -506,7 +506,7 @@ PROGRAM impactshear
 
         if (Edmb(1)<tolerance) then
           konverged = .true.
-        elseif ( Edmb(2)/Edmb(1)<indat%DMB%toler ) then
+        else if ( Edmb(2)/Edmb(1)<indat%DMB%toler ) then
           konverged = .true.
         else
           konverged = .false.
@@ -519,7 +519,7 @@ PROGRAM impactshear
 
         if (Ecdt(1)<tolerance) then
           konverged = .true.
-        elseif ( Ecdt(2)/Ecdt(1)<indat%CDT%toler ) then
+        else if ( Ecdt(2)/Ecdt(1)<indat%CDT%toler ) then
           konverged = .true.
         else
           konverged = .false.

@@ -51,3 +51,17 @@ project_github  = "https://github.com/lanl/DiscoFluxLegacy"
 src_dir = ["./src","./app"]
 graph = true
 incl_src = false
+
+[extra.fortitude.check]
+line-length = 132
+ignore = [
+    "S291", # trailing decimal point
+    "S233", # incorrect-keyword-case
+    "S241", # string uses single quotes but double quotes preferred
+    "S081", # superfluous-semicolon
+    "C003", # 'implicit none' missing 'external'
+    "C121", # 'use' statement missing 'only' clause
+    "MOD011", # array literal uses old-style syntax
+    "PORT011", # real kind set with number literal
+]
+

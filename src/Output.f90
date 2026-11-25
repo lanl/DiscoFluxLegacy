@@ -1,11 +1,12 @@
 ! © 2026. Triad National Security, LLC. All rights reserved.
-! This program was produced under U.S. Government contract 89233218CNA000001 for Los Alamos National Laboratory (LANL), 
+! This program was produced under U.S. Government contract 89233218CNA000001 for Los Alamos National Laboratory (LANL),
 ! which is operated by Triad National Security, LLC for the U.S. Department of Energy/National Nuclear Security Administration.
 ! All rights in the program are reserved by Triad National Security, LLC, and the U.S. Department of Energy/National Nuclear
 ! Security Administration. The Government is granted for itself and others acting on its behalf a nonexclusive, paid-up,
 ! irrevocable worldwide license in this material to reproduce, prepare. derivative works, distribute copies to the public, perform
 ! publicly and display publicly, and to permit others to do so.
 module discoflux_OUTPUTFILES
+implicit none
 private
 public :: Init_All_Field_Output_Files, Close_Field_Files, Print_CDT_State, Print_DDC_State, Print_DMB_State, &
           Write_State, write_history
@@ -27,7 +28,7 @@ SUBROUTINE Init_All_Field_Output_Files(jobname)
 !  Locals:
 !-----------------------------------------------------------------------
   call assign_units()
-  
+
   call Init_Field_File(jobname, unit_dmb_pos    , "node", "dmb_pos"    )
   call Init_Field_File(jobname, unit_dmb_vel    , "node", "dmb_vel"    )
   call Init_Field_File(jobname, unit_dmb_acc    , "node", "dmb_acc"    )
@@ -51,7 +52,7 @@ SUBROUTINE Init_All_Field_Output_Files(jobname)
   call Init_Field_File(jobname, unit_tau_back   , "ip",   "tau_back")
   call Init_Field_File(jobname, unit_temperature, "ip",   "T")
   call Init_Field_File(jobname, unit_visar      , "th",   "visar")
-  call Init_Field_File(jobname, unit_stress_th  , "th",   "stress")  
+  call Init_Field_File(jobname, unit_stress_th  , "th",   "stress")
   call Init_Field_File(jobname, unit_velocity_th, "th",   "vel")
 
 
@@ -59,7 +60,7 @@ SUBROUTINE Init_All_Field_Output_Files(jobname)
   write(unit_dmb_vel    ,100) "velocity", "inc", "time", "node id", "v1 (vel)", "v2 (vel)", "v3 (vel)"
   write(unit_dmb_acc    ,100) "accel", "inc", "time", "node id", "a1 (acc)", "a2 (acc)", "a3 (acc)"
   write(unit_stress     ,101) "inc", "time", "ip id",   "sigma-11", "sigma-22",  "sigma-33", "sigma-23", "sigma-31", "sigma-12"
-  
+
   allocate(character(15) :: col_names(Nslip))
   do ich=1,Nchar
     do islip=1,Nslip
@@ -109,7 +110,7 @@ SUBROUTINE Init_All_Field_Output_Files(jobname)
   write(unit_temperature,110) "inc", "time", "ip_id",   "temperature"
   write(unit_Ei         ,112) "inc", "time", "ip_id",   "Ei-11", "Ei-22", "Ei-33", "Ei-23", "Ei-31", "Ei-12"
   write(unit_visar      ,113) "time", "node_id", "xdot1", "xdot2", "xdot3"
-  write(unit_velocity_th,113) "time", "node_id", "xdot1", "xdot2", "xdot3"  
+  write(unit_velocity_th,113) "time", "node_id", "xdot1", "xdot2", "xdot3"
   write(unit_stress_th  ,115) "time", "ip_id",   "sigma-11", "sigma-22",  "sigma-33", "sigma-23", "sigma-31", "sigma-12"
 
 
@@ -160,15 +161,15 @@ SUBROUTINE Init_All_Field_Output_Files(jobname)
 
 111 format("## tau_back field file contains backstress on slip systems at integration points",/,  &
    "##",a7,a13,a8,3x,a,/,  &
-   "## ------   ---------- -------",4(3x, 14('-'))) 
+   "## ------   ---------- -------",4(3x, 14('-')))
 
 112 format("## Ei field file contains internal strain due to dislocation configuration",/,  &
    "##",a7,a13,a8,6a17,/,  &
-   "## ------   ---------- -------",6(3x, 14('-'))) 
+   "## ------   ---------- -------",6(3x, 14('-')))
 
 113 format("## free surface velocity, i.e. components of velocity vector at the right boundary",/,  &
    "##",a9,a8,3a22,/,  &
-   "## -------- -------",3(3x, 19('-'))) 
+   "## -------- -------",3(3x, 19('-')))
 
 114 format("## accumulated magnitudes of slip on each slip system at IPs",/,  &
    "##",a7,a13,a8,3x,a,/,  &
@@ -248,7 +249,7 @@ SUBROUTINE Write_State(iinc, dmb_state_new, cdt_state_new, ddc_state_new)
   INTEGER :: ip,i,slip,j,ich
 !-----------------------------------------------------------------------
   allocate(cauchy(Nel,3,3), Ei(Nel,3,3))
-  
+
   t_out = dmb_state_new%time(1)
 
   cauchy = dmb_state_new%cauchy
@@ -295,7 +296,7 @@ SUBROUTINE Write_State(iinc, dmb_state_new, cdt_state_new, ddc_state_new)
   do ip=1,Nel
     write(unit_gamma_acc(ich),100) iinc, t_out, ip, (dmb_state_new%gamma_acc(ip,slip,ich),slip=1,Nslip)
   end do  !ip
-  
+
   write(unit_vel_x(ich),110)
   write(unit_vel_y(ich),110)
   write(unit_vel_z(ich),110)
@@ -327,7 +328,7 @@ SUBROUTINE Write_State(iinc, dmb_state_new, cdt_state_new, ddc_state_new)
   do ip=1,Nel
     write(unit_const_soln,100) iinc, t_out, ip, dble(dmb_state_new%Nsub(ip)), dble(dmb_state_new%i_cutback(ip))
   end do  !ip
-  
+
   do ip=1,Nel
     write(unit_tau,100) iinc, t_out, ip, (dmb_state_new%tau(ip,slip),slip=1,Nslip)
   end do  !ip
@@ -378,17 +379,17 @@ subroutine write_history(ipOut, dmb_state_new) !, cdt_state_new, ddc_state_new)
 !-----------------------------------------------------------------------
 !  Locals:
   REAL(KIND=8)  :: t_out, cauchy(3,3)
-  integer :: i 
+  integer :: i
 !-----------------------------------------------------------------------
   t_out = dmb_state_new%time(1)
-  
+
   cauchy = dmb_state_new%cauchy(ipOut,:,:)
-  
-  write(unit_visar,     100)  t_out, Nnode, dmb_state_new%xdot(Nnode,:)  
+
+  write(unit_visar,     100)  t_out, Nnode, dmb_state_new%xdot(Nnode,:)
   write(unit_velocity_th, 100) t_out, (ipOut+1), dmb_state_new%xdot(ipOut+1, :)
   write(unit_stress_th, 100)  t_out, ipOut, (cauchy(i,i),i=1,3),cauchy(2,3),cauchy(3,1),cauchy(1,2)
-  
-  
+
+
 100 format(es11.4,i8,20(2x,es20.13))
 
 end subroutine write_history
@@ -404,9 +405,10 @@ SUBROUTINE Print_DDC_State(ddc_state,ich)
 !-----------------------------------------------------------------------
 !  Inputs:
   TYPE(Type_DDC_STATE), intent(in)         :: ddc_state
+  integer, intent(in)                :: ich
 !-----------------------------------------------------------------------
 !  Locals:
-  INTEGER :: i,ich
+  integer :: i
   REAL(KIND=8), DIMENSION(Nel)       :: cell_sizes
   REAL(KIND=8), allocatable, DIMENSION(:,:,:) :: tau_i
   REAL(KIND=8), allocatable, DIMENSION(:,:) :: tau_b
@@ -415,7 +417,7 @@ SUBROUTINE Print_DDC_State(ddc_state,ich)
 !-----------------------------------------------------------------------
   allocate(tau_i(Nel,Nslip,Nchar), tau_b(Nel,Nslip))
   allocate(stress_i(Nel,3,3), epsilon_i(Nel,3,3))
-  
+
   !DDC state members:
   cell_sizes = ddc_state%cell_sizes  !! (Ncell)
   tau_i      = ddc_state%tau_i       !! (Ncell, Nslip, Nchar)
@@ -465,9 +467,10 @@ SUBROUTINE Print_DMB_State(dmb_state,ich)
 !-----------------------------------------------------------------------
 !  Inputs:
   TYPE(Type_DMB_STATE), intent(in)   :: dmb_state
+  integer, intent(in)                :: ich
 !-----------------------------------------------------------------------
 !  Locals:
-  INTEGER :: i,ich
+  integer :: i
   REAL(KIND=8), DIMENSION(Nnode,3)   :: x
   REAL(KIND=8), DIMENSION(Nnode)     :: X_ref
   REAL(KIND=8), DIMENSION(Nnode,3)   :: xdot
@@ -481,7 +484,7 @@ SUBROUTINE Print_DMB_State(dmb_state,ich)
   allocate(F(Nel,3,3), cauchy(Nel,3,3), Fp(Nel,3,3), Fe(Nel,3,3))
   allocate(vel(Nel,Nslip,Nchar), vel_x(Nel,Nslip,Nchar))
   allocate(tau(Nel,Nslip))
-  
+
   !DMB state members:
   x         = dmb_state%x
   X_ref     = dmb_state%X_ref
@@ -580,14 +583,15 @@ SUBROUTINE Print_CDT_State(cdt_state,ich)
 !-----------------------------------------------------------------------
 !  Inputs:
   TYPE(Type_CDT_STATE), intent(in)     :: cdt_state
+  integer, intent(in)                  :: ich
 !-----------------------------------------------------------------------
 !  Locals:
-  INTEGER :: i,ich
+  integer :: i
   REAL(KIND=8), DIMENSION(Nel)           :: cell_sizes
   REAL(KIND=8), allocatable, DIMENSION(:,:,:,:)   :: varrho_field, varrho_node
 !-----------------------------------------------------------------------
   allocate(varrho_field(Nel,Nslip,Nchar,2), varrho_node(Nnode,Nslip,Nchar,2))
-  
+
   !CDT state members:
   cell_sizes   = cdt_state%cell_sizes   !(Nel)
   varrho_field = cdt_state%varrho_field !(Nel,   Nslip, Nchar, 2)
