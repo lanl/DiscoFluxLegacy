@@ -68,10 +68,10 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Setup Fortran Package Manager
-        uses: fortran-lang/setup-fpm@v11
+        uses: fortran-lang/setup-fpm@v12
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          fpm-version: 'current'
+          # fpm-version: 'current'
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
