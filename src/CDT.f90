@@ -1,11 +1,12 @@
 ! © 2026. Triad National Security, LLC. All rights reserved.
-! This program was produced under U.S. Government contract 89233218CNA000001 for Los Alamos National Laboratory (LANL), 
+! This program was produced under U.S. Government contract 89233218CNA000001 for Los Alamos National Laboratory (LANL),
 ! which is operated by Triad National Security, LLC for the U.S. Department of Energy/National Nuclear Security Administration.
 ! All rights in the program are reserved by Triad National Security, LLC, and the U.S. Department of Energy/National Nuclear
 ! Security Administration. The Government is granted for itself and others acting on its behalf a nonexclusive, paid-up,
 ! irrevocable worldwide license in this material to reproduce, prepare. derivative works, distribute copies to the public, perform
 ! publicly and display publicly, and to permit others to do so.
 module discoflux_CDT_routines
+implicit none
 private
 public :: CDT_Combine_State, CDT_State_Init, CDT_Update_State
 contains
@@ -59,7 +60,7 @@ SUBROUTINE CDT_Update_State(cdt_state_old, ddc_state_new, dmb_state_new,  &
   allocate(varrho_src(Nel,Nslip,Nchar), velocity(Nel,Nslip,Nchar))
 !~   call cdt_state_new%allocatememory()
   cdt_props = all_cdt_props(1)
-  
+
   cell_sizes(:) = cdt_state_old%cell_sizes(:)
 
   call CDT_State_Init(cell_sizes,cdt_state_new)
@@ -85,7 +86,7 @@ SUBROUTINE CDT_Update_State(cdt_state_old, ddc_state_new, dmb_state_new,  &
       !$OMP END PARALLEL DO
     end do  !ich
 
-  elseif (cdt_props%update_method == 'FEM') then
+  else if (cdt_props%update_method == 'FEM') then
 
     do ich=1,Nchar
       !$OMP PARALLEL DO DEFAULT(SHARED), PRIVATE(islip)
@@ -93,7 +94,7 @@ SUBROUTINE CDT_Update_State(cdt_state_old, ddc_state_new, dmb_state_new,  &
         call FEM_Update(cdt_state_old%varrho_node(:,islip,ich,1), velocity(:,islip,ich),         &
                       flux_bc, varrho_src(:,islip,ich), cell_sizes, dt, cdt_props%scheme,  &
                       cdt_state_new%varrho_node(:,islip,ich,1))
-          
+
         call FEM_Update(cdt_state_old%varrho_node(:,islip,ich,2), -velocity(:,islip,ich),        &
                       flux_bc, varrho_src(:,islip,ich), cell_sizes, dt, cdt_props%scheme,  &
                       cdt_state_new%varrho_node(:,islip,ich,2))
@@ -109,8 +110,8 @@ SUBROUTINE CDT_Update_State(cdt_state_old, ddc_state_new, dmb_state_new,  &
   end if
 
 100 format(3a)
-  
-! Dislocation densities evaluated at element centers are stored in varrho 
+
+! Dislocation densities evaluated at element centers are stored in varrho
   if (cdt_props%update_method == 'FEM') then
 
     do iel=1,Nel
@@ -172,7 +173,7 @@ SUBROUTINE FV_Update(concentration, velocity, flux_bc, src, Lc, dt, nsc, &
   c(1) = concentration(1) + slopes(1) * 0.5d0*dX
   c(2) = concentration(1) - slopes(2) * 0.5d0*dX
   flux(1) = numFlux(c,v,dX,dt,nsc) ! Numerical flux
-  
+
   do iEdge=2,Nel
     dX   = 0.5d0*(Lc(iEdge)+Lc(iEdge-1))
     v(1) = velocity(iEdge-1)
@@ -190,18 +191,18 @@ SUBROUTINE FV_Update(concentration, velocity, flux_bc, src, Lc, dt, nsc, &
   c(1) = concentration(Nel) + slopes(Nel+1) * 0.5d0*dX
   c(2) = concentration(Nel) - slopes(Nel+2) * 0.5d0*dX
   flux(Nel+1) = numFlux(c,v,dX,dt,nsc) ! Numerical flux
- 
+
 ! Flux BCs
   if(abs(rnul-flux_bc(1))>rzero) flux(1)     = flux_bc(1)
   do iregion=1,Nregion
     iNode = region_mask(iregion,2) + 1
     if(abs(rnul-flux_bc(iregion+1))>rzero) flux(iNode) = flux_bc(iregion+1)
   end do
-  
+
 ! Evolution
   c_dot(1:Nel) = src(1:Nel) - (flux(2:Nel+1)-flux(1:Nel)) / Lc(1:Nel)
   c_new(:) = concentration(:) + c_dot(:) * dt
-  
+
 END SUBROUTINE FV_Update
 
 !<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><
@@ -241,16 +242,16 @@ SUBROUTINE reconstruct(concentration,Lc,limiter, slopes)
 
   if ( limiter == 'Fromm' ) then   ! centered slope (Fromm)
     slopes(1:Nel+2) = ( Q(3:Nel+4)-Q(1:Nel+2) ) / ( h(2:Nel+3) + 0.5d0*(h(1:Nel+2)+h(3:Nel+4)) )
-  elseif ( limiter == 'BW' ) then      ! upwind slope (Beam-Warming)
+  else if ( limiter == 'BW' ) then      ! upwind slope (Beam-Warming)
     slopes(1:Nel+2) = ( Q(2:Nel+3)-Q(1:Nel+2) ) / ( 0.5d0*(h(1:Nel+2)+h(2:Nel+3)) )
-  elseif ( limiter == 'LxW' ) then     ! downwind slope (Lax-Wendroff)
+  else if ( limiter == 'LxW' ) then     ! downwind slope (Lax-Wendroff)
     slopes(1:Nel+2) = ( Q(3:Nel+4)-Q(2:Nel+3) ) / ( 0.5d0*(h(2:Nel+3)+h(3:Nel+4)) )
-  elseif ( limiter == 'MMod' ) then    ! Minmod limiter
+  else if ( limiter == 'MMod' ) then    ! Minmod limiter
     do iel = 1, Nel+2
         slopes(iel) = minmod( ( Q(iel+1)-Q(iel  ) ) / ( 0.5d0*(h(iel+1)+h(iel  )) ), &
                               ( Q(iel+2)-Q(iel+1) ) / ( 0.5d0*(h(iel+2)+h(iel+1)) ) )
     end do ! iel
-  elseif ( limiter == 'SBee' ) then    ! Superbee limiter
+  else if ( limiter == 'SBee' ) then    ! Superbee limiter
     do iel = 1, Nel+2
         sed         = minmod(      ( Q(iel+2)-Q(iel+1) ) / ( 0.5d0*(h(iel+2)+h(iel+1)) ) , &
                               2.d0*( Q(iel+1)-Q(iel  ) ) / ( 0.5d0*(h(iel+1)+h(iel  )) ) )
@@ -258,7 +259,7 @@ SUBROUTINE reconstruct(concentration,Lc,limiter, slopes)
                                    ( Q(iel+1)-Q(iel  ) ) / ( 0.5d0*(h(iel+1)+h(iel  )) ) )
         slopes(iel) = maxmod( sed, awk )
     end do ! iel
-  elseif ( limiter == 'MC' ) then      ! Monotonized central-diff. limiter
+  else if ( limiter == 'MC' ) then      ! Monotonized central-diff. limiter
     do iel = 1, Nel+2
         sed         = minmod( 2.d0*( Q(iel+2)-Q(iel+1) ) / ( 0.5d0*(h(iel+2)+h(iel+1)) ) , &
                               2.d0*( Q(iel+1)-Q(iel  ) ) / ( 0.5d0*(h(iel+1)+h(iel  )) ) )
@@ -317,7 +318,7 @@ FUNCTION numFlux(c,v,dX,dt,nsc)
   IMPLICIT NONE
   REAL(KIND=8)                                    :: numFlux
 !-----------------------------------------------------------------------
-!  Inputs: 
+!  Inputs:
   REAL(KIND=8), DIMENSION(2),         INTENT(IN)  :: c,v
   REAL(KIND=8),                       INTENT(IN)  :: dX,dt
   CHARACTER(32),                INTENT(IN)  :: nsc
@@ -329,14 +330,14 @@ FUNCTION numFlux(c,v,dX,dt,nsc)
 
   f(1) = v(1)*c(1)
   f(2) = v(2)*c(2)
-  
+
   numFlux = 0.d0
 ! Central difference flux (Central)
   if (nsc == "Central") then
     numFlux = 0.5d0*( f(1)+f(2) )
 
 ! Godunov flux (Godunov)
-  elseif (nsc == "Godunov") then
+  else if (nsc == "Godunov") then
     if ( c(1) < c(2) ) then
       numFlux = min(f(1),f(2))
     else
@@ -344,14 +345,14 @@ FUNCTION numFlux(c,v,dX,dt,nsc)
     end if
 
 ! Lax-Friedrichs flux (LxF)
-  elseif (nsc == "LxF") then
+  else if (nsc == "LxF") then
 
     vlf = dX/dt           ! Add an excessive amount of artificial diffusion
 !   vlf = dX/dt*0.35      ! or add just a fraction (say 35%) of that
     numFlux = 0.5d0*( f(1)+f(2) ) - 0.5d0*vlf*( c(2)-c(1) )
 
 ! Local Lax-Friedrichs flux (LLF)
-  elseif (nsc == "LLF") then
+  else if (nsc == "LLF") then
     vlf = max( abs(v(1)), abs(v(2)) )
     numFlux = 0.5d0*( f(1)+f(2) ) - 0.5d0*vlf*( c(2)-c(1) )
 
@@ -444,7 +445,7 @@ SUBROUTINE FEM_Update(concentration, velocity, flux_bc, src, Lc, dt, nsc, &
     continue               ! We don't need anything extra
 
 ! Upwind Petrov Galerkin method (SUPG)
-  elseif (nsc == 'SUPG') then
+  else if (nsc == 'SUPG') then
 
   ! Compute SUPG arrays
 !~     call SUPG_Arrays(velocity, concentration, src, Lc, &
@@ -533,7 +534,7 @@ SUBROUTINE SUPG_Arrays(v, c, src, Lc, &
   INTEGER :: e
   REAL(KIND=8)  :: kappa,alpha,xi,tauv
 !-----------------------------------------------------------------------
-  
+
   M_supg        = 0.d0
   M_supg_lumped = 0.d0
   flux_supg     = 0.d0
@@ -650,7 +651,7 @@ SUBROUTINE CDT_Src_Calc(cdt_state_old, ddc_state_new, dmb_state_new, all_cdt_pro
   s_ann     = 0.d0
   s_nuc_hom = 0.d0
 
-!  Unpack state variables needed for source/sink calculations    
+!  Unpack state variables needed for source/sink calculations
   velocity   = dmb_state_new%vel_x
   tau        = dmb_state_new%tau
   tau_eff    = tau - ddc_state_new%tau_b
@@ -689,8 +690,8 @@ SUBROUTINE CDT_Src_Calc(cdt_state_old, ddc_state_new, dmb_state_new, all_cdt_pro
           end do !jslip
         end do  !jch
       end do !islip
- 
-!  Compute source/sink terms       
+
+!  Compute source/sink terms
     do ich=1,Nchar
       do islip=1,Nslip
         s_mult(iel,islip,ich) =  M*sqrt(varrho_obs(iel,islip))*varrho_tot(iel,islip,ich)*abs(velocity(iel,islip,ich))

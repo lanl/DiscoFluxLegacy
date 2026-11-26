@@ -1,11 +1,12 @@
 ! © 2026. Triad National Security, LLC. All rights reserved.
-! This program was produced under U.S. Government contract 89233218CNA000001 for Los Alamos National Laboratory (LANL), 
+! This program was produced under U.S. Government contract 89233218CNA000001 for Los Alamos National Laboratory (LANL),
 ! which is operated by Triad National Security, LLC for the U.S. Department of Energy/National Nuclear Security Administration.
 ! All rights in the program are reserved by Triad National Security, LLC, and the U.S. Department of Energy/National Nuclear
 ! Security Administration. The Government is granted for itself and others acting on its behalf a nonexclusive, paid-up,
 ! irrevocable worldwide license in this material to reproduce, prepare. derivative works, distribute copies to the public, perform
 ! publicly and display publicly, and to permit others to do so.
 module discoflux_UTILITIES
+implicit none
 public
 interface operator(.cross.)
   module procedure Cross
@@ -40,7 +41,7 @@ pure SUBROUTINE Interp1D(Xwant, n, X, F, Fwant)
   if(Xwant<=X(1)) then
     Fwant = F(1)
     return
-  elseif(Xwant>=X(n)) then
+  else if(Xwant>=X(n)) then
     Fwant = F(n)
     return
   end if
@@ -51,7 +52,7 @@ pure SUBROUTINE Interp1D(Xwant, n, X, F, Fwant)
 
   if(i==0) then
     i = 1
-  elseif(i>=n) then
+  else if(i>=n) then
     i = n - 1
   end if
   ip1 = i+1
@@ -113,7 +114,7 @@ pure SUBROUTINE Trapz(n, F, X, Integral)
   INTEGER, INTENT(IN) :: n
   REAL(KIND=8), INTENT(IN), DIMENSION(n)  :: F, X
   REAL(KIND=8), INTENT(OUT) :: Integral
- 
+
   Integral = sum(0.5d0*(F(2:n)+F(1:n-1))*(x(2:n)-x(1:n-1)))
 
 END SUBROUTINE Trapz
@@ -130,12 +131,12 @@ pure SUBROUTINE CumTrapz(n, F, X, Integral)
   INTEGER, intent(in) :: n
   REAL(KIND=8), DIMENSION(n), intent(in)  :: F, X
   REAL(KIND=8), DIMENSION(n-1), intent(out) :: Integral
-  
+
   INTEGER :: i, ip1, im1
   REAL(KIND=8)  :: dx, fbar
-  
+
   ! Compute each contribution
-  
+
   do i=1,n-1
     ip1 = i+1
     dx = x(ip1) - x(i)
@@ -164,7 +165,7 @@ pure function Identity(n)
   REAL(KIND=8), DIMENSION(n,n)  :: Identity
   INTEGER :: i
 
-  Identity = 0.d0  
+  Identity = 0.d0
   do i=1,n
     Identity(i,i) = 1.d0
   end do  !i
@@ -270,12 +271,12 @@ end function Outer_Product3
 pure function Cross(a,b) result(axb)
   REAL(KIND=8), DIMENSION(3), INTENT(IN)  :: a,b
   REAL(KIND=8), DIMENSION(3)  :: axb
-  
+
   axb(1) = a(2)*b(3) - a(3)*b(2)
   axb(2) = a(3)*b(1) - a(1)*b(3)
   axb(3) = a(1)*b(2) - a(2)*b(1)
  end function Cross
- 
+
 !-----------------------------------------------------------------------
 !<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><
 !-----------------------------------------------------------------------
@@ -291,7 +292,7 @@ pure SUBROUTINE ElBrak(a,b,Cmat,AB)
 !  Outputs:
   REAL(KIND=8), DIMENSION(3,3), INTENT(OUT) :: AB
 !-----------------------------------------------------------------------
-  integer l,o,k,p
+  integer :: l,o,k,p
   AB(:,:) = 0.d0
   do p=1,3
     do o=1,3
@@ -304,7 +305,7 @@ pure SUBROUTINE ElBrak(a,b,Cmat,AB)
   end do
 
 END SUBROUTINE ElBrak
-  
+
 
 !-----------------------------------------------------------------------
 !<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><
@@ -460,7 +461,7 @@ pure SUBROUTINE RotAlign(n,t,y,z,Mat)
   !-----------------------------------
   if (abs(dot_product(n,y)-1.d0)<1.d-15) then
     call RotAround(z,0.d0,rot1)
-  elseif (abs(dot_product(n,y)+1.d0)<1.d-15) then
+  else if (abs(dot_product(n,y)+1.d0)<1.d-15) then
     call RotAround(z,pi,rot1)
   else
     call RotInto(n,y,rot1)
@@ -468,7 +469,7 @@ pure SUBROUTINE RotAlign(n,t,y,z,Mat)
   newt = matmul(rot1,t)
   if (abs(dot_product(newt,z)-1.d0)<1.d-15) then
     call RotAround(y,0.d0,Mat)
-  elseif (abs(dot_product(newt,z)+1.d0)<1.d-15) then
+  else if (abs(dot_product(newt,z)+1.d0)<1.d-15) then
     call RotAround(y,pi,Mat)
   else
     call RotInto(newt,z,Mat)
@@ -504,7 +505,7 @@ SUBROUTINE readcmdline(jobname)
     if ((cmdlinearg == '--version') .or. (cmdlinearg == '-v')) then
       print*,prog_version
       stop
-    elseif ((cmdlinearg == '--help') .or. (cmdlinearg == '-h')) then
+    else if ((cmdlinearg == '--help') .or. (cmdlinearg == '-h')) then
       print*,"USAGE: ",trim(exe_name)," [--version] [--help] <jobname>"
       print*,"       (needed to read 'input_parameters.<jobname>.dat')"
       print*,"       or ",trim(exe_name)," <inputfilename>"
@@ -537,7 +538,7 @@ END SUBROUTINE readcmdline
 SUBROUTINE Fatal(message)
 
   IMPLICIT NONE
-  CHARACTER(*) message
+  character(*), intent(in) :: message
 !-----------------------------------------------------------------------
   write(*,10) message
 10  format(                         &

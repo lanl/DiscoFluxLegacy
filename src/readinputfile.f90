@@ -1,5 +1,5 @@
 ! © 2026. Triad National Security, LLC. All rights reserved.
-! This program was produced under U.S. Government contract 89233218CNA000001 for Los Alamos National Laboratory (LANL), 
+! This program was produced under U.S. Government contract 89233218CNA000001 for Los Alamos National Laboratory (LANL),
 ! which is operated by Triad National Security, LLC for the U.S. Department of Energy/National Nuclear Security Administration.
 ! All rights in the program are reserved by Triad National Security, LLC, and the U.S. Department of Energy/National Nuclear
 ! Security Administration. The Government is granted for itself and others acting on its behalf a nonexclusive, paid-up,
@@ -8,6 +8,7 @@
 module discoflux_readfiles
 USE discoflux_GlobalParams
 use discoflux_utilities, only: Fatal
+implicit none
 
 private
 public :: ReadSizes, ReadInput
@@ -58,7 +59,7 @@ close(unit=42)
 Nnode = Nel+1
 if(crystalstruct == "fcc") then
   Nslip = 12
-elseif(crystalstruct == "bcc") then
+else if(crystalstruct == "bcc") then
   Nslip = 48
 else
   call Fatal('Bad structure type: crystal symmetry '//crystalstruct//' unkown/not implemented')
@@ -205,7 +206,7 @@ do
   if (key=='CT12') read(values,*)CT12
   if (key=='CT44') read(values,*)CT44
   if (key=='specific_heat') read(values,*)specific_heat
-  
+
   if (key=='DDCtoler') read(values,*)DDCtoler
   if (key=='DMBtoler') read(values,*)DMBtoler
   if (key=='L0') read(values,*)L0
@@ -227,7 +228,7 @@ do
   if (key=='cdt_tau_n0') read(values,*)cdt_tau_n0
   if (key=='dt0') read(values,*)dt0
   if (key=='dt_output') read(values,*)dt_output
-  
+
   if (key=='g0') read(values,*)g0
   if (key=='gtol') read(values,*)gtol
   if (key=='impact_angle') read(values,*)impact_angle
@@ -253,7 +254,7 @@ do
   if (key=='props_dmb_perc_eos_perc_v0'.or.key=='eos_v0') read(values,*)eos_perc_v0
 !  if (key=='props_dmb_perc_eos_perc_v0'.or.key=='eos_v0') read(values,*)eos_perc_v0 ! computed from eos_perc_rho0 below
   if (key=='props_dmb_perc_eos_perc_v_star'.or.key=='eos_v_star') read(values,*)eos_perc_v_star
-  
+
   if (key=='q') read(values,*)q
   if (key=='rho0') read(values,*)rho0
   if (key=='rhobar0') read(values,*)rhobar0
@@ -277,11 +278,11 @@ do
     read(values,*)debug_cycle
     print*,"setting debug_cycle=",debug_cycle
   end if
-  
+
   if (key=='MaxIter') then
     read(values,*)value1
     MaxIter = int(value1)
-  elseif (key=='ipOut') then
+  else if (key=='ipOut') then
     read(values,*)value1
     ipOut = int(value1)
   end if
@@ -297,7 +298,7 @@ if ((j_eul>1) .and. (j_eul<=Nregion)) then
 end if
 
 ! compute some derived values:
-Lbar = 1.d0 / sqrt(rho0)   !((Mg/mm^3)  
+Lbar = 1.d0 / sqrt(rho0)   !((Mg/mm^3)
 Lrho = Lbar**2
 if (mu > 0.d0) then
   wave_vel(:) = sqrt(mu / rhobar0) ! mm / s
@@ -331,7 +332,7 @@ end if
 
 if ((crystalstruct == "fcc") .and. (Nslip>12)) then
   call Fatal('Nslip must be <= 12 for fcc')
-elseif ((crystalstruct == "bcc") .and. (Nslip>48)) then
+else if ((crystalstruct == "bcc") .and. (Nslip>48)) then
   call Fatal('Nslip must be <= 48 for fcc')
 end if
 

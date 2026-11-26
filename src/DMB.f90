@@ -1,11 +1,12 @@
 ! © 2026. Triad National Security, LLC. All rights reserved.
-! This program was produced under U.S. Government contract 89233218CNA000001 for Los Alamos National Laboratory (LANL), 
+! This program was produced under U.S. Government contract 89233218CNA000001 for Los Alamos National Laboratory (LANL),
 ! which is operated by Triad National Security, LLC for the U.S. Department of Energy/National Nuclear Security Administration.
 ! All rights in the program are reserved by Triad National Security, LLC, and the U.S. Department of Energy/National Nuclear
 ! Security Administration. The Government is granted for itself and others acting on its behalf a nonexclusive, paid-up,
 ! irrevocable worldwide license in this material to reproduce, prepare. derivative works, distribute copies to the public, perform
 ! publicly and display publicly, and to permit others to do so.
 module discoflux_DMB_routines
+implicit none
 private
 interface operator(.voigt.)
   module procedure Voigt43to26
@@ -54,18 +55,15 @@ SUBROUTINE DMB_Compute_EOS(eos_props, detF, temperature, &
   IMPLICIT NONE
 !-----------------------------------------------------------------------
 !  Inputs:
-  TYPE(Type_DMB_EOS)           :: eos_props
-  REAL(KIND=8)                       :: detF
-  REAL(KIND=8)                       :: temperature
+  TYPE(Type_DMB_EOS), INTENT(IN)           :: eos_props
+  REAL(KIND=8), INTENT(IN)                 :: detF
+  REAL(KIND=8), INTENT(IN)                 :: temperature
 !-----------------------------------------------------------------------
 !  Outputs:
-  REAL(KIND=8), DIMENSION(4) :: pressure
-  REAL(KIND=8), DIMENSION(4) :: free_energy
-  REAL(KIND=8), DIMENSION(3) :: entropy
-  REAL(KIND=8), DIMENSION(3) :: thermo_coeffs
-
-  INTENT(IN) eos_props, detF, temperature
-  INTENT(OUT) pressure, free_energy, entropy, thermo_coeffs
+  REAL(KIND=8), DIMENSION(4), INTENT(OUT) :: pressure
+  REAL(KIND=8), DIMENSION(4), INTENT(OUT) :: free_energy
+  REAL(KIND=8), DIMENSION(3), INTENT(OUT) :: entropy
+  REAL(KIND=8), DIMENSION(3), INTENT(OUT) :: thermo_coeffs
 !-----------------------------------------------------------------------
 !  Locals:
   REAL(KIND=8) :: third, rho0, v_star, Bstar, B1, Td0, a, b, gamma, Gamma0
@@ -79,32 +77,32 @@ SUBROUTINE DMB_Compute_EOS(eos_props, detF, temperature, &
 !-----------------------------------------------------------------------
   allocate(Dhat_array(7999,2))
   third = 1.d0 / 3.d0
-  
-  ! assign properties       
+
+  ! assign properties
   rho0   = eos_props%rho0
-  v_star = eos_props%v_star   
+  v_star = eos_props%v_star
   Bstar  = eos_props%B_star
-  B1     = eos_props%B1    
-  Td0    = eos_props%Td0  
-  a      = eos_props%a        
-  b      = eos_props%b     
-  gamma  = eos_props%gamma 
+  B1     = eos_props%B1
+  Td0    = eos_props%Td0
+  a      = eos_props%a
+  b      = eos_props%b
+  gamma  = eos_props%gamma
   Gamma0 = eos_props%Gamma0
-  kappa  = eos_props%kappa 
-  R_M    = eos_props%R_M   
+  kappa  = eos_props%kappa
+  R_M    = eos_props%R_M
   v0     = eos_props%v0
 
   Dhat_array = eos_props%Dhat
-  
+
   v      = detF / rho0
   X      = 1.5d0*(B1-1.d0)*( (v/v_star)**(third) - 1.d0)
   expX   = exp(-X)
   grun   = gamma/v + a/v0 + b*v/(v0**2)
-        
+
   ! compute pressures
   p_static = -3.d0*Bstar*((v_star/v)**third - (v_star/v)**(2.d0*third))*expX
   p_elect  =  0.5d0*(kappa/v)*Gamma0*(v/v0)**kappa*temperature**2
-        
+
   temp_debye = Td0*(v/v0)**(-gamma)*exp(-a*((v/v0) - 1.d0) - 0.5d0*b*( (v/v0)**2 - 1.d0) )
   if (temp_debye>10000.d0) then
     print*,"WARNING: unphysically high Debye temperature encountered, limiting to 10000"
@@ -114,87 +112,87 @@ SUBROUTINE DMB_Compute_EOS(eos_props, detF, temperature, &
     temp_debye = 1.d0
   end if
   temp_ratio = temp_debye / (max(temperature,1.d0))
-        
+
   exp_n   = exp(-temp_ratio)
   exp_p   = exp( temp_ratio)
   exp_pm1 = exp_p - 1.d0
   exp_nm1 = exp_n - 1.d0
   exp_n1m = 1.d0 - exp_n
-  
+
   call Interp1D(temp_ratio, 7999, Dhat_array(:,1), Dhat_array(:,2), Dhat)
-  
+
   p_ion = 3.d0*R_M*grun*temp_debye*(3.d0/8.d0 + exp_n / exp_n1m - 1.d0 / exp_pm1 + Dhat/temp_ratio)
   if(current_el==1.and.ncycle==debug_cycle) then
-    write(*,*) "rho0=",rho0       
-    write(*,*) "v_star=",v_star       
-    write(*,*) "Bstar=",Bstar       
-    write(*,*) "B1=",B1       
-    write(*,*) "Td0=",Td0       
-    write(*,*) "a=",a       
-    write(*,*) "b=",b       
-    write(*,*) "gamma=",gamma       
-    write(*,*) "Gamma0=",Gamma0       
-    write(*,*) "kappa=",kappa       
-    write(*,*) "R_M=",R_M       
-    write(*,*) "v0=",v0       
-    write(*,*) "v=",v       
-    write(*,*) "X=",X       
-    write(*,*) "expX=",expX       
-    write(*,*) "p_static=",p_static       
-    write(*,*) "p_elect=",p_elect       
-    write(*,*) "grun=",grun       
-    write(*,*) "temp_debye=",temp_debye       
-    write(*,*) "exp_n=",exp_n       
-    write(*,*) "exp_p=",exp_p       
-    write(*,*) "Dhat=",Dhat       
-    write(*,*) "temp_ratio=",temp_ratio       
+    write(*,*) "rho0=",rho0
+    write(*,*) "v_star=",v_star
+    write(*,*) "Bstar=",Bstar
+    write(*,*) "B1=",B1
+    write(*,*) "Td0=",Td0
+    write(*,*) "a=",a
+    write(*,*) "b=",b
+    write(*,*) "gamma=",gamma
+    write(*,*) "Gamma0=",Gamma0
+    write(*,*) "kappa=",kappa
+    write(*,*) "R_M=",R_M
+    write(*,*) "v0=",v0
+    write(*,*) "v=",v
+    write(*,*) "X=",X
+    write(*,*) "expX=",expX
+    write(*,*) "p_static=",p_static
+    write(*,*) "p_elect=",p_elect
+    write(*,*) "grun=",grun
+    write(*,*) "temp_debye=",temp_debye
+    write(*,*) "exp_n=",exp_n
+    write(*,*) "exp_p=",exp_p
+    write(*,*) "Dhat=",Dhat
+    write(*,*) "temp_ratio=",temp_ratio
   end if
 
   ! compute entropies
   s_elect = Gamma0*temperature*(v/v0)**kappa
   s_ion   = -R_M*(3.d0*log(exp_n1m) + 3.d0*temp_ratio*( 1.d0/exp_pm1 - exp_n/exp_n1m ) - 4.d0*Dhat)
-    
+
   !compute free energies
   psi_static = 4.d0*v_star*Bstar/((B1-1.d0)**2) * (1.d0-(1.d0+X)*expX )
   psi_ion    = R_M*( (9.d0/8.d0)*temp_debye + 3.d0*temperature*log(exp_n1m)-temperature*Dhat)
   psi_elect  = -0.5d0*Gamma0*((v/v0)**kappa)*temperature**2
-      
+
   !compute specific heat
   term1 = Gamma0*temperature*(v/v0)**kappa
-  term2 = temp_ratio**2 * exp_n/(exp_nm1**2) 
+  term2 = temp_ratio**2 * exp_n/(exp_nm1**2)
   term3 = temp_ratio*(1.d0/exp_pm1)*(3.d0 + temp_ratio*(exp_p/exp_pm1 ) )
   specific_heat = term1 + 3.d0*R_M*(term2 - term3 + 4.d0*Dhat)
-        
+
   ! compute thermoelastic coupling coefficient
   term1 = 3.d0*R_M*grun*temp_ratio**2 *( exp_n/(exp_nm1**2) &
            - exp_p/(exp_pm1**2) - 3.d0 / exp_pm1 / temp_ratio + 4.d0*Dhat/( (temp_ratio)**2) )
   term2 = (kappa/v)*Gamma0*temperature*(v/v0)**kappa
   te_coupling = -(term1+term2)
-        
+
   ! compute isothermal bulk modulus
   term1 = -Bstar*expX/v*(                                                &
         (v_star/v)**third *( 0.5d0*B1 - 1.5d0 + 2.d0*(v_star/v)**third)  &
           - 0.5d0*(B1 - 1.d0)      )
-        
+
   term2 = -3.d0*R_M*temp_debye*grun**2 * (                                        &
         (3.d0/8.d0 - exp_n/(exp_nm1)*(1.d0 + temp_ratio/(exp_nm1) ) +   &
         (1.d0 / (exp_pm1))*(2.d0 + temp_ratio*exp_p/(exp_pm1))           &
         -3.d0*Dhat/temp_ratio) )
-   
+
   term3 = kappa*(kappa - 1.d0)/(2.d0*v**2)*Gamma0*temperature**2*(v/v0)**kappa
-        
+
   bulk_mod = -v*(term1+term2+term3)
-        
+
   ! populate return arrays
-  p_total          = p_static + p_ion + p_elect 
+  p_total          = p_static + p_ion + p_elect
   pressure(:)      = (/ p_total, p_static, p_ion, p_elect /)
-        
+
   psi_total        = psi_static + psi_ion + psi_elect
   free_energy(:)   = (/ psi_total, psi_static, psi_ion, psi_elect /)
-        
+
   s_total          = s_ion + s_elect
   entropy(:)       = (/ s_total, s_ion, s_elect /)
-  
+
   thermo_coeffs(:) = (/ specific_heat, te_coupling, bulk_mod /)
 
 !  write(*,*) "--------------------"
@@ -316,7 +314,7 @@ END SUBROUTINE DMB_State_Init
 !-----------------------------------------------------------------------
 
 !> compute "active" rotation matrix using Bunge euler angles
-!> "active" rotation matrix is defined such that E_i = R_ij * e_j where 
+!> "active" rotation matrix is defined such that E_i = R_ij * e_j where
 !> e_i are the crystal base vectors and E_j are the global or "sample" base vectors
 pure SUBROUTINE DMB_Compute_Rotation(euler_angle, rot)
   IMPLICIT NONE
@@ -328,13 +326,13 @@ pure SUBROUTINE DMB_Compute_Rotation(euler_angle, rot)
   REAL(KIND=8), DIMENSION(3,3),         INTENT(OUT)   :: rot
 !-----------------------------------------------------------------------
 !  Locals:
-  REAL(KIND=8) phi1, Phi, phi2, cPhi, sPhi, c1, s1, c2, s2
+  REAL(KIND=8) :: phi1, Phi, phi2, cPhi, sPhi, c1, s1, c2, s2
 !-----------------------------------------------------------------------
 
   phi1 = euler_angle(1)
   Phi  = euler_angle(2)
   phi2 = euler_angle(3)
-  
+
   cPhi = cos(Phi)
   sPhi = sin(Phi)
 
@@ -348,15 +346,15 @@ pure SUBROUTINE DMB_Compute_Rotation(euler_angle, rot)
   ! makes no difference for euler_angle = (/0, 0, 0/)
   rot(1, 1:3) = (/ c1*c2 - s1*s2*cPhi,  -c1*s2 - s1*c2*cPhi,   s1*sPhi /)
   rot(2, 1:3) = (/ s1*c2 + c1*s2*cPhi,  -s1*s2 + c1*c2*cPhi,  -c1*sPhi /)
-  rot(3, 1:3) = (/            s2*sPhi,              c2*sPhi,      cPhi /)  
-  
+  rot(3, 1:3) = (/            s2*sPhi,              c2*sPhi,      cPhi /)
+
 END SUBROUTINE DMB_Compute_Rotation
 
 !-----------------------------------------------------------------------
 !<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><
 !-----------------------------------------------------------------------
 
-!> form a fourth order elasticity tensor from elastic constants (in crystal basis) 
+!> form a fourth order elasticity tensor from elastic constants (in crystal basis)
 !> and rotate into global basis
 pure subroutine DMB_form_elasticity(Cg, rotMat, elastic_constants, temperature, pressure)
 
@@ -408,13 +406,13 @@ Cc(1,3,1,3) = C0(3) + CT(3)*T_ + CP(3)*P_ !! C55
 Cc(2,1,2,1) = C0(3) + CT(3)*T_ + CP(3)*P_ !! C66
 Cc(2,1,1,2) = C0(3) + CT(3)*T_ + CP(3)*P_ !! C66
 Cc(1,2,2,1) = C0(3) + CT(3)*T_ + CP(3)*P_ !! C66
-Cc(1,2,1,2) = C0(3) + CT(3)*T_ + CP(3)*P_ !! C66    
+Cc(1,2,1,2) = C0(3) + CT(3)*T_ + CP(3)*P_ !! C66
 
 !~ do q=1,3; do r=1,3; do s=1,3; do t=1,3
 !~     do i=1,3; do j=1,3; do k=1,3; do l=1,3
 !~         Cg(q,r,s,t) = Cg(q,r,s,t) + rotMat(q,i)*rotMat(r,j)*rotMat(s,k)*rotMat(t,l)*Cc(i,j,k,l)
 !~     end do; end do; end do; end do
-!~ end do; end do; end do; end do      
+!~ end do; end do; end do; end do
 
 ! faster than the nested loops above:
 do s=1,3; do r=1,3; do q=1,3
@@ -456,7 +454,7 @@ pure function Voigt43to26(A4) result(A2)
   jind = (/1, 2, 3, 3, 1, 2/)
   do iv=1,6
     do jv=1,6
-      a2(iv,jv) = a4(iind(iv),jind(iv),iind(jv),jind(jv)) 
+      a2(iv,jv) = a4(iind(iv),jind(iv),iind(jv),jind(jv))
     end do  !jv
   end do  !iv
 
@@ -488,7 +486,7 @@ pure function Voigt26to43(A2) result(A4)
   !     a4(iind(iv),jind(iv),iind(jv),jind(jv)) = a2(iv,jv)
   !   end do  !jv
   ! end do  !iv
-  
+
   ! djl: add block below to fully populate 4th order tensor
   do i = 1,3
     do j = 1,3
@@ -496,8 +494,8 @@ pure function Voigt26to43(A2) result(A4)
         iv = i
       else
         iv = 9-(i+j)
-      end if 
-      
+      end if
+
       do k = 1,3
         do l = 1,3
           if (k==l) then
@@ -505,13 +503,13 @@ pure function Voigt26to43(A2) result(A4)
           else
             jv = 9-(k+l)
           end if
-	  
+
           a4(i,j,k,l) = a2(iv,jv)
-	  
+
         end do
       end do
     end do
-  end do 
+  end do
 
 end function Voigt26to43
 
@@ -551,7 +549,7 @@ SUBROUTINE DMB_Invert_Tensor43(A,Ainv)
   !     Aminv(i,j) = Aminv(i,j)*Winv(j)
   !   end do  !i
   !  end do  !j
-  
+
   ! djl --> above doesn't scale terms correctly for off-diagonal blocks
   ! shouldn't make a difference for cubic symmetry...
   Aminv(1:3, 4:6) = 0.50d0*Aminv(1:3, 4:6)  ! top right block
@@ -619,18 +617,20 @@ SUBROUTINE DMB_get_slip_system(name, slip_M_out, slip_S_out, slip_V, line_T, rot
 !-----------------------------------------------------------------------
 !  Outputs:
   REAL(KIND=8), DIMENSION(3,Nslip), INTENT(OUT) :: slip_M_out, slip_S_out  !! Slip normals M, slip directions S
-  REAL(KIND=8), DIMENSION(3,Nslip,Nchar), INTENT(OUT) :: slip_V, line_T  !! velocity directions `slip_V` and line directions `line_T`
+  !> velocity directions `slip_V` and line directions `line_T`
+  REAL(KIND=8), DIMENSION(3,Nslip,Nchar), INTENT(OUT) :: slip_V, line_T
   !> `rotM` = rotation matrices which will align `slip_M` and line sense with Cartesian directions y and z
   REAL(KIND=8), DIMENSION(3,3,Nslip,Nchar), INTENT(OUT) :: rotM
-  REAL(KIND=8), DIMENSION(Nslip,Nslip,Nchar), INTENT(OUT) :: Aforest !! `slip_S` is char independent, hence alpha=Nslip, beta=Nslip+Nchar
+  !> `slip_S` is char independent, hence alpha=Nslip, beta=Nslip+Nchar
+  REAL(KIND=8), DIMENSION(Nslip,Nslip,Nchar), INTENT(OUT) :: Aforest
 
 !-----------------------------------------------------------------------
 !  Locals:
   REAL(KIND=8), DIMENSION(3,max(48,Nslip)) :: slip_M, slip_S  !Slip normals M, slip directions S (local copy)
-  REAL(KIND=8) s, m, O, x, y
+  REAL(KIND=8) :: s, m, O, x, y
   REAL(KIND=8), DIMENSION(3,Nslip) :: crossMB
   ! arrays of cos/sin of character angles:
-  REAL(KIND=8), DIMENSION(Nchar) :: coschar,sinchar 
+  REAL(KIND=8), DIMENSION(Nchar) :: coschar,sinchar
   INTEGER :: islip, ich, jslip
 !-----------------------------------------------------------------------
   ! screw
@@ -645,10 +645,10 @@ SUBROUTINE DMB_get_slip_system(name, slip_M_out, slip_S_out, slip_V, line_T, rot
     coschar(ich) = cos(0.5d0*pi*(ich-1.d0)/(Nchar-1.d0))
     sinchar(ich) = sin(0.5d0*pi*(ich-1.d0)/(Nchar-1.d0))
   end do !ich
-  
+
   slip_M = 0.d0
   slip_S = 0.d0
-  
+
   if(name == "fcc") then
     s = 1.d0 / sqrt(2.d0)
     m = 1.d0 / sqrt(3.d0)
@@ -663,11 +663,11 @@ SUBROUTINE DMB_get_slip_system(name, slip_M_out, slip_S_out, slip_V, line_T, rot
     slip_M(:,4)  = (/-m, m, m/)
     slip_M(:,5)  = (/-m, m, m/)
     slip_M(:,6)  = (/-m, m, m/)
-  
+
     slip_M(:,7)  = (/m, -m, m/)
     slip_M(:,8)  = (/m, -m, m/)
     slip_M(:,9)  = (/m, -m, m/)
-  
+
     slip_M(:,10) = (/-m, -m, m/)
     slip_M(:,11) = (/-m, -m, m/)
     slip_M(:,12) = (/-m, -m, m/)
@@ -677,20 +677,20 @@ SUBROUTINE DMB_get_slip_system(name, slip_M_out, slip_S_out, slip_V, line_T, rot
     slip_S(:,1)  = (/  s, -s,  O/)
     slip_S(:,2)  = (/ -s,  O,  s/)
     slip_S(:,3)  = (/  O,  s, -s/)
-  
+
     slip_S(:,4)  = (/  s,  O,  s/)
     slip_S(:,5)  = (/ -s, -s,  O/)
     slip_S(:,6)  = (/  O,  s, -s/)
-  
+
     slip_S(:,7)  = (/ -s,  O,  s/)
     slip_S(:,8)  = (/  O, -s, -s/)
     slip_S(:,9)  = (/  s,  s,  O/)
-  
+
     slip_S(:,10) = (/ -s,  s,  O/)
     slip_S(:,11) = (/  s,  O,  s/)
     slip_S(:,12) = (/  O, -s, -s/)
-  
-  elseif(name == "bcc") then
+
+  else if(name == "bcc") then
     s = 1.d0 / sqrt(2.d0)
     m = 1.d0 / sqrt(3.d0)
     O = 0.d0
@@ -703,66 +703,66 @@ SUBROUTINE DMB_get_slip_system(name, slip_M_out, slip_S_out, slip_V, line_T, rot
     slip_M(:,1)  = (/  s, -s,  O/)
     slip_M(:,2)  = (/ -s,  O,  s/)
     slip_M(:,3)  = (/  O,  s, -s/)
-  
+
     slip_M(:,4)  = (/  s,  O,  s/)
     slip_M(:,5)  = (/ -s, -s,  O/)
     slip_M(:,6)  = (/  O,  s, -s/)
-  
+
     slip_M(:,7)  = (/ -s,  O,  s/)
     slip_M(:,8)  = (/  O, -s, -s/)
     slip_M(:,9)  = (/  s,  s,  O/)
-  
+
     slip_M(:,10) = (/ -s,  s,  O/)
     slip_M(:,11) = (/  s,  O,  s/)
     slip_M(:,12) = (/  O, -s, -s/)
-    
+
     ! {112} types:
     slip_M(:,13) = (/ x, x, 2.d0*x /)
     slip_M(:,14) = (/ x, x, -2.d0*x /)
     slip_M(:,15) = (/ x, -x, 2.d0*x /)
     slip_M(:,16) = (/ -x, x, 2.d0*x /)
-    
+
     slip_M(:,17) = (/ x, 2.d0*x, x /)
     slip_M(:,18) = (/ x, 2.d0*x, -x /)
     slip_M(:,19) = (/ x, -2.d0*x, x /)
     slip_M(:,20) = (/ -x, 2.d0*x, x /)
-    
+
     slip_M(:,21) = (/ 2.d0*x, x, x /)
     slip_M(:,22) = (/ 2.d0*x, x, -x /)
     slip_M(:,23) = (/ 2.d0*x, -x, x /)
     slip_M(:,24) = (/ -2.d0*x, x, x /)
-    
+
     ! {123} types:
     slip_M(:,25) = (/ y, 2.d0*y, 3.d0*y/)
     slip_M(:,26) = (/ y, 2.d0*y, -3.d0*y/)
     slip_M(:,27) = (/ y, -2.d0*y, 3.d0*y/)
     slip_M(:,28) = (/ -y, 2.d0*y, 3.d0*y/)
-    
+
     slip_M(:,29) = (/ 2.d0*y, y, 3.d0*y/)
     slip_M(:,30) = (/ 2.d0*y, y, -3.d0*y/)
     slip_M(:,31) = (/ 2.d0*y, -y, 3.d0*y/)
     slip_M(:,32) = (/ -2.d0*y, y, 3.d0*y/)
-    
+
     slip_M(:,33) = (/ 2.d0*y, 3.d0*y, y/)
     slip_M(:,34) = (/ 2.d0*y, 3.d0*y, -y/)
     slip_M(:,35) = (/ 2.d0*y, -3.d0*y, y/)
     slip_M(:,36) = (/ -2.d0*y, 3.d0*y, y/)
-    
+
     slip_M(:,37) = (/ y, 3.d0*y, 2.d0*y/)
     slip_M(:,38) = (/ y, 3.d0*y, -2.d0*y/)
     slip_M(:,39) = (/ y, -3.d0*y, 2.d0*y/)
     slip_M(:,40) = (/ -y, 3.d0*y, 2.d0*y/)
-    
+
     slip_M(:,41) = (/ 3.d0*y, y, 2.d0*y/)
     slip_M(:,42) = (/ 3.d0*y, y, -2.d0*y/)
     slip_M(:,43) = (/ 3.d0*y, -y, 2.d0*y/)
     slip_M(:,44) = (/ -3.d0*y, y, 2.d0*y/)
-    
+
     slip_M(:,45) = (/ 3.d0*y, 2.d0*y, y/)
     slip_M(:,46) = (/ 3.d0*y, 2.d0*y, y/)
     slip_M(:,47) = (/ 3.d0*y, 2.d0*y, y/)
     slip_M(:,48) = (/ 3.d0*y, 2.d0*y, y/)
-        
+
 !--------------------
 !  slip directions
 !--------------------
@@ -774,69 +774,69 @@ SUBROUTINE DMB_get_slip_system(name, slip_M_out, slip_S_out, slip_V, line_T, rot
     slip_S(:,4)  = (/-m, m, m/)
     slip_S(:,5)  = (/-m, m, m/)
     slip_S(:,6)  = (/-m, m, m/)
-  
+
     slip_S(:,7)  = (/m, -m, m/)
     slip_S(:,8)  = (/m, -m, m/)
     slip_S(:,9)  = (/m, -m, m/)
-  
+
     slip_S(:,10) = (/-m, -m, m/)
     slip_S(:,11) = (/-m, -m, m/)
     slip_S(:,12) = (/-m, -m, m/)
-    
+
     ! {112} types:
     slip_S(:,13) = (/ m, m, -m/)
     slip_S(:,14) = (/ m, m, m/)
     slip_S(:,15) = (/ m, -m, -m/)
     slip_S(:,16) = (/ -m, m, -m/)
-    
+
     slip_S(:,17) = (/ m, -m, m/)
     slip_S(:,18) = (/ m, -m, -m/)
     slip_S(:,19) = (/ m, m, m/)
     slip_S(:,20) = (/ -m, -m, m/)
-    
+
     slip_S(:,21) = (/ -m, m, m/)
     slip_S(:,22) = (/ -m, m, -m/)
     slip_S(:,23) = (/ -m, -m, m/)
     slip_S(:,24) = (/ m, m, m/)
-    
+
     ! {123} types:
     slip_S(:,25) = (/ m, m, -m/)
     slip_S(:,26) = (/ m, m, m/)
     slip_S(:,27) = (/ m, -m, -m/)
     slip_S(:,28) = (/ -m, m, -m/)
-    
+
     slip_S(:,29) = (/ m, m, -m/)
     slip_S(:,30) = (/ m, m, m/)
     slip_S(:,31) = (/ m, -m, -m/)
     slip_S(:,32) = (/ -m, m, -m/)
-    
+
     slip_S(:,33) = (/ m, -m, m/)
     slip_S(:,34) = (/ m, -m, -m/)
     slip_S(:,35) = (/ m, m, m/)
     slip_S(:,36) = (/ -m, -m, m/)
-    
+
     slip_S(:,37) = (/ m, -m, m/)
     slip_S(:,38) = (/ m, -m, -m/)
     slip_S(:,39) = (/ m, m, m/)
     slip_S(:,40) = (/ -m, -m, m/)
-    
+
     slip_S(:,41) = (/ -m, m, m/)
     slip_S(:,42) = (/ -m, m, -m/)
     slip_S(:,43) = (/ -m, -m, m/)
     slip_S(:,44) = (/ m, m, m/)
-    
+
     slip_S(:,45) = (/ -m, m, m/)
     slip_S(:,46) = (/ -m, m, -m/)
     slip_S(:,47) = (/ -m, -m, m/)
     slip_S(:,48) = (/ m, m, m/)
-  
+
   else
     call Fatal('Bad structure type: crystal symmetry '//name//' unkown/not implemented')
   end if
-  
+
   slip_M_out(:,:) = slip_M(:,:Nslip)
   slip_S_out(:,:) = slip_S(:,:Nslip)
-!--------------------    
+!--------------------
 !  disloc. vel directions (depend on dislocation character, edge=parallel to burgers)
 !  slip_V = line(char) x slip_M (line is normal/parallel to burgers for edge/screw)
     do islip=1,Nslip
@@ -850,7 +850,7 @@ SUBROUTINE DMB_get_slip_system(name, slip_M_out, slip_S_out, slip_V, line_T, rot
         call RotAlign(slip_M(:,islip),line_T(:,islip,ich),(/0.d0,1.d0,0.d0/),(/0.d0,0.d0,1.d0/),rotM(:,:,islip,ich))
       end do !islip
     end do !ich
-    
+
     ! compute matrix Aforest that will be used to determine the dislocation source term of CDT subsystem
     Aforest = 0.d0
     do islip=1,Nslip
@@ -908,14 +908,14 @@ SUBROUTINE xtal_Update_Stress(F_new, Fp_old, F_i, Cg, slip_Sg, slip_Mg, dgamma, 
 
   exp_dE = ExpMat(dE)
   Fp_new = MATMUL(exp_dE, Fp_old)
-  
-  ! djl --> just as a check 
+
+  ! djl --> just as a check
   !Fp_new  = matmul( (eye + dE), Fp_old )  ! 1st-Order Pade approx
-  
+
   Fbar = MATMUL(F_i, Fp_new)
   call DetInv3x3(Fbar,D,Fbar_inv)
   Fe_new = MATMUL(F_new, Fbar_inv)
- 
+
   ! different strain measure could go here
   if (.True.) then
     Ee = 0.5d0*(MATMUL(transpose(Fe_new),Fe_new) - eye)
@@ -924,7 +924,7 @@ SUBROUTINE xtal_Update_Stress(F_new, Fp_old, F_i, Cg, slip_Sg, slip_Mg, dgamma, 
         pk2(i,j) = sum(Cg(i,j,:,:)*Ee(:,:))
       end do  !i
     end do  !j
-  
+
     cauchy_new = MATMUL(MATMUL(Fe_new, pk2), TRANSPOSE(Fe_new)) / (.det.Fe_new)
 
   else
@@ -934,7 +934,7 @@ SUBROUTINE xtal_Update_Stress(F_new, Fp_old, F_i, Cg, slip_Sg, slip_Mg, dgamma, 
         cauchy_new(i,j) = sum(Cg(i,j,:,:)*Ee(:,:))
       end do  !i
     end do  !j
-   
+
   end if
 
   if(current_el==1.and.ncycle==debug_cycle) then
@@ -955,7 +955,7 @@ END SUBROUTINE xtal_Update_Stress
 
 SUBROUTINE Compute_Velocities(sigma, tau_b, temp, Fe, slip_Sg, slip_Mg, rho,  props, &
            detF, pressure, vel, tau)
-  
+
   USE discoflux_GlobalParams
   USE discoflux_DMB, only: Type_DMB_PROPS
   use discoflux_utilities, only: DetInv3x3
@@ -992,12 +992,12 @@ SUBROUTINE Compute_Velocities(sigma, tau_b, temp, Fe, slip_Sg, slip_Mg, rho,  pr
     S      = MATMUL(Fe              , slip_Sg(:,i))
     M      = MATMUL(transpose(FeInv), slip_Mg(:,i))
     tau(i) = detFe * dot_product( S, MATMUL(sigma, M))
-  end do  !i    
+  end do  !i
 
   ! tau_a = 1.1d0 ! test with athermal barrier to dislocation motion
   ! tau_eff(:) = sign(abs(abs(tau(:) - tau_b(:)) - tau_a),tau(:) - tau_b(:))
   tau_eff(:) = (tau(:) - tau_b(:)) ! * (sign(0.5d0,abs(tau(:) - tau_b(:)) - tau_a)+0.5d0)
-      
+
   ! mean velocity is combination
   call Dislocation_Velocity(tau_eff, temp, rho,  props, detF, pressure, &
                             vel)
@@ -1050,10 +1050,10 @@ SUBROUTINE Dislocation_Velocity(tau_eff, temp, rho,  props, detF, pressure, &
   ! Assign properties
   drag_Trho_flag = props%drag_Trho_flag ! decide whether to include T,rho dependence in drag coeff.
   c1          = props%c1
-  Lbar        = props%Lbar    
-  g0          = props%g0      
+  Lbar        = props%Lbar
+  g0          = props%g0
   omega0      = props%omega0
-  p           = props%p       
+  p           = props%p
   q           = props%q
   tau0        = props%tau0
   drag_flag   = props%drag_flag
@@ -1091,12 +1091,12 @@ SUBROUTINE Dislocation_Velocity(tau_eff, temp, rho,  props, detF, pressure, &
   sign_tau(:) = sign(1.d0,tau_eff(:))
   tau_eff2(:) = abs(tau_eff(:))
 
-  ! Instantaneous velocity (drag limited + relativistic effect)     
+  ! Instantaneous velocity (drag limited + relativistic effect)
   t_wait(:,:)  = 0.d0
   t_run(:,:)   = 0.d0
   vel_run(:,:) = 0.d0
   vel(:,:)     = 0.d0
-  
+
   if (drag_flag=='iso') then
     do ich=1,Nchar
       do i=1,Nslip
@@ -1107,7 +1107,7 @@ SUBROUTINE Dislocation_Velocity(tau_eff, temp, rho,  props, detF, pressure, &
         end if
       end do  !i
     end do  !i
-  elseif (drag_flag=='const') then
+  else if (drag_flag=='const') then
     do ich=1,Nchar
       do i=1,Nslip
         if (tau_eff2(i) > small2) then
@@ -1127,7 +1127,7 @@ SUBROUTINE Dislocation_Velocity(tau_eff, temp, rho,  props, detF, pressure, &
     end do  !i
   end if ! choose drag
 
-  ! Wait / run times (Kocks thermal activiation)    
+  ! Wait / run times (Kocks thermal activiation)
   do ich=1,Nchar
   do i=1,Nslip
     inner = 1.d0 - ( tau_eff2(i) / slip_r(i,ich) )**p
@@ -1145,7 +1145,7 @@ SUBROUTINE Dislocation_Velocity(tau_eff, temp, rho,  props, detF, pressure, &
     if (vel_run(i,ich) > small2) then
       t_run(i,ich) = Lbar / vel_run(i,ich)
     end if
-    
+
     if (vel_run(i,ich) > small2) then
       ! mean velocity is combination
       vel(i,ich) = sign_tau(i)*Lbar / (t_wait(i,ich) + t_run(i,ich))
@@ -1163,7 +1163,7 @@ END SUBROUTINE Dislocation_Velocity
 SUBROUTINE RK_Rates(dt, temp, F_old, F_new, Fe_old, Fp_old, cauchy_old, J_new, pressure, &
            field_variables, slip_Sg, slip_Mg, Cg, props, &
            gamma_dot, error)
-  
+
   USE discoflux_GlobalParams
   USE discoflux_DMB, only: Type_DMB_FIELD_VARIABLES, Type_DMB_PROPS
   use discoflux_utilities, only: Identity
@@ -1231,7 +1231,7 @@ SUBROUTINE RK_Rates(dt, temp, F_old, F_new, Fe_old, Fp_old, cauchy_old, J_new, p
   !====================================================================================!
   !       RK Step 2: F=F_mid, dgamma = gdot1*dt/2 --> sig2, vel2, gdot2     !
   !====================================================================================!
-      
+
   if(current_el==1.and.ncycle==debug_cycle) then
     write(*,'(a)') "rk_rates(), step 2"
   end if
@@ -1240,7 +1240,7 @@ SUBROUTINE RK_Rates(dt, temp, F_old, F_new, Fe_old, Fp_old, cauchy_old, J_new, p
   !write(*,'("dt=",es28.16)') dt
   !write(*,'("RK2_pre, dgamma:",/,12es28.16)') dgamma(:)
   !write(*,'("RK2_pre, F:",3(/,3es28.16))') ((F(i,j),j=1,3),i=1,3)
-  
+
   call xtal_Update_Stress(F, Fp_old, F_i, Cg, slip_Sg, slip_Mg, dgamma, &
                           cauchy, Fe, Fp)
 
@@ -1256,7 +1256,7 @@ SUBROUTINE RK_Rates(dt, temp, F_old, F_new, Fe_old, Fp_old, cauchy_old, J_new, p
   !====================================================================================!
   !       RK Step 3: F=F_mid, dgamma = gdot2*dt/2 --> sig3, vel3, rho_dot_3, gdot3     !
   !====================================================================================!
-      
+
   if(current_el==1.and.ncycle==debug_cycle) then
     write(*,'(a)') "rk_rates(), step 3"
   end if
@@ -1265,16 +1265,16 @@ SUBROUTINE RK_Rates(dt, temp, F_old, F_new, Fe_old, Fp_old, cauchy_old, J_new, p
 
   call xtal_Update_Stress(F, Fp_old, F_i, Cg, slip_Sg, slip_Mg, dgamma, &
                           cauchy, Fe, Fp)
-      
+
   call Compute_Velocities(cauchy, tau_b, temp, Fe, slip_Sg, slip_Mg, varrho_mobile_sum,  props, &
                           J_new, pressure, vel, tau)
-			  
+
   gamma_dot_3(:,:)  = varrho_mobile_sum(:,:)*vel(:,:)*brgr
-      
+
   !====================================================================================!
   !       RK Step 4: F=F_new, dgamma = gdot3*dt --> sig4, vel4, rho_dot_4, gdot4       !
   !====================================================================================!
-      
+
   if(current_el==1.and.ncycle==debug_cycle) then
     write(*,'(a)') "rk_rates(), step 4"
   end if
@@ -1283,7 +1283,7 @@ SUBROUTINE RK_Rates(dt, temp, F_old, F_new, Fe_old, Fp_old, cauchy_old, J_new, p
 
   call xtal_Update_Stress(F, Fp_old, F_i, Cg, slip_Sg, slip_Mg, dgamma, &
                           cauchy, Fe, Fp)
-  
+
   call Compute_Velocities(cauchy, tau_b, temp, Fe, slip_Sg, slip_Mg, varrho_mobile_sum,  props, &
                           J_new, pressure, vel, tau)
   gamma_dot_4(:,:)  = varrho_mobile_sum(:,:)*vel(:,:)*brgr
@@ -1292,29 +1292,29 @@ SUBROUTINE RK_Rates(dt, temp, F_old, F_new, Fe_old, Fp_old, cauchy_old, J_new, p
   !====================================================================================!
   !       RK Step 5: F=F_new, (this is for third order RK to estimate error            !
   !====================================================================================!
-      
+
   if(current_el==1.and.ncycle==debug_cycle) then
     write(*,'(a)') "rk_rates(), step 5"
   end if
   dgamma(:,:) = dt*( 2.d0*gamma_dot_2(:,:) - gamma_dot_1(:,:))
   F      = F_new
-  
+
   call xtal_Update_Stress(F, Fp_old, F_i, Cg, slip_Sg, slip_Mg, dgamma, &
                           cauchy, Fe, Fp)
-  
+
   call Compute_Velocities(cauchy, tau_b, temp, Fe, slip_Sg, slip_Mg, varrho_mobile_sum,  props, &
                           J_new, pressure, vel, tau)
-			  
+
   gamma_dot_5(:,:)  = varrho_mobile_sum(:,:)*vel(:,:)*brgr
 
   !====================================================================================!
   !       Final update of evolving vars based on DEs                                   !
-  !====================================================================================!        
-      
+  !====================================================================================!
+
   gamma_dot(:,:)    = (gamma_dot_1(:,:) + 2.d0*(gamma_dot_2(:,:) + gamma_dot_3(:,:)) + gamma_dot_4(:,:)) / (6.d0)
-  
+
   gamma_dot_third(:,:) = (gamma_dot_1(:,:) + 4.d0*gamma_dot_2(:,:)  + gamma_dot_5(:,:)) / (6.d0)
- 
+
   error(:,:) = abs((gamma_dot(:,:) - gamma_dot_third(:,:))) / (abs(gamma_dot(:,:)) + 1.d-3) ! error norm
 
 END SUBROUTINE RK_Rates
@@ -1326,7 +1326,7 @@ END SUBROUTINE RK_Rates
 SUBROUTINE RK_SubIncrement(dt, T_old,  F_old, F_new, J_new, pressure, Fe_old, &
                Fp_old, cauchy_old, field_variables, slip_Sg, slip_Mg, Cmat, props, &
                cauchy, Fe_new, Fp_new, dgamma, Nsub, icutback)
-  
+
   USE discoflux_GlobalParams
   USE discoflux_DMB, only: Type_DMB_FIELD_VARIABLES, Type_DMB_PROPS
   use discoflux_utilities, only: Identity
@@ -1357,7 +1357,7 @@ SUBROUTINE RK_SubIncrement(dt, T_old,  F_old, F_new, J_new, pressure, Fe_old, &
 !  Locals:
   REAL(KIND=8), DIMENSION(Nslip,Nchar,2) :: varrho_ip
 !  REAL(KIND=8), DIMENSION(Nslip,Nchar)   :: varrho_mobile_sum
-  REAL(KIND=8) gtol, t_prime, t_final, dt_prime, dt_fac
+  REAL(KIND=8) :: gtol, t_prime, t_final, dt_prime, dt_fac
   REAL(KIND=8), DIMENSION(3,3) :: F_i, epsilon_i, F_dot, F0, cauchy0, Fe0, Fp0, Fp, F1!, pk2
   LOGICAL :: flag_continue, flag_last_step
   REAL(KIND=8), DIMENSION(Nslip) :: tau_b
@@ -1370,9 +1370,9 @@ SUBROUTINE RK_SubIncrement(dt, T_old,  F_old, F_new, J_new, pressure, Fe_old, &
   t_final = dt
 
   ! compute def grad. associated with dislocation configuration
-  
-  !   -- note, this should probably be incremented from 
-  !      "old" value throughout the subincrements. would 
+
+  !   -- note, this should probably be incremented from
+  !      "old" value throughout the subincrements. would
   !      require more wiring than I want to do right now.
   varrho_ip = field_variables%varrho_ip
   tau_b     = field_variables%tau_b
@@ -1389,7 +1389,7 @@ SUBROUTINE RK_SubIncrement(dt, T_old,  F_old, F_new, J_new, pressure, Fe_old, &
   ! Compute constant deformation rate
   F_dot(:,:) = (F_new(:,:)-F_old(:,:))/dt
   ! L     = sl.logm(matmul(F_new, k_inv3x3(F_old)) ) / dt
-  
+
   ! Initialize state
   dgamma_total = 0.d0
   dt_prime     = dt
@@ -1404,7 +1404,7 @@ SUBROUTINE RK_SubIncrement(dt, T_old,  F_old, F_new, J_new, pressure, Fe_old, &
   !write(*,'("Fe0:",3(/,3es28.16))') ((Fe0(i,j),j=1,3),i=1,3)
   !write(*,'("Fp0:",3(/,3es28.16))') ((Fp0(i,j),j=1,3),i=1,3)
   !write(*,'("F1:",3(/,3es28.16))') ((F1(i,j),j=1,3),i=1,3)
-  
+
   ! Loop until full time step has been accomplished (or gives up)
   icutback       = 0
   flag_continue  = .True.
@@ -1439,7 +1439,7 @@ SUBROUTINE RK_SubIncrement(dt, T_old,  F_old, F_new, J_new, pressure, Fe_old, &
       if(current_el==1.and.ncycle==debug_cycle) then
         write(*,'(a)') "Cutting back..."
       end if
-      
+
     else
       ! check if this was the last step
       if (flag_last_step) then
@@ -1448,22 +1448,22 @@ SUBROUTINE RK_SubIncrement(dt, T_old,  F_old, F_new, J_new, pressure, Fe_old, &
           write(*,'(a)') "Last step..."
         end if
       end if
-      
+
       ! update state and continue on
 
       dgamma(:,:)    = gamma_dot(:,:)*dt_prime
       dgamma_total = dgamma_total + dgamma
-      
+
       F0(:,:)      = F1(:,:)
       !write(*,'("dgamma:",/,12es28.16)') (dgamma(j),j=1,Nslip)
       !write(*,'("F0:",3(/,3es28.16))') ((F0(i,j),j=1,3),i=1,3)
-      
+
       ! update time
       if (t_prime+ 1.01d0*dt_prime >= t_final) then
         dt_prime       = t_final-t_prime
         t_prime        = t_final
         flag_last_step = .True.
-        
+
       else
         if(t_prime+dt_fac*dt_prime >= t_final) then
           dt_prime       = t_final - t_prime
@@ -1477,7 +1477,7 @@ SUBROUTINE RK_SubIncrement(dt, T_old,  F_old, F_new, J_new, pressure, Fe_old, &
           end if
         end if
       end if
-        
+
       ! update Fe, Fp, cauchy
       call xtal_Update_Stress(F0, Fp0, F_i, Cmat, slip_Sg, slip_Mg, dgamma, &
                               cauchy0, Fe0, Fp)
@@ -1497,8 +1497,8 @@ SUBROUTINE RK_SubIncrement(dt, T_old,  F_old, F_new, J_new, pressure, Fe_old, &
   cauchy(:,:) = cauchy0(:,:)
   Fe_new(:,:) = Fe0(:,:)
   Fp_new(:,:) = Fp0(:,:)
-  
-  ! djl: dgamma_total added to totalize over all subincrements, then total 
+
+  ! djl: dgamma_total added to totalize over all subincrements, then total
   !      dgamma returned rather than final sub-increment's dgamma.
   dgamma = dgamma_total
 
@@ -1523,7 +1523,7 @@ SUBROUTINE stroh_dislocation(props,vel,resolution,uij,Sb,Bb,Cmat)
 ! Outputs:
   REAL(KIND=8), DIMENSION(3,3,resolution,Nslip,Nchar), INTENT(OUT) :: uij
   REAL(KIND=8), DIMENSION(3,Nslip,Nchar), INTENT(OUT) :: Sb, Bb ! stroh matrices S, B projected onto unit Burgers vector
-  REAL(KIND=8), DIMENSION(3,3,3,3), INTENT(OUT) :: Cmat 
+  REAL(KIND=8), DIMENSION(3,3,3,3), INTENT(OUT) :: Cmat
 !-----------------------------------------------------------------------
   REAL(KIND=8), DIMENSION(3,Nslip)     :: slip_S, slip_M
   REAL(KIND=8), DIMENSION(3,Nslip,Nchar) :: slip_V
@@ -1541,21 +1541,21 @@ SUBROUTINE stroh_dislocation(props,vel,resolution,uij,Sb,Bb,Cmat)
   Bb = 0.d0
   eye = Identity(3)
   ! ------------- assign properties from props list ----------------------------
-  
+
   elastic_constants(:,:) = 0.d0
   elastic_constants(1,1) = props%C11
   elastic_constants(2,1) = props%C12
   elastic_constants(3,1) = props%C44
-  
+
 !~   burger = props%burger
   rhobar0 = props%rhobar0
   slip_M = props%slip_M
   slip_S = props%slip_S
   slip_V = props%slip_V
-  
+
   ! don't rotate, keep in crystal coordinates for now (Qrot=eye)
   call DMB_Compute_Rotation((/0.d0,0.d0,0.d0/), Qrot)
-  ! use room temperature and ambient pressure for now; MIGHT recompute for current conditions 
+  ! use room temperature and ambient pressure for now; MIGHT recompute for current conditions
   ! in some later implementation, but that would require a lot of extra computation time for
   ! backstress computations, so need to check if it's worth it
   call DMB_form_elasticity(Cmat, Qrot, elastic_constants, 0.d0, 0.d0)
@@ -1670,7 +1670,7 @@ SUBROUTINE Constitutive_DMB( &
   REAL(KIND=8), DIMENSION(3,3),           INTENT(OUT)   :: Fe_new
   REAL(KIND=8), DIMENSION(Nslip),         INTENT(OUT)   :: tau
   REAL(KIND=8), dimension(Nslip,Nchar),         intent(out)   :: dgamma
-  
+
   INTEGER,                          INTENT(OUT)   :: Nsub
   INTEGER,                          INTENT(OUT)   :: i_cutback
 !-----------------------------------------------------------------------
@@ -1704,30 +1704,30 @@ SUBROUTINE Constitutive_DMB( &
   !==============================================================================!
 
   ! ------------- assign properties from props list ----------------------------
-  
+
   rhobar0     = props%rhobar0
-  C11         = props%C11    
-  C12         = props%C12    
-  C44         = props%C44    
-  
-  burger      = props%burger    
-  g0          = props%g0     
+  C11         = props%C11
+  C12         = props%C12
+  C44         = props%C44
+
+  burger      = props%burger
+  g0          = props%g0
   bulk_c1     = props%bulk_c1
   bulk_c2     = props%bulk_c2
   euler_angle = props%euler_angle
-  
+
   slip_S      = props%slip_S
   slip_M      = props%slip_M
   slip_V      = props%slip_V
-  
+
   ! crystal-basis elasticity
   Q       = props%Qrot
   Cmat    = props%Cg
   slip_Sg = props%slip_Sg
   slip_Vg = props%slip_Vg
-  
+
   T_ref   = props%T_ref
-  
+
   pressure_old = -(cauchy_old(1,1)+cauchy_old(2,2)+cauchy_old(3,3)) / 3.d0
 
   call DMB_form_elasticity(Cmat, props%Qrot, props%elastic_constants, &
@@ -1737,7 +1737,7 @@ SUBROUTINE Constitutive_DMB( &
   varrho_ip = field_variables%varrho_ip
   tau_b     = field_variables%tau_b
   epsilon_i = field_variables%epsilon_i
-  
+
   ! get slip systems into global coordinates
   slip_Sg(:,:) = 0.d0
   slip_Mg(:,:) = 0.d0
@@ -1745,13 +1745,13 @@ SUBROUTINE Constitutive_DMB( &
     slip_Sg(:,i) = Q(:,1)*slip_S(1,i) + Q(:,2)*slip_S(2,i) + Q(:,3)*slip_S(3,i)
     slip_Mg(:,i) = Q(:,1)*slip_M(1,i) + Q(:,2)*slip_M(2,i) + Q(:,3)*slip_M(3,i)
   end do  !i
-  
+
   do ich=1, Nchar
     do i=1, Nslip
       slip_Vg(:,i,ich) = Q(:,1)*slip_V(1,i,ich) + Q(:,2)*slip_V(2,i,ich) + Q(:,3)*slip_V(3,i,ich)
     end do  !i
   end do  !ich
-  
+
 
   ! debug constitutive
   ! pdb.set_trace()
@@ -1772,9 +1772,9 @@ SUBROUTINE Constitutive_DMB( &
     print*,"WARNING: negative det(F_new), setting to tiny. timestep too large?"
     J_new = 1.d-40
   end if
-    
+
   if (props%eos%eos_flag) then
-      
+
     Fbar_old(:,:) = ( J_old**(-third) )*F_old(:,:)
     Fbar_new(:,:) = ( J_new**(-third) )*F_new(:,:)
 
@@ -1788,7 +1788,7 @@ SUBROUTINE Constitutive_DMB( &
   !==============================================================================!
   !       Step 1:    Subincrementation, RK scheme to update Fp, Fe, stress       !
   !==============================================================================!
-  
+
   call RK_SubIncrement(dt, T_old,  Fbar_old, Fbar_new, J_new, pressure_old, &
           Fe_old, Fp_old, cauchy_old, field_variables, slip_Sg, slip_Mg, Cmat, props, &
           cauchy, Fe_new, Fp_new, dgamma, Nsub, i_cutback)
@@ -1832,33 +1832,33 @@ SUBROUTINE Constitutive_DMB( &
     specific_heat = thermo_coeffs(1)
     bulk_modulus  = max(thermo_coeffs(3),1.d-15)
     wave_speed    = sqrt(bulk_modulus / rhobar0)
-  
+
   else
-    specific_heat = props%specific_heat  
+    specific_heat = props%specific_heat
     bulk_modulus = (C11 + 2.d0*C12) * third
     wave_speed    = sqrt(bulk_modulus / rhobar0)
-    thermo_coeffs = (/specific_heat, 0.d0, bulk_modulus/) 
+    thermo_coeffs = (/specific_heat, 0.d0, bulk_modulus/)
   end if
-  
+
   !==============================================================================!
   !       Step 3: Include bulk viscosity                                         !
-  !==============================================================================!  
+  !==============================================================================!
 
   ! L    = sl.logm(nmp.dot(def_grad, sl.inv(F_old) ) ) / dt
-  ! jdot = nmp.trace(L) 
+  ! jdot = nmp.trace(L)
   jdot   = (F_new(1,1) - F_old(1,1)) / dt ! approximation for 1D case
-  
+
   ! pressure is positive in compression, negative in tension
   p_diss  = -bulk_c1*rhobar0*wave_speed*elem_len*jdot                     ! linear term
-  p_diss = p_diss - sign(1.d0,jdot)*rhobar0*( bulk_c2*elem_len*jdot )**2  ! quadratic term 
-  
+  p_diss = p_diss - sign(1.d0,jdot)*rhobar0*( bulk_c2*elem_len*jdot )**2  ! quadratic term
+
   cauchy(1,1) = cauchy(1,1) - p_diss ! add dissipative pressure back into stress
   cauchy(2,2) = cauchy(2,2) - p_diss
   cauchy(3,3) = cauchy(3,3) - p_diss
 
   !==============================================================================!
   !       Step 4: Update temperature                                             !
-  !==============================================================================!  
+  !==============================================================================!
 
   ! shock heating
   call EOS_Shock_Heat(props%eos, thermo_coeffs, p_diss, J_new, J_old, T_old(1), &
@@ -1886,7 +1886,7 @@ SUBROUTINE Constitutive_DMB( &
                                                ! assuming screw or edge character.
   vel_y(:,:) = vel0(2,:,:)
   vel_z(:,:) = vel0(3,:,:)
-  
+
   ! if globals.stop == True:
   !     print error
 
@@ -1896,7 +1896,7 @@ END SUBROUTINE Constitutive_DMB
 !<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><
 !-----------------------------------------------------------------------
 
-SUBROUTINE DMB_Update_State(state_old, dt, mass_array, xdot_bc, force_bc, & 
+SUBROUTINE DMB_Update_State(state_old, dt, mass_array, xdot_bc, force_bc, &
            all_props_dmb, cdt_state, ddc_state,                           &
            state_new, xdot_acc_bc)
   USE discoflux_GlobalParams
@@ -1946,7 +1946,7 @@ SUBROUTINE DMB_Update_State(state_old, dt, mass_array, xdot_bc, force_bc, &
   allocate(varrho_field(Nel,Nslip,Nchar,2), tau_back_field(Nel,Nslip), epsilon_i_field(Nel,3,3))
 !~   call state_new%allocatememory() ! will be called within DMB_State() below
   call field_variables%allocatememory()
-  
+
   varrho_field    = cdt_state%varrho_field
   tau_back_field  = ddc_state%tau_b
   epsilon_i_field = ddc_state%epsilon_i
@@ -1957,7 +1957,7 @@ SUBROUTINE DMB_Update_State(state_old, dt, mass_array, xdot_bc, force_bc, &
   time_old = state_old%time
   time     = (/time_old(1)+dt, time_old(1), time_old(2) /)
   dt_mid   = 0.5d0*(time(1) - time(3))
- 
+
   ! compute element lengths and axial stretch field
   do iel = 1, Nel
     element_lengths(iel) = state_old%X_ref(iel+1) - state_old%X_ref(iel)
@@ -1965,7 +1965,7 @@ SUBROUTINE DMB_Update_State(state_old, dt, mass_array, xdot_bc, force_bc, &
   end do  !iel
 
   ! initialize new state
-  call DMB_State(time, state_new)      
+  call DMB_State(time, state_new)
   state_new%F(:,:,1) = dxdX1(:,:)
   state_new%X_ref    = state_old%X_ref
 
@@ -1975,7 +1975,7 @@ SUBROUTINE DMB_Update_State(state_old, dt, mass_array, xdot_bc, force_bc, &
   !end do  !iel
 
   !call Print_DMB_State(state_new)
-  
+
   ! array for computing element nodal forces
   vec1(:) = (/-1.d0, 1.d0/)
 
@@ -1987,10 +1987,10 @@ SUBROUTINE DMB_Update_State(state_old, dt, mass_array, xdot_bc, force_bc, &
   !$OMP   sigma, vel, vel_x, vel_y, vel_z, temp_new, Fp_new, Fe_new, tau, dgamma, Nsub, i_cutback)
   do iregion = 1,nregion
     do iel = region_mask(iregion,1), region_mask(iregion,2)
-      
+
     current_el = iel
     elem_len = element_lengths(iel)
-  
+
     ! interpolate dis. density and backstress
     varrho_ip(:,:,:) = varrho_field(iel,:,:,:)
     tau_b(:)       = tau_back_field(iel,:)
@@ -1999,7 +1999,7 @@ SUBROUTINE DMB_Update_State(state_old, dt, mass_array, xdot_bc, force_bc, &
     field_variables%varrho_ip = varrho_ip
     field_variables%tau_b     = tau_b
     field_variables%epsilon_i = epsilon_i
-    
+
     ! get state variables at integration point
     F_new(:,:)      = state_new%F(iel,:,:)
     !write(*,*) "F_new, iel=",iel
@@ -2009,7 +2009,7 @@ SUBROUTINE DMB_Update_State(state_old, dt, mass_array, xdot_bc, force_bc, &
     cauchy_old(:,:) = state_old%cauchy(iel,:,:)
     Fp_old(:,:)     = state_old%Fp(iel,:,:)
     Fe_old(:,:)     = state_old%Fe(iel,:,:)
-    
+
     ! evaluate constitutive update
     call Constitutive_DMB( &
         F_new, F_old, T_old, cauchy_old, Fp_old, Fe_old, field_variables, dt, &
@@ -2048,7 +2048,7 @@ SUBROUTINE DMB_Update_State(state_old, dt, mass_array, xdot_bc, force_bc, &
     end do  ! iel
   end do ! iregion
   !$OMP END PARALLEL DO
-    
+
   ! DMB: FEM Step 4 - Update position, velocity
 
   ! 4b external force bc's
@@ -2068,7 +2068,7 @@ SUBROUTINE DMB_Update_State(state_old, dt, mass_array, xdot_bc, force_bc, &
   state_new%xddot(1:Nnode,2) = (f_ext(1:Nnode,2)-f_int(1:Nnode,2)) / mass_array(1:Nnode)
   state_new%xddot(1:Nnode,3) = (f_ext(1:Nnode,3)-f_int(1:Nnode,3)) / mass_array(1:Nnode)
   state_new%xdot(1:Nnode,1:3)  = state_old%xdot(1:Nnode,1:3) + dt_mid*state_new%xddot(1:Nnode,1:3)
-  
+
   ! 4b enforce vel bc's
   if(xdot_bc%bc_active(1)) then
     do i=1,3
@@ -2080,7 +2080,7 @@ SUBROUTINE DMB_Update_State(state_old, dt, mass_array, xdot_bc, force_bc, &
       if(xdot_bc%dof_active(2,i)) state_new%xdot(Nnode,i) = min(1.d0,time(1)/xdot_acc_bc)*xdot_bc%value(2,i)
     end do  !i
   end if
-  
+
   ! 4c update current position
   state_new%x(:,:) = state_old%x(:,:) + dt * state_new%xdot(:,:)
 

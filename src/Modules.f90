@@ -1,5 +1,5 @@
 ! © 2026. Triad National Security, LLC. All rights reserved.
-! This program was produced under U.S. Government contract 89233218CNA000001 for Los Alamos National Laboratory (LANL), 
+! This program was produced under U.S. Government contract 89233218CNA000001 for Los Alamos National Laboratory (LANL),
 ! which is operated by Triad National Security, LLC for the U.S. Department of Energy/National Nuclear Security Administration.
 ! All rights in the program are reserved by Triad National Security, LLC, and the U.S. Department of Energy/National Nuclear
 ! Security Administration. The Government is granted for itself and others acting on its behalf a nonexclusive, paid-up,
@@ -26,7 +26,7 @@ MODULE discoflux_GlobalParams
   REAL(KIND=8), PARAMETER              :: pi = 4.d0*atan(1.d0)
   integer :: Nregion = 1
   integer, allocatable :: region_mask(:,:) !! call `generate_regions()` in the Driver to populate this global variable
-  
+
   CONTAINS
     SUBROUTINE generate_regions()
       integer :: i, Nskip, ith_character
@@ -40,10 +40,10 @@ MODULE discoflux_GlobalParams
         region_mask(i,1) = 1 + Nskip*(i-1)
         region_mask(i,2) = Nskip*i
       end do
-      
+
       allocate(characters(Nchar))
       characters = [(ith_character,ith_character=1,Nchar)]
-      
+
       RETURN
     END SUBROUTINE generate_regions
 
@@ -55,6 +55,7 @@ END MODULE discoflux_GlobalParams
 
 MODULE discoflux_CDT
   USE discoflux_GlobalParams
+  implicit none
   private
 !-----------------------------------------------------------------------
   TYPE, public :: Type_CDT_PROPS
@@ -84,13 +85,13 @@ MODULE discoflux_CDT
     contains
       procedure :: allocatememory => CDT_STATE_allocatememory
   END TYPE Type_CDT_STATE
-  
+
   CONTAINS
     SUBROUTINE CDT_PROPS_allocatememory(some_type)
       class(Type_CDT_PROPS), intent(inout) :: some_type
       allocate(some_type%Aforest(Nel,Nslip,Nchar))
     END SUBROUTINE CDT_PROPS_allocatememory
-    
+
     SUBROUTINE CDT_STATE_allocatememory(some_type)
       class(Type_CDT_STATE), intent(inout) :: some_type
       allocate(some_type%cell_sizes(Nel))
@@ -105,6 +106,7 @@ END MODULE discoflux_CDT
 
 MODULE discoflux_DDC
   USE discoflux_GlobalParams
+  implicit none
   private
 !-----------------------------------------------------------------------
   TYPE, public :: Type_DDC_PROPS
@@ -127,13 +129,13 @@ MODULE discoflux_DDC
     contains
       procedure :: allocatememory => DDC_STATE_allocatememory
   END TYPE Type_DDC_STATE
-  
+
   CONTAINS
     SUBROUTINE DDC_PROPS_allocatememory(some_type)
       class(Type_DDC_PROPS), intent(inout) :: some_type
       allocate(some_type%slip_S(3,Nslip))
     END SUBROUTINE DDC_PROPS_allocatememory
-    
+
     SUBROUTINE DDC_STATE_allocatememory(some_DDC_STATE)
       class(Type_DDC_STATE), intent(inout) :: some_DDC_STATE
       allocate(some_DDC_STATE%cell_sizes(Nel))
@@ -149,6 +151,7 @@ END MODULE discoflux_DDC
 
 MODULE discoflux_DMB
   USE discoflux_GlobalParams
+  implicit none
   private
 !-----------------------------------------------------------------------
   TYPE, public :: Type_DMB_EOS
@@ -242,13 +245,13 @@ MODULE discoflux_DMB
     LOGICAL, DIMENSION(2,3)  :: dof_active  !! True if DOF is affected
     REAL(KIND=8), DIMENSION(2,3)   :: value !! BC vector value
   END TYPE Type_DMB_VECTOR_BC
-  
+
   CONTAINS
     SUBROUTINE DMB_EOS_allocatememory(some_type)
       class(Type_DMB_EOS), intent(inout) :: some_type
       allocate(some_type%Dhat(7999,2))
     END SUBROUTINE DMB_EOS_allocatememory
-    
+
     SUBROUTINE DMB_PROPS_allocatememory(some_type)
       class(Type_DMB_PROPS), intent(inout) :: some_type
       allocate(some_type%B0(Nchar), some_type%wave_vel(Nchar))
@@ -258,7 +261,7 @@ MODULE discoflux_DMB
       allocate(some_type%schmid0(Nslip,3,3), some_type%tau_back_nokappa(3,Nslip,Nchar))
       allocate(some_type%eos%Dhat(7999,2))
     END SUBROUTINE DMB_PROPS_allocatememory
-    
+
     SUBROUTINE DMB_STATE_allocatememory(some_type)
       class(Type_DMB_STATE), intent(inout) :: some_type
       allocate(some_type%X_ref(Nnode), some_type%F(Nel,3,3), some_type%T(Nel,1))
@@ -269,7 +272,7 @@ MODULE discoflux_DMB
       allocate(some_type%tau(Nel,Nslip))
       allocate(some_type%Nsub(Nel), some_type%i_cutback(Nel))
     END SUBROUTINE DMB_STATE_allocatememory
-    
+
     SUBROUTINE DMB_FIELD_VARIABLES_allocatememory(some_type)
       class(Type_DMB_FIELD_VARIABLES), intent(inout) :: some_type
       allocate(some_type%varrho_ip(Nslip,Nchar,2), some_type%tau_b(Nslip))
@@ -283,6 +286,7 @@ END MODULE discoflux_DMB
 
 MODULE discoflux_OUTPUT
   USE discoflux_GlobalParams
+  implicit none
   public
 !-----------------------------------------------------------------------
     INTEGER :: unit_dmb_pos     = 100
@@ -302,8 +306,8 @@ MODULE discoflux_OUTPUT
     integer, DIMENSION(:), allocatable :: unit_gamma_acc
     integer :: unit_stress_th   = 270
     integer :: unit_velocity_th = 280
-    
-    
+
+
     CONTAINS
       SUBROUTINE assign_units()
         allocate(unit_vel(Nchar), unit_vel_x(Nchar), unit_vel_y(Nchar), unit_vel_z(Nchar))

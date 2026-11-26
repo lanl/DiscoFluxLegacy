@@ -1,11 +1,12 @@
 ! © 2026. Triad National Security, LLC. All rights reserved.
-! This program was produced under U.S. Government contract 89233218CNA000001 for Los Alamos National Laboratory (LANL), 
+! This program was produced under U.S. Government contract 89233218CNA000001 for Los Alamos National Laboratory (LANL),
 ! which is operated by Triad National Security, LLC for the U.S. Department of Energy/National Nuclear Security Administration.
 ! All rights in the program are reserved by Triad National Security, LLC, and the U.S. Department of Energy/National Nuclear
 ! Security Administration. The Government is granted for itself and others acting on its behalf a nonexclusive, paid-up,
 ! irrevocable worldwide license in this material to reproduce, prepare. derivative works, distribute copies to the public, perform
 ! publicly and display publicly, and to permit others to do so.
 module discoflux_EOS
+implicit none
 public
 contains
 !-----------------------------------------------------------------------
@@ -15,7 +16,7 @@ contains
 !>  computes the change in temperature due to volumetric compression
 pure SUBROUTINE EOS_Shock_Heat(props, thermo_coeffs, bulk_q, detFnew, detFold, temperature, &
            dTemp)
-  
+
   USE discoflux_GlobalParams
   USE discoflux_DMB, only: Type_DMB_EOS
   IMPLICIT NONE
@@ -35,7 +36,7 @@ pure SUBROUTINE EOS_Shock_Heat(props, thermo_coeffs, bulk_q, detFnew, detFold, t
   REAL(KIND=8) :: rho0, Cv, te_coupling
 !-----------------------------------------------------------------------
 
-         
+
   rho0        = props%rho0
   Cv          = thermo_coeffs(1)  ! specific heat (const. volume)
   te_coupling = thermo_coeffs(2)  ! isentropic thermoelastic coupling coefficient, i.e., d^2(psi)/(dTdv) = (-dpdT)
